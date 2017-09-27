@@ -5,12 +5,15 @@
  String inString;  // Input string from serial port
  int lf = 10;      // ASCII linefeed 
  */
-
+ 
+//Constants
 final int NUM_SIDES = 6;
 final float GROWTH_FACTOR = 1.8;
 final float SHRINK_FACTOR = 0.98;
 final float MAX_CIRCLE_WIDTH = 350;
 final float MIN_CIRCLE_WIDTH = 20;
+
+//Global vars
 PShape planche;
 ArrayList<PShape> sensorCircles;
 PGraphics pg;
@@ -28,17 +31,14 @@ void setup() {
   pg.shape(planche);
   pg.endDraw();
 
-
-  //Initialize circles that will be representing sensors on the planck
+  //Initialize and draw circles that will be representing sensors on the planck
   sensorCircles = new ArrayList<PShape>();
-
   stroke(0, 255, 0);
   PShape e;
   for (int i = 0; i < NUM_SIDES; i++) {
     pushMatrix();
     translate(planche.getVertex(i).x, planche.getVertex(i).y);
     e = createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH);
-    shape(e);
     popMatrix();
     sensorCircles.add(e);
   }
@@ -53,12 +53,12 @@ void setup() {
 }
 
 void draw() {
-  //Loop through vertices of the plank, draw circle with 
-
+  
+  //Set planck as bg image using static buffer
   background(pg);
-  String str = "";
+  
+  //Loop through vertices of the plank, draw circle while reducing its size if above min
   for (int i = 0; i < NUM_SIDES; i++) {
-
     pushMatrix();
     translate(planche.getVertex(i).x, planche.getVertex(i).y);
     PShape e = sensorCircles.get(i);
@@ -72,8 +72,7 @@ void draw() {
   }
 }
 
-//Function copied from https://processing.org/examples/regularpolygon.html and modified to return polygon centered on center of screen
-// with top left corner pointer in its center (so drawing it with CORNER mode will use coordinates for its center)
+//Function copied from https://processing.org/examples/regularpolygon.html and modified to return polygon aligned with center of screen
 PShape polygon(float radius, int npoints) {
   float angle = TWO_PI / npoints;
   PShape s = createShape();
@@ -96,6 +95,7 @@ PShape polygon(float radius, int npoints) {
 void mousePressed() {
   for (int i = 0; i < NUM_SIDES; i++) {
     PShape e = sensorCircles.get(i);
+    
     //If not too large yet, grow circle
     if (e.getWidth()*GROWTH_FACTOR < MAX_CIRCLE_WIDTH) {
       e.scale(GROWTH_FACTOR);
