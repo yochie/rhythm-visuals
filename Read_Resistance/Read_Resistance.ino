@@ -3,60 +3,103 @@ int potPin1 = 1;    // select the input pin for the potentiometer
 //int potPin3 = 2;    // select the input pin for the potentiometer
 //int potPin4 = 2;    // select the input pin for the potentiometer
 
-const int JUMP_THRESHOLD = 50;
-const int BUFFER_SIZE = 100;
-const int NUM_WAIT_CYCLES = 20;
+const short BUFFER_SIZE = 512;
+const short JUMP_BUFFER_SIZE = 64;
+
+const short JUMP_THRESHOLD = 30;
+const short JUMP_VARIABILITY = 30;
+
+const short NUM_WAIT_CYCLES = 20;
+const short MAX_CONSECUTIVE_JUMPS = 128;
 
 int val = 0;
 int cnt = 0;
-int baselineBuffer[BUFFER_SIZE];
+short baselineBuffer[BUFFER_SIZE];
+short jumpBuffer[JUMP_BUFFER_SIZE];
 int baseline = 0;
 int lastJumpVal = 1024;
 int waitCycles = 0;
-
+int jumpCount = 0;
 
 void setup() {
-  Serial.begin(9600);      // open the serial port at 9600 bps:
-  baseline = analogRead(potPin1);
+  Serial.begin(115200);      // open the serial port at 9600 bps:
 
+  //establish first baseline
+  for (int i = 0; i < 100; i++) {
+    baseline += analogRead(potPin1);
+  }
+
+  baseline = baseline / 100;
 }
 
 // read the value from the sensor
 void loop() {
   //New Val
-  val = analogRead(potPin1);
+  val = (short) analogRead(potPin1);
 
-  //If still coming down from last jump
-  if (val >= lastJumpVal - 50 && waitCycles > 0){
-    waitCycles--;
-    return;
-  }
-  else if (cnt == BUFFER_SIZE){
+  //If buffer is full, compute its baseline and reset counter
+  if (cnt == BUFFER_SIZE) {
     cnt = 0;
-    baseline = computeAverage(baselineBuffer);
-    Serial.println("Computing new baseline :");
+    baseline = computeAverage(baselineBuffer, BUFFER_SIZE);
+    Serial.print("Computed new baseline : ");
     Serial.println(baseline);
+  }
 
-  }
-  //If Jumped up JUMP_THRESHOLD or more from baseline
-  else if (val - baseline >= JUMP_THRESHOLD && baseline != 0){
-     Serial.println(val);
-     Serial.println("jump");
-     lastJumpVal = val;
-     waitCycles = NUM_WAIT_CYCLES;
-  }
-  else{
+  //If moved up by JUMP_THRESHOLD or more from baseline, signal jump to serial.
+  if (val - baseline >= JUMP_THRESHOLD) {
+    Serial.print("Jump from baseline ");
+    Serial.print(baseline);
+    Serial.print(" to ");
     Serial.println(val);
-    baselineBuffer[cnt] = val;
+
+    //If we get many consecutive jumps without much variability, reset baseline.
+    if (lastJumpVal - JUMP_VARIABILITY < val  && val < lastJumpVal + JUMP_VARIABILITY) {
+      jumpCount++;
+      if (jumpCount >= MAX_CONSECUTIVE_JUMPS - JUMP_BUFFER_SIZE){
+        jumpBuffer[jumpCount - (MAX_CONSECUTIVE_JUMPS - JUMP_BUFFER_SIZE)] = val;
+      }
+      if (jumpCount > MAX_CONSECUTIVE_JUMPS) {
+        baseline = computeAverage(jumpBuffer, JUMP_BUFFER_SIZE);
+      }
+    }
+    lastJumpVal = val;
   }
-  cnt++;
+  //Add value to buffer for baseline update and reset jump counting variables
+  else {
+    baselineBuffer[cnt] = val;
+    cnt++;
+    //Using 2048 as default value that will never match the current val when testing for consecutive jumps
+    lastJumpVal = 2048;
+    jumpCount = 0;
+  }
+
 }
 
-int computeAverage(int a[]){
-  int sum = 0;
-  for(int i =0; i < BUFFER_SIZE; i++){
-    sum += a[i];
+short computeAverage(short a[], int aSize) {
+  //compute in two parts to avoid busting max int size
+  long sum = 0;
+  for (int i = 0; i < aSize; i++) {
+    sum = sum + a[i];
   }
-  return sum/BUFFER_SIZE;
+
+  short toreturn = (short) (sum / aSize);
+
+  if (toreturn < 0)
+  {
+    Serial.print("sum : ");
+    Serial.println(sum);
+    Serial.print("(short) Average : ");
+    Serial.println(toreturn);
+    int sum2 = 0;
+    for (int i = 0; i < aSize; i++) {
+      sum2 += a[i];
+      Serial.print(i);
+      Serial.print(" : ");
+      Serial.println(a[i]);
+    }
+    Serial.println("ERROR: PROBABLY BUSTED MAX LONG SIZE. YOANN, ARRANGE TON CODE.");
+  }
+
+  return toreturn;
 }
 
