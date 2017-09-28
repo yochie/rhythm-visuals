@@ -62,9 +62,12 @@ void draw() {
     pushMatrix();
     translate(planche.getVertex(i).x, planche.getVertex(i).y);
     PShape e = sensorCircles.get(i);
-    if (e.getWidth() > MIN_CIRCLE_WIDTH) {
+    int eWidth =(int) e.getWidth();
+    if (eWidth > MIN_CIRCLE_WIDTH) {
       e.scale(SHRINK_FACTOR);
     }
+    int ecolor = 150;
+    stroke(ecolor);
     shape(e);
     popMatrix();
     //str = String.format("V %d : " + planche.getVertex(i), i);
