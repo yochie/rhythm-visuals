@@ -1,22 +1,21 @@
-/* FOR SERIAL 
- import processing.serial.*; 
- 
- Serial myPort;    // The serial port
- String inString;  // Input string from serial port
- int lf = 10;      // ASCII linefeed 
- */
- 
+import processing.serial.*; 
+
 //Constants
 final int NUM_SIDES = 6;
 final float GROWTH_FACTOR = 1.8;
 final float SHRINK_FACTOR = 0.98;
 final float MAX_CIRCLE_WIDTH = 350;
 final float MIN_CIRCLE_WIDTH = 20;
+final int BAUD_RATE = 19200;
 
 //Global vars
-PShape planche;
-ArrayList<PShape> sensorCircles;
-PGraphics pg;
+PShape planche; //bg images shape
+PGraphics pg; //bg images graphic
+ArrayList<PShape> sensorCircles; //list of circles that represent sensors
+Serial myPort;    // The serial port
+String inString;  // Input string from serial port
+int lf = 10;      // ASCII linefeed 
+
 
 void setup() {
   size(1024, 768, P2D);
@@ -43,20 +42,18 @@ void setup() {
     sensorCircles.add(e);
   }
 
-  /* FOR SERIAL
-   // List all the available serial ports: 
-   printArray(Serial.list()); 
-   
-   myPort = new Serial(this, Serial.list()[0], 115200); 
-   myPort.bufferUntil(lf); 
-   */
+  // List all the available serial ports: 
+  printArray(Serial.list()); 
+
+  myPort = new Serial(this, Serial.list()[1], BAUD_RATE); 
+  myPort.bufferUntil(lf);
 }
 
 void draw() {
-  
+
   //Set planck as bg image using static buffer
   background(pg);
-  
+
   //Loop through vertices of the plank, draw circle while reducing its size if above min
   for (int i = 0; i < NUM_SIDES; i++) {
     pushMatrix();
@@ -89,24 +86,19 @@ PShape polygon(float radius, int npoints) {
   return s;
 }
 
-/* FOR SERIAL 
- void serialEvent(Serial p) { 
- inString = p.readString();
- } 
- */
+void serialEvent(Serial p) { 
+  inString = p.readString();
 
-void mousePressed() {
-  for (int i = 0; i < NUM_SIDES; i++) {
-    PShape e = sensorCircles.get(i);
+  if (inString.startsWith("J:")) {
+    int jump = Integer.parseInt(inString.substring(3));
+    println("jump: " + jump);
     
-    //If not too large yet, grow circle
-    if (e.getWidth()*GROWTH_FACTOR < MAX_CIRCLE_WIDTH) {
-      e.scale(GROWTH_FACTOR);
-    }
-    //Otherwise, set circle to its max width
-    else {
+    float desiredWidth = map(jump, 0, 512, 0, MAX_CIRCLE_WIDTH);
+    
+    for (int i = 0; i < NUM_SIDES; i++) {
+      PShape e = sensorCircles.get(i);
       e.resetMatrix();
-      e.scale(MAX_CIRCLE_WIDTH / MIN_CIRCLE_WIDTH);
+      e.scale(desiredWidth / MIN_CIRCLE_WIDTH);
     }
   }
-}
+} 
