@@ -50,7 +50,7 @@ void setup() {
 
 void loop() {
   //If baseline buffer is full, compute its average and reset its counter
-  if (cnt == BUFFER_SIZE*CYCLES_PER_BASELINE) {
+  if (cnt == BUFFER_SIZE * CYCLES_PER_BASELINE) {
     cnt = 0;
     baseline = computeAverage(baselineBuffer, BUFFER_SIZE);
     //    Serial.print("Computed new baseline : ");
@@ -65,7 +65,7 @@ void loop() {
   //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation
   if (jumpVal >= JUMP_THRESHOLD) {
     //If we get many consecutive jumps without much variability, reset baseline.
-    //2048 is default value for lastVal, so it will never match on this condition 
+    //2048 is default value for lastVal, so it will never match on this condition
     //since val is between [0, 1024] and variability should be no larger than 1024
     if (abs(lastVal - val) < JUMP_VARIABILITY) {
       consecutiveJumpCount++;
@@ -107,19 +107,23 @@ void loop() {
     if (lastVal != 2048 && jumpCount > 0) {
       short avgVal = computeAverage(jumpBuffer, jumpCount);
       Serial.print("J: ");
-      Serial.println(avgVal);
+      Serial.println(constrain(avgVal - baseline, 0, 512));
     }
-    //every 10 loops, add value to baseline buffer for updating baseline
+    //every x loops, add value to baseline buffer for updating baseline
     if (cnt % CYCLES_PER_BASELINE == 0) {
       baselineBuffer[(int) cnt / CYCLES_PER_BASELINE] = val;
     }
     cnt++;
+
     //Using 2048 as default value that will never match the current val when testing for consecutive jumps
     lastVal = 2048;
+
+    //If you didn't know....
     jumpCount = 0;
+
+    //Signals baseline, useful for graphing in arduino serial grapher
     Serial.println("J: 0");
   }
-
 }
 
 short computeAverage(short a[], int aSize) {
@@ -133,19 +137,19 @@ short computeAverage(short a[], int aSize) {
 
   if (toreturn < 0)
   {
-    Serial.print("sum : ");
-    Serial.println(sum);
-    Serial.print("size : ");
-    Serial.println(aSize);
-    Serial.print("(short) Average : ");
-    Serial.println(toreturn);
-    int sum2 = 0;
-    for (int i = 0; i < aSize; i++) {
-      sum2 += a[i];
-      Serial.print(i);
-      Serial.print(" : ");
-      Serial.println(a[i]);
-    }
+    //    Serial.print("sum : ");
+    //    Serial.println(sum);
+    //    Serial.print("size : ");
+    //    Serial.println(aSize);
+    //    Serial.print("(short) Average : ");
+    //    Serial.println(toreturn);
+    //    int sum2 = 0;
+    //    for (int i = 0; i < aSize; i++) {
+    //      sum2 += a[i];
+    //      Serial.print(i);
+    //      Serial.print(" : ");
+    //      Serial.println(a[i]);
+    //  }
     Serial.println("ERROR: PROBABLY BUSTED MAX LONG SIZE. YOANN, ARRANGE TON CODE.");
   }
 
