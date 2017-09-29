@@ -13,9 +13,9 @@ PShape planche; //bg images shape
 PGraphics pg; //bg images graphic
 ArrayList<PShape> sensorCircles; //list of circles that represent sensors
 Serial myPort;    // The serial port
-String inString;  // Input string from serial port
+String inString = "";  // Input string from serial port
 int lf = 10;      // ASCII linefeed 
-
+int jump;
 
 void setup() {
   size(1024, 768, P2D);
@@ -45,7 +45,7 @@ void setup() {
   // List all the available serial ports: 
   printArray(Serial.list()); 
 
-  myPort = new Serial(this, Serial.list()[1], BAUD_RATE); 
+  myPort = new Serial(this, Serial.list()[0], BAUD_RATE); 
   myPort.bufferUntil(lf);
 }
 
@@ -53,6 +53,16 @@ void draw() {
 
   //Set planck as bg image using static buffer
   background(pg);
+  if (inString != "") {
+    String current = inString.substring(3);
+    jump = Integer.parseInt(current);
+    inString = "";
+    println("jump: " + jump);
+    float desiredWidth = map(jump, 0, 512, 0, MAX_CIRCLE_WIDTH);
+    PShape e = sensorCircles.get(0);
+    e.resetMatrix();
+    e.scale(desiredWidth / MIN_CIRCLE_WIDTH);
+  }
 
   //Loop through vertices of the plank, draw circle while reducing its size if above min
   for (int i = 0; i < NUM_SIDES; i++) {
@@ -67,8 +77,6 @@ void draw() {
     stroke(ecolor);
     shape(e);
     popMatrix();
-    //str = String.format("V %d : " + planche.getVertex(i), i);
-    //println(str);
   }
 }
 
@@ -88,17 +96,4 @@ PShape polygon(float radius, int npoints) {
 
 void serialEvent(Serial p) { 
   inString = p.readString();
-
-  if (inString.startsWith("J:")) {
-    int jump = Integer.parseInt(inString.substring(3));
-    println("jump: " + jump);
-    
-    float desiredWidth = map(jump, 0, 512, 0, MAX_CIRCLE_WIDTH);
-    
-    for (int i = 0; i < NUM_SIDES; i++) {
-      PShape e = sensorCircles.get(i);
-      e.resetMatrix();
-      e.scale(desiredWidth / MIN_CIRCLE_WIDTH);
-    }
-  }
 } 
