@@ -8,22 +8,21 @@ const short BUFFER_SIZE = 256; //amount of vals that we average baseline over
 //Max amount of jump vals used to average press velocity. If a button is kept pressed,
 //a jump message will be printed every time the buffer is full.
 //Avoid making too large as then jump messages would'nt be printed often enough
-const short JUMP_BUFFER_SIZE = 64;
+const short JUMP_BUFFER_SIZE = 8;
 
 //Difference in value that qualifies as a press
-const short JUMP_THRESHOLD = 50;
+const short JUMP_THRESHOLD = 35;
 
 //How much a jump can differ from the last to qualify as consecutive
 //make sure its no larger than 1024...
-const short JUMP_VARIABILITY = 30;
+const short JUMP_VARIABILITY = 15;
 
 //After this amount of consecutive (and similar) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-const short MAX_CONSECUTIVE_JUMPS = JUMP_BUFFER_SIZE * 4;
-
+const short MAX_CONSECUTIVE_JUMPS = 16384;
 
 //How frequently do we add an element to the baseline buffer. Used so that we dont compute baseline so often.
-const short CYCLES_PER_BASELINE = 10;
+const short CYCLES_PER_BASELINE = 5;
 
 const int BAUD_RATE = 9600;
 
@@ -33,7 +32,6 @@ short baselineBuffer[BUFFER_SIZE];
 short jumpBuffer[JUMP_BUFFER_SIZE];
 int baseline = 0;
 int lastVal = 2048;
-int waitCycles = 0;
 int jumpCount = 0;
 int consecutiveJumpCount = 0;
 
@@ -50,11 +48,11 @@ void setup() {
 
 void loop() {
   //If baseline buffer is full, compute its average and reset its counter
-  if (cnt == BUFFER_SIZE * CYCLES_PER_BASELINE) {
+  if (cnt >= BUFFER_SIZE * CYCLES_PER_BASELINE) {
     cnt = 0;
     baseline = computeAverage(baselineBuffer, BUFFER_SIZE);
-    //    Serial.print("Computed new baseline : ");
-    //    Serial.println(baseline);
+        Serial.print("Computed new baseline : ");
+        Serial.println(baseline);
   }
 
   //New Val
@@ -69,16 +67,26 @@ void loop() {
     //since val is between [0, 1024] and variability should be no larger than 1024
     if (abs(lastVal - val) < JUMP_VARIABILITY) {
       consecutiveJumpCount++;
+      //   Serial.println("Consecutive");
+      //      Serial.println(consecutiveJumpCount);
       if (consecutiveJumpCount >= MAX_CONSECUTIVE_JUMPS) {
+        Serial.println("Consecutive RESET");
         baseline = computeAverage(jumpBuffer, jumpCount);
+        Serial.println(baseline);
         consecutiveJumpCount = 0;
         jumpCount = 0;
         lastVal = 2048;
         cnt = 0;
+        return;
       }
     }
+    else {
+      consecutiveJumpCount = 0;
+    }
     //If there is place in buffer, add jump there.
-    else if (jumpCount < JUMP_BUFFER_SIZE) {
+    if (jumpCount < JUMP_BUFFER_SIZE) {
+      //      Serial.println("Adding to buffer at position: ");
+      //      Serial.println(jumpCount);
       //put absolute val (not jumpVal) in buffer
       jumpBuffer[jumpCount] = val;
       jumpCount++;
@@ -109,6 +117,10 @@ void loop() {
       Serial.print("J: ");
       Serial.println(constrain(avgVal - baseline, 0, 512));
     }
+    else {
+      //Signals baseline, useful for graphing in arduino serial grapher
+      Serial.println("J: 0");
+    }
     //every x loops, add value to baseline buffer for updating baseline
     if (cnt % CYCLES_PER_BASELINE == 0) {
       baselineBuffer[(int) cnt / CYCLES_PER_BASELINE] = val;
@@ -120,9 +132,8 @@ void loop() {
 
     //If you didn't know....
     jumpCount = 0;
+    consecutiveJumpCount = 0;
 
-    //Signals baseline, useful for graphing in arduino serial grapher
-    Serial.println("J: 0");
   }
 }
 
@@ -135,23 +146,6 @@ short computeAverage(short a[], int aSize) {
 
   short toreturn = (short) (sum / aSize);
 
-  if (toreturn < 0)
-  {
-    //    Serial.print("sum : ");
-    //    Serial.println(sum);
-    //    Serial.print("size : ");
-    //    Serial.println(aSize);
-    //    Serial.print("(short) Average : ");
-    //    Serial.println(toreturn);
-    //    int sum2 = 0;
-    //    for (int i = 0; i < aSize; i++) {
-    //      sum2 += a[i];
-    //      Serial.print(i);
-    //      Serial.print(" : ");
-    //      Serial.println(a[i]);
-    //  }
-    Serial.println("ERROR: PROBABLY BUSTED MAX LONG SIZE. YOANN, ARRANGE TON CODE.");
-  }
 
   return toreturn;
 }
