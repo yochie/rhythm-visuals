@@ -31,7 +31,7 @@ int cnt = 0;
 short baselineBuffer[BUFFER_SIZE];
 short jumpBuffer[JUMP_BUFFER_SIZE];
 int baseline = 0;
-int lastVal = 2048;
+int lastVal = 2048;    //Using 2048 as default value that will never match the current val when testing for consecutive jumps
 int jumpCount = 0;
 int consecutiveJumpCount = 0;
 
@@ -51,8 +51,8 @@ void loop() {
   if (cnt > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
     cnt = 0;
     baseline = computeAverage(baselineBuffer, BUFFER_SIZE);
-        Serial.print("Computed new baseline : ");
-        Serial.println(baseline);
+    Serial.print("Computed new baseline : ");
+    Serial.println(baseline);
   }
 
   //New Val
@@ -117,10 +117,9 @@ void loop() {
       Serial.print("J: ");
       Serial.println(constrain(avgVal - baseline, 0, 512));
     }
-    else {
-      //Signals baseline, useful for graphing in arduino serial grapher
-      Serial.println("J: 0");
-    }
+    //Signals baseline, useful for graphing in arduino serial grapher
+    Serial.println("J: 0");
+
     //every x loops, add value to baseline buffer for updating baseline
     if (cnt % CYCLES_PER_BASELINE == 0) {
       baselineBuffer[(int) cnt / CYCLES_PER_BASELINE] = val;
@@ -133,7 +132,6 @@ void loop() {
     //If you didn't know....
     jumpCount = 0;
     consecutiveJumpCount = 0;
-
   }
 }
 
