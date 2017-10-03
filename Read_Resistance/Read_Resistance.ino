@@ -48,7 +48,7 @@ void setup() {
 
 void loop() {
   //If baseline buffer is full, compute its average and reset its counter
-  if (cnt >= BUFFER_SIZE * CYCLES_PER_BASELINE) {
+  if (cnt > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
     cnt = 0;
     baseline = computeAverage(baselineBuffer, BUFFER_SIZE);
         Serial.print("Computed new baseline : ");
