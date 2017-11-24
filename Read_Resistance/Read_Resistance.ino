@@ -8,10 +8,10 @@ const short BUFFER_SIZE = 512; //amount of vals that we average baseline over
 //Max amount of jump vals used to average press velocity. If a button is kept pressed,
 //a jump message will be printed every time the buffer is full.
 //Avoid making too large as then jump messages would'nt be printed often enough
-const short JUMP_BUFFER_SIZE = 1024;
+const short JUMP_BUFFER_SIZE = 256;
 
 //Difference in value that qualifies as a press
-const short JUMP_THRESHOLD = 75;
+const short JUMP_THRESHOLD = 35;
 
 //How much a jump can differ from the last to qualify as consecutive
 //make sure its no larger than 1024...
@@ -30,7 +30,7 @@ const short CYCLES_PER_BASELINE = 1;
 
 const int BAUD_RATE = 115200;
 
-const int JUMP_BLOWBACK = 20;
+const int JUMP_BLOWBACK = 80;
 
 
 int val = 0;
@@ -75,8 +75,8 @@ void loop() {
   //JUMPING
   //If jump is large enough, save val to jump buffer and print average jump if its full.
   //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation
-  if (jumpVal >= JUMP_THRESHOLD) {
-    //        Serial.println("JUMP !!!!!!!!!!! val : " + (String) val);
+  if (jumpVal >= JUMP_THRESHOLD && toWait == 0) {
+    //        Serial.println("JUMP val : " + (String) val);
     //        Serial.println("base : " + (String) baseline);
 
     //CONSECUTIVE
@@ -85,8 +85,8 @@ void loop() {
     //since val is between [0, 1024] and variability should be no larger than 1024
     if (abs(lastVal - val) < JUMP_VARIABILITY) {
       consecutiveJumpCount++;
-      //   Serial.println("Consecutive");
-      //      Serial.println(consecutiveJumpCount);
+      //Serial.println("Consecutive");
+      //Serial.println(consecutiveJumpCount);
 
       //RESET BASELINE
       if (consecutiveJumpCount >= MAX_CONSECUTIVE_JUMPS) {
