@@ -191,8 +191,8 @@ void loop() {
         //That might be enough to remove this "hack"
         baseline[currentSensor] = min(1024, avg * 1.25);
 
-        Serial.println("Consecutive RESET");
-        Serial.println(baseline[currentSensor]);
+        //Serial.println("Consecutive RESET");
+        //Serial.println(baseline[currentSensor]);
 
         cJumpCount[currentSensor] = 0;
         cJumpIndex[currentSensor] = 0;
@@ -239,10 +239,10 @@ void loop() {
       if ( jumpIndex[currentSensor] == JUMP_BUFFER_SIZE) {
         short avgVal = computeAverage(jumpBuffer[currentSensor], jumpIndex[currentSensor]);
         //Serial.print("average from buffer ");
-        Serial.print("J");
-        Serial.print(currentSensor);
-        Serial.print(": ");
-        Serial.println(constrain(avgVal - baseline[currentSensor], 0, 1024));
+        //Serial.print("J");
+        //Serial.print(currentSensor);
+        //Serial.print(": ");
+        //Serial.println(constrain(avgVal - baseline[currentSensor], 0, 1024));
 
         jumpIndex[currentSensor] = 0;
         lastVal[currentSensor] = val;
@@ -271,12 +271,11 @@ void loop() {
     } else {
       toWait[currentSensor]--;
     }
-
     // If using graphing, you might want to use these lines
-    Serial.print("J");
-    Serial.print(currentSensor);
-    Serial.println(": 0");
-    delay(1);
+    //Serial.print("J");
+    //Serial.print(currentSensor);
+    //Serial.println(": 0");
+    //delay(1);
 
     //Using 2048 as default value that will never match the current val when testing for consecutive jumps
     lastVal[currentSensor] = 2048;
