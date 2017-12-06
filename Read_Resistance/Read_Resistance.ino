@@ -173,6 +173,7 @@ void loop() {
         cJumpIndex[currentSensor] = 0;
         jumpIndex[currentSensor] = 0;
         lastVal[currentSensor] = 2048;
+        jumped[currentSensor] = false;
         baselineCount[currentSensor] = 0;
         return;
       }
