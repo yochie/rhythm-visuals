@@ -8,9 +8,9 @@ const short JUMP_BUFFER_SIZE = 40;
 //Difference in value that qualifies as a press
 const short JUMP_THRESHOLD = 50;
 
-//How much a jump can differ from the last to qualify as consecutive
-//make sure its no larger than 1024...
-const short JUMP_VARIABILITY = 100;
+//How much a jump can differ from the last to qualify as "consecutive"
+//make sure its in the range [0, 1024]
+const short JUMP_VARIABILITY = 1024;
 
 //Controller clock rate in MHz
 const int CLOCK_RATE = 180;
