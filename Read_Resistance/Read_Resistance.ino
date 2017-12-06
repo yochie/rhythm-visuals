@@ -141,7 +141,7 @@ void loop() {
   }
 
   //New Val
-  unsigned short val = (short) analogRead(PINS[currentSensor]);
+  unsigned short val = (unsigned short) analogRead(PINS[currentSensor]);
   unsigned short jumpVal = val - baseline[currentSensor];
 
   //JUMPING
@@ -270,7 +270,7 @@ void loop() {
   }
 }
 
-unsigned short computeAverage(unsigned short a[], long aSize) {
+unsigned short computeAverage(unsigned short a[], unsigned long aSize) {
   unsigned long sum = 0;
   for (int i = 0; i < aSize; i++) {
     sum = sum + a[i];
