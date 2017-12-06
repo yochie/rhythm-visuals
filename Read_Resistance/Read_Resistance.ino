@@ -108,21 +108,18 @@ void loop() {
   //If baseline buffer is full, compute its average and reset its counter
   if (cnt[currentSensor] > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
 
+    //adjust threshold to dynamic range of signal
     short mx = getMax(baselineBuffer);
     short mn = getMin(baselineBuffer);
-
     jump_threshold = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
-
-    cnt[currentSensor] = 0;
+    
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
 
-    //        Serial.print("Computed new baseline : ");
-    //        Serial.println(baseline[currentSensor]);
+    cnt[currentSensor] = 0;
   }
 
   //New Val
   int val = (short) analogRead(PINS[currentSensor]);
-
   short jumpVal = val - baseline[currentSensor];
 
   //JUMPING
@@ -138,10 +135,18 @@ void loop() {
       //RESET BASELINE
       //If we get many consecutive jumps without enough variability, reset baseline.
       if (consecutiveJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
-        Serial.println("Consecutive RESET");
+        
         int avg = computeAverage(cjumpBuffer[currentSensor], CONSECUTIVE_JUMP_BUFFER_SIZE);
+
+        //raise average a little before resetting baseline to it: early jump vals tend to make
+        //the average too low for the pressure by the time it resets, causing constant jumps
+        //TODO: add delay to consecutive jump filling so that it ignores first part of any jump
+        //That might be enough to remove this "hack"
         baseline[currentSensor] = min(1024,avg*1.25);
+
+        Serial.println("Consecutive RESET");
         Serial.println(baseline[currentSensor]);
+        
         consecutiveJumpCount[currentSensor] = 0;
         consecutiveJumpIndex[currentSensor] = 0;
         jumpIndex[currentSensor] = 0;
