@@ -13,6 +13,8 @@ short MIN_THRESHOLD = 30;
 //How much a jump can differ from the last to qualify as "consecutive"
 //make sure its in the range [0, 1024]
 const short JUMP_VARIABILITY = 1024;
+//Minimum number of cycles that a jump must be recorded for it to need blowback compensation
+const short MIN_JUMPS = 3;
 
 //Controller clock rate in MHz
 const int CLOCK_RATE = 180;
@@ -40,6 +42,7 @@ int baseline[NUM_SENSORS];
 int lastVal[NUM_SENSORS];
 int jumpCount[NUM_SENSORS];
 int consecutiveJumpCount[NUM_SENSORS];
+bool jumped[NUM_SENSORS];
 int toWait[NUM_SENSORS];
 int currentSensor;
 
@@ -52,6 +55,7 @@ void setup() {
   memset(lastVal, 2048, sizeof(lastVal));
   memset(jumpCount, 0, sizeof(jumpCount));
   memset(consecutiveJumpCount, 0, sizeof(consecutiveJumpCount));
+  memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
 
   //establish first baseline using 100 values
@@ -133,6 +137,11 @@ void loop() {
       jumpBuffer[currentSensor][jumpCount[currentSensor]] = val;
       jumpCount[currentSensor]++;
 
+      //mark as jump requiring blowback compensation
+      if (!jumped[currentSensor] && jumpCount[currentSensor] > MIN_JUMPS ) {
+        jumped[currentSensor] = true;
+      }
+
       //store current val for stagnation check
       lastVal[currentSensor] = val;
 
@@ -159,14 +168,15 @@ void loop() {
   //Add value to buffer for baseline update and reset jump counting variables
   else {
     //if last cycle was jump, send 0 val to signify jump is over
-    if (lastVal[currentSensor] != 2048) {
+    if (jumped[currentSensor]) {
       //Serial.print("coming out");
-      Serial.print("J");
-      Serial.print(currentSensor);
-      Serial.println(": 0");
+      //      Serial.print("J");
+      //      Serial.print(currentSensor);
+      //      Serial.println(": 0");
 
-      //Stop computing baseline and signaling jumps for a while
-      //because sensor values tend to be erratic after releasing the button
+      jumped[currentSensor] = false;
+      //Stop computing baseline for a while
+      //because sensor values tend to be lower than baseline after releasing the button
       toWait[currentSensor] = JUMP_BLOWBACK;
 
       //Reset baseline counter because baseline tends to change after button pressed
@@ -177,7 +187,7 @@ void loop() {
       //main loop executions (cycles) to occur between two jump signals on a same sensor
       //e.g. with JUMP_BLOWBACK set to 32, BUFFER_SIZE to 64 and NUM_SENSORs to 4, we need
       //(32 + 64) * 4 = 640 main loops between two button presses on ay single sensor
-      cnt[currentSensor] = 0;
+      //cnt[currentSensor] = 0;
     }
 
     if (toWait[currentSensor] == 0) {
