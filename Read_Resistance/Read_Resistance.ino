@@ -48,11 +48,11 @@ unsigned const short JUMP_BLOWBACK = 32;
 
 //GLOBAL VARIABLES
 
-//main iterator: countes the number of loop() executions while not jumping
-unsigned long cnt[NUM_SENSORS];
-
 //array used to compute baseline while not jumping
 unsigned short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
+
+//baseline iterator: counts the number of loop() executions while not jumping
+unsigned long cnt[NUM_SENSORS];
 
 //small buffer used to signal jumps
 //the average of this array is printed every time it becomes full
@@ -83,25 +83,33 @@ unsigned short baseline[NUM_SENSORS];
 //last read value for each pin
 unsigned short lastVal[NUM_SENSORS];
 
-//current pin index
-unsigned short currentSensor;
-
 //current threshold 
 unsigned short jump_threshold;
+
+//current pin index
+unsigned short currentSensor;
 
 void setup() {
   Serial.begin(BAUD_RATE);      // open the serial port at x bps:
 
   //initialize global arrays to default values
+  memset(baselineBuffer, 0, sizeof(baselineBuffer));
   memset(cnt, 0, sizeof(cnt));
-  memset(baseline, 0, sizeof(baseline));
-  memset(lastVal, 2048, sizeof(lastVal));
+  memset(jumpBuffer, 0, sizeof(jumpBuffer));
   memset(jumpIndex, 0, sizeof(jumpIndex));
+  memset(cjumpBuffer, 0, sizeof(cjumpBuffer));
   memset(consecutiveJumpCount, 0, sizeof(consecutiveJumpCount));
+  memset(consecutiveJumpIndex, 0, sizeof(consecutiveJumpIndex));
   memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
-  memset(cjumpBuffer, 0, sizeof(cjumpBuffer));
-  memset(consecutiveJumpIndex, 0, sizeof(consecutiveJumpIndex));
+  memset(baseline, 0, sizeof(baseline));
+  memset(lastVal, 2048, sizeof(lastVal));
+
+  //initialize jump threshold in middle of specified range
+  jump_threshold = (MIN_THRESHOLD + MAX_THRESHOLD)/2;
+
+  //start polling at first sensor
+  currentSensor = 0;
 
   //establish first baseline using 100 values
   //this baseline will be updated throughout the loop
@@ -115,12 +123,6 @@ void setup() {
     //set baseline by dividing computed sum
     baseline[j] = baseline[j] / 100;
   }
-
-  //initialize jump threshold in middle of specified range
-  jump_threshold = (MIN_THRESHOLD + MAX_THRESHOLD)/2;
-
-  //start polling at first sensor
-  currentSensor = 0;
 }
 
 void loop() {
