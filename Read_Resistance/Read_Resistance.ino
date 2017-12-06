@@ -32,8 +32,8 @@ unsigned const short MIN_THRESHOLD = 30;
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
 unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 500;
-unsigned const short CONSECUTIVE_JUMP_BUFFER_SIZE = 1024;
-unsigned const long CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CONSECUTIVE_JUMP_BUFFER_SIZE;
+unsigned const short CJUMP_BUFFER_SIZE = 1024;
+unsigned const long CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CJUMP_BUFFER_SIZE;
 
 //How much a jump can differ from the last to qualify as "consecutive"
 //make sure its in the range [0, 1024]
@@ -62,7 +62,7 @@ unsigned short jumpIndex[NUM_SENSORS];
 
 //this is a larger scale version of the jumpBuffer index
 //it is used to reset baseline when MAX_CONSECUTIVE_JUMPS consecutive jumps occur
-unsigned short cjumpBuffer[NUM_SENSORS][CONSECUTIVE_JUMP_BUFFER_SIZE];
+unsigned short cjumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
 
 //number of consecutive jumps in cycles (not all are stored)
 unsigned long cJumpCount[NUM_SENSORS];
@@ -156,9 +156,9 @@ void loop() {
     if (abs(lastVal[currentSensor] - val) < min(JUMP_VARIABILITY, 1024)) {
       //RESET BASELINE
       //If we get many consecutive jumps without enough variability, reset baseline.
-      if (cJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
+      if (cJumpIndex[currentSensor] >= CJUMP_BUFFER_SIZE) {
 
-        unsigned short avg = computeAverage(cjumpBuffer[currentSensor], CONSECUTIVE_JUMP_BUFFER_SIZE);
+        unsigned short avg = computeAverage(cjumpBuffer[currentSensor], CJUMP_BUFFER_SIZE);
 
         //raise average a little before resetting baseline to it: early jump vals tend to make
         //the average too low for the pressure by the time it resets, causing constant jumps
