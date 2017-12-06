@@ -1,24 +1,33 @@
-const short BUFFER_SIZE = 512; //amount of vals that we average baseline over
+//CONFIGURATION
+
+//Sensor pins
+const int NUM_SENSORS = 1;
+const int PINS[NUM_SENSORS] = {0};
+
+//Serial communication Hz
+const int BAUD_RATE = 115200;
+
+//Controller clock rate in MHz
+//to be used in cycle dependent settings
+const int CLOCK_RATE = 180;
+
+//amount of vals that we average baseline over
+const short BUFFER_SIZE = 512;
+
+//How frequently do we add an element to the baseline buffer. 
+//Used to average baseline over longer duration without having too many values to process
+const short CYCLES_PER_BASELINE = 1;
 
 //Amount of jump vals used to buffer press velocity. If a button is kept pressed,
 //a jump message will be printed every time the buffer is full.
 //Avoid making too large as then short signals will be ignored
 const short JUMP_BUFFER_SIZE = 48;
 
-//Difference in value from threshold that qualifies as a press
-short jump_threshold = 40;
-short MAX_THRESHOLD = 50;
-short MIN_THRESHOLD = 30;
-
-//How much a jump can differ from the last to qualify as "consecutive"
-//make sure its in the range [0, 1024]
-const short JUMP_VARIABILITY = 128;
-//Minimum number of cycles that a jump must be recorded for it to need blowback compensation
-const short MIN_JUMPS = 3;
-
-//Controller clock rate in MHz
-//to be used in cycle dependent settings
-const int CLOCK_RATE = 180;
+//Difference in value from baseline that qualifies as a press
+//MAX_THRESHOLD is used when signal moves around
+//MIN_THRESHOLD is used when signal is flat
+const short MAX_THRESHOLD = 50;
+const short MIN_THRESHOLD = 30;
 
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
@@ -26,19 +35,22 @@ unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 500;
 unsigned const int CONSECUTIVE_JUMP_BUFFER_SIZE = 1024;
 unsigned const int CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CONSECUTIVE_JUMP_BUFFER_SIZE;
 
-//How frequently do we add an element to the baseline buffer. Used so that we dont compute baseline so often.
-const short CYCLES_PER_BASELINE = 1;
+//How much a jump can differ from the last to qualify as "consecutive"
+//make sure its in the range [0, 1024]
+const short JUMP_VARIABILITY = 128;
 
-const int BAUD_RATE = 115200;
+//Minimum number of cycles that a jump must last for it to need blowback compensation
+//Setting as multiple of JUMP_BUFFER_SIZE so that we know how many values were printed
+const short MIN_JUMPS = 10*JUMP_BUFFER_SIZE;
 
 //number of cycles after jump during which input is ignored
 const int JUMP_BLOWBACK = 32;
 
-const int NUM_SENSORS = 1;
-const int PINS[NUM_SENSORS] = {0};
+//GLOBAL VARIABLES
 
 //main iterator: countes the number of loop() executions while not jumping
 int cnt[NUM_SENSORS];
+
 //array used to compute baseline while not jumping
 short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
 
@@ -47,8 +59,8 @@ short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
 short jumpBuffer[NUM_SENSORS][JUMP_BUFFER_SIZE];
 int jumpIndex[NUM_SENSORS];
 
-
 //this is a larger scale version of the jumpBuffer index
+//it is used to reset baseline when MAX_CONSECUTIVE_JUMPS consecutive jumps occur
 short cjumpBuffer[NUM_SENSORS][CONSECUTIVE_JUMP_BUFFER_SIZE];
 
 //number of consecutive jumps in cycles (not all are stored)
@@ -57,23 +69,25 @@ unsigned long consecutiveJumpCount[NUM_SENSORS];
 //number of stored jumps in the cjumpBuffer
 unsigned int consecutiveJumpIndex[NUM_SENSORS];
 
-
-//flag indicating that the sensor was previously
+//flag indicating that a sensor had just jumped
 //used to initiate blowback waiting phase
 bool jumped[NUM_SENSORS];
-
 
 //number of cycles left to recuperate from blowback
 //(erratic/low values after pressing sensor)
 int toWait[NUM_SENSORS];
 
-
+//holds current baseline for each pin
 int baseline[NUM_SENSORS];
-int lastVal[NUM_SENSORS];
 
+//last read value for each pin
+int lastVal[NUM_SENSORS];
 
 //current pin index
 short currentSensor;
+
+//current threshold 
+short jump_threshold;
 
 void setup() {
   Serial.begin(BAUD_RATE);      // open the serial port at x bps:
@@ -102,6 +116,11 @@ void setup() {
     baseline[j] = baseline[j] / 100;
   }
 
+  //initialize jump threshold in middle of specified range
+  jump_threshold = (MIN_THRESHOLD + MAX_THRESHOLD)/2;
+
+  //start polling at first sensor
+  currentSensor = 0;
 }
 
 void loop() {
