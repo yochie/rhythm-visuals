@@ -1,4 +1,4 @@
-const short BUFFER_SIZE = 64; //amount of vals that we average baseline over
+const short BUFFER_SIZE = 512; //amount of vals that we average baseline over
 
 //Max amount of jump vals used to average press velocity. If a button is kept pressed,
 //a jump message will be printed every time the buffer is full.
@@ -21,15 +21,15 @@ const int CLOCK_RATE = 180;
 
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-const int MAX_CONSECUTIVE_JUMPS = ((CLOCK_RATE * 1000000) / 200) * 4;
+const int MAX_CONSECUTIVE_JUMPS = 2000;
 
 //How frequently do we add an element to the baseline buffer. Used so that we dont compute baseline so often.
-const short CYCLES_PER_BASELINE = 1;
+const short CYCLES_PER_BASELINE = 16;
 
 const int BAUD_RATE = 115200;
 
 //number of cycles after jump during which input is ignored
-const int JUMP_BLOWBACK = 32;
+const int JUMP_BLOWBACK = 128;
 
 const int NUM_SENSORS = 1;
 const int PINS[NUM_SENSORS] = {0};
