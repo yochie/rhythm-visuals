@@ -52,7 +52,7 @@ unsigned const short JUMP_BLOWBACK = 32;
 unsigned short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
 
 //baseline iterator: counts the number of loop() executions while not jumping
-unsigned long cnt[NUM_SENSORS];
+unsigned long baselineCount[NUM_SENSORS];
 
 //small buffer used to signal jumps
 //the average of this array is printed every time it becomes full
@@ -94,7 +94,7 @@ void setup() {
 
   //initialize global arrays to default values
   memset(baselineBuffer, 0, sizeof(baselineBuffer));
-  memset(cnt, 0, sizeof(cnt));
+  memset(baselineCount, 0, sizeof(baselineCount));
   memset(jumpBuffer, 0, sizeof(jumpBuffer));
   memset(jumpIndex, 0, sizeof(jumpIndex));
   memset(cjumpBuffer, 0, sizeof(cjumpBuffer));
@@ -127,7 +127,7 @@ void setup() {
 
 void loop() {
   //If baseline buffer is full, compute its average and reset its counter
-  if (cnt[currentSensor] > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
+  if (baselineCount[currentSensor] > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
 
     //adjust threshold to dynamic range of signal
     unsigned short mx = getMax(baselineBuffer);
@@ -136,7 +136,7 @@ void loop() {
     
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
 
-    cnt[currentSensor] = 0;
+    baselineCount[currentSensor] = 0;
   }
 
   //New Val
@@ -172,7 +172,7 @@ void loop() {
         consecutiveJumpIndex[currentSensor] = 0;
         jumpIndex[currentSensor] = 0;
         lastVal[currentSensor] = 2048;
-        cnt[currentSensor] = 0;
+        baselineCount[currentSensor] = 0;
         return;
       }
 
@@ -236,10 +236,10 @@ void loop() {
 
     if (toWait[currentSensor] == 0) {
       //every x loops, add value to baseline buffer for updating baseline
-      if (cnt[currentSensor] % CYCLES_PER_BASELINE == 0) {
-        baselineBuffer[currentSensor][(int) cnt[currentSensor] / CYCLES_PER_BASELINE] = val;
+      if (baselineCount[currentSensor] % CYCLES_PER_BASELINE == 0) {
+        baselineBuffer[currentSensor][(int) baselineCount[currentSensor] / CYCLES_PER_BASELINE] = val;
       }
-      cnt[currentSensor]++;
+      baselineCount[currentSensor]++;
 
     } else {
       toWait[currentSensor]--;
