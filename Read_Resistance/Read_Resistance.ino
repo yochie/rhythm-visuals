@@ -63,12 +63,12 @@ unsigned short jumpIndex[NUM_SENSORS];
 
 //this is a larger scale version of the jumpBuffer
 //it is used to reset baseline when MAX_CONSECUTIVE_JUMPS consecutive jumps occur
-unsigned short cjumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
+unsigned short cJumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
 
 //number of consecutive jumps in cycles (not all are stored)
 unsigned long cJumpCount[NUM_SENSORS];
 
-//number of stored jumps in the cjumpBuffer
+//number of stored jumps in the cJumpBuffer
 unsigned short cJumpIndex[NUM_SENSORS];
 
 //flag indicating that a sensor had just jumped
@@ -99,7 +99,7 @@ void setup() {
   memset(baselineCount, 0, sizeof(baselineCount));
   memset(jumpBuffer, 0, sizeof(jumpBuffer));
   memset(jumpIndex, 0, sizeof(jumpIndex));
-  memset(cjumpBuffer, 0, sizeof(cjumpBuffer));
+  memset(cJumpBuffer, 0, sizeof(cJumpBuffer));
   memset(cJumpCount, 0, sizeof(cJumpCount));
   memset(cJumpIndex, 0, sizeof(cJumpIndex));
   memset(jumped, false, sizeof(jumped));
@@ -159,7 +159,7 @@ void loop() {
       //If we get many consecutive jumps without enough variability, reset baseline.
       if (cJumpIndex[currentSensor] >= CJUMP_BUFFER_SIZE) {
 
-        unsigned short avg = computeAverage(cjumpBuffer[currentSensor], CJUMP_BUFFER_SIZE);
+        unsigned short avg = computeAverage(cJumpBuffer[currentSensor], CJUMP_BUFFER_SIZE);
 
         //raise average a little before resetting baseline to it: early jump vals tend to make
         //the average too low for the pressure by the time it resets, causing constant jumps
@@ -180,7 +180,7 @@ void loop() {
       }
 
       if (cJumpCount[currentSensor] % CYCLES_PER_CJUMP == 0) {
-        cjumpBuffer[currentSensor][cJumpIndex[currentSensor]] = val;
+        cJumpBuffer[currentSensor][cJumpIndex[currentSensor]] = val;
         cJumpIndex[currentSensor]++;
       }
       cJumpCount[currentSensor]++;
