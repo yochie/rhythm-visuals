@@ -39,9 +39,10 @@ unsigned const long CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CJUMP_BUFFER_SIZE
 //make sure its in the range [0, 1024]
 unsigned const short JUMP_VARIABILITY = 128;
 
-//Minimum number of cycles that a jump must last for it to need blowback compensation
-//Setting as multiple of JUMP_BUFFER_SIZE so that we know how many values were printed
-unsigned const long MIN_JUMPS = 10 * JUMP_BUFFER_SIZE;
+//Minimum number of consecutive jumps recorded for jump to need blowback compensation
+//Note we are refering to *recorded* consecutive jumps, not cycles.
+//ie the condition is based on cJumpIndex value
+unsigned const short MIN_JUMPS = 10;
 
 //number of cycles after jump during which input is ignored
 unsigned const short JUMP_BLOWBACK = 32;
@@ -199,7 +200,7 @@ void loop() {
       jumpIndex[currentSensor]++;
 
       //mark as jump requiring blowback compensation
-      if (!jumped[currentSensor] && cJumpCount[currentSensor] > MIN_JUMPS ) {
+      if (!jumped[currentSensor] && cJumpIndex[currentSensor] > MIN_JUMPS ) {
         jumped[currentSensor] = true;
       }
 
