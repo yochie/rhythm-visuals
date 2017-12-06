@@ -6,7 +6,9 @@ const short BUFFER_SIZE = 64; //amount of vals that we average baseline over
 const short JUMP_BUFFER_SIZE = 32;
 
 //Difference in value from threshold that qualifies as a press
-const short JUMP_THRESHOLD = 50;
+short jump_threshold = 40;
+short MAX_THRESHOLD = 50;
+short MIN_THRESHOLD = 30;
 
 //How much a jump can differ from the last to qualify as "consecutive"
 //make sure its in the range [0, 1024]
@@ -70,6 +72,12 @@ void setup() {
 void loop() {
   //If baseline buffer is full, compute its average and reset its counter
   if (cnt[currentSensor] > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
+
+    short mx = getMax(baselineBuffer);
+    short mn = getMin(baselineBuffer);
+
+    jump_threshold = min(max(2*(mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
+
     cnt[currentSensor] = 0;
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
 
@@ -88,7 +96,7 @@ void loop() {
   //JUMPING
   //If jump is large enough, save val to buffer and print average jump if its full.
   //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation (MAX_CONSECUTIVE_JUMPS)
-  if (jumpVal >= JUMP_THRESHOLD) {
+  if (jumpVal >= jump_threshold) {
 
     //CONSECUTIVE
     //2048 is default value for lastVal, so it will never match on this condition
@@ -136,10 +144,10 @@ void loop() {
       if ( jumpCount[currentSensor] == JUMP_BUFFER_SIZE) {
         short avgVal = computeAverage(jumpBuffer[currentSensor], jumpCount[currentSensor]);
         //Serial.print("average from buffer ");
-        Serial.print("J");
-        Serial.print(currentSensor);
-        Serial.print(": ");
-        Serial.println(constrain(avgVal - baseline[currentSensor], 0, 1024));
+        //        Serial.print("J");
+        //        Serial.print(currentSensor);
+        //        Serial.print(": ");
+        //        Serial.println(constrain(avgVal - baseline[currentSensor], 0, 1024));
 
         jumpCount[currentSensor] = 0;
         lastVal[currentSensor] = val;
@@ -212,5 +220,30 @@ short computeAverage(short a[], int aSize) {
   short toreturn = (short) (sum / aSize);
 
   return toreturn;
+}
+
+short getMax(short numarray[NUM_SENSORS][BUFFER_SIZE]) {
+  short mx = numarray[0][0];
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    for (int j = 0; j < BUFFER_SIZE; j++) {
+      if (mx < numarray[i][j]) {
+        mx = numarray[i][j];
+      }
+    }
+  }
+  return mx;
+}
+
+
+short getMin(short numarray[NUM_SENSORS][BUFFER_SIZE]) {
+  short mn = numarray[0][0];
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    for (int j = 0; j < BUFFER_SIZE; j++) {
+      if (mn > numarray[i][j]) {
+        mn = numarray[i][j];
+      }
+    }
+  }
+  return mn;
 }
 
