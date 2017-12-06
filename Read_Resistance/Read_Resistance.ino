@@ -145,6 +145,18 @@ void loop() {
   unsigned short val = (unsigned short) analogRead(PINS[currentSensor]);
   unsigned short jumpVal = max(0,val - baseline[currentSensor]);
 
+  //Printing graph for arduino plotter
+  Serial.print((String) val);
+  Serial.print(" ");
+  Serial.print((String) baseline[currentSensor]);
+  Serial.print(" ");
+  Serial.print((String) (baseline[currentSensor] + jump_threshold[currentSensor]));
+  Serial.print(" ");
+  Serial.print(0);
+  Serial.print(" ");
+  Serial.println(500);
+  delay(1);
+
   //JUMPING
   //If jump is large enough, save val to buffer and print average jump if its full.
   //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation (MAX_CONSECUTIVE_JUMPS)
