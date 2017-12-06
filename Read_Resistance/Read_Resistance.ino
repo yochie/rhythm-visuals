@@ -6,11 +6,15 @@ const short BUFFER_SIZE = 64; //amount of vals that we average baseline over
 const short JUMP_BUFFER_SIZE = 32;
 
 //Difference in value from threshold that qualifies as a press
-const short JUMP_THRESHOLD = 50;
+short jump_threshold = 40;
+short MAX_THRESHOLD = 50;
+short MIN_THRESHOLD = 30;
 
 //How much a jump can differ from the last to qualify as "consecutive"
 //make sure its in the range [0, 1024]
 const short JUMP_VARIABILITY = 1024;
+//Minimum number of cycles that a jump must be recorded for it to need blowback compensation
+const short MIN_JUMPS = 3;
 
 //Controller clock rate in MHz
 const int CLOCK_RATE = 180;
@@ -38,6 +42,7 @@ int baseline[NUM_SENSORS];
 int lastVal[NUM_SENSORS];
 int jumpCount[NUM_SENSORS];
 int consecutiveJumpCount[NUM_SENSORS];
+bool jumped[NUM_SENSORS];
 int toWait[NUM_SENSORS];
 int currentSensor;
 
@@ -50,6 +55,7 @@ void setup() {
   memset(lastVal, 2048, sizeof(lastVal));
   memset(jumpCount, 0, sizeof(jumpCount));
   memset(consecutiveJumpCount, 0, sizeof(consecutiveJumpCount));
+  memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
 
   //establish first baseline using 100 values
@@ -70,6 +76,12 @@ void setup() {
 void loop() {
   //If baseline buffer is full, compute its average and reset its counter
   if (cnt[currentSensor] > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
+
+    short mx = getMax(baselineBuffer);
+    short mn = getMin(baselineBuffer);
+
+    jump_threshold = min(max(2*(mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
+
     cnt[currentSensor] = 0;
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
 
@@ -88,7 +100,7 @@ void loop() {
   //JUMPING
   //If jump is large enough, save val to buffer and print average jump if its full.
   //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation (MAX_CONSECUTIVE_JUMPS)
-  if (jumpVal >= JUMP_THRESHOLD) {
+  if (jumpVal >= jump_threshold) {
 
     //CONSECUTIVE
     //2048 is default value for lastVal, so it will never match on this condition
@@ -125,6 +137,11 @@ void loop() {
       jumpBuffer[currentSensor][jumpCount[currentSensor]] = val;
       jumpCount[currentSensor]++;
 
+      //mark as jump requiring blowback compensation
+      if (!jumped[currentSensor] && jumpCount[currentSensor] > MIN_JUMPS ) {
+        jumped[currentSensor] = true;
+      }
+
       //store current val for stagnation check
       lastVal[currentSensor] = val;
 
@@ -151,14 +168,10 @@ void loop() {
   //Add value to buffer for baseline update and reset jump counting variables
   else {
     //if last cycle was jump, send 0 val to signify jump is over
-    if (lastVal[currentSensor] != 2048) {
-      //Serial.print("coming out");
-      Serial.print("J");
-      Serial.print(currentSensor);
-      Serial.println(": 0");
-
-      //Stop computing baseline and signaling jumps for a while
-      //because sensor values tend to be erratic after releasing the button
+    if (jumped[currentSensor]) {
+      jumped[currentSensor] = false;
+      //Stop computing baseline for a while
+      //because sensor values tend to be lower than baseline after releasing the button
       toWait[currentSensor] = JUMP_BLOWBACK;
 
       //Reset baseline counter because baseline tends to change after button pressed
@@ -169,7 +182,7 @@ void loop() {
       //main loop executions (cycles) to occur between two jump signals on a same sensor
       //e.g. with JUMP_BLOWBACK set to 32, BUFFER_SIZE to 64 and NUM_SENSORs to 4, we need
       //(32 + 64) * 4 = 640 main loops between two button presses on ay single sensor
-      cnt[currentSensor] = 0;
+      //cnt[currentSensor] = 0;
     }
 
     if (toWait[currentSensor] == 0) {
@@ -212,5 +225,30 @@ short computeAverage(short a[], int aSize) {
   short toreturn = (short) (sum / aSize);
 
   return toreturn;
+}
+
+short getMax(short numarray[NUM_SENSORS][BUFFER_SIZE]) {
+  short mx = numarray[0][0];
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    for (int j = 0; j < BUFFER_SIZE; j++) {
+      if (mx < numarray[i][j]) {
+        mx = numarray[i][j];
+      }
+    }
+  }
+  return mx;
+}
+
+
+short getMin(short numarray[NUM_SENSORS][BUFFER_SIZE]) {
+  short mn = numarray[0][0];
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    for (int j = 0; j < BUFFER_SIZE; j++) {
+      if (mn > numarray[i][j]) {
+        mn = numarray[i][j];
+      }
+    }
+  }
+  return mn;
 }
 
