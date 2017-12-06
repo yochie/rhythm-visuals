@@ -85,7 +85,7 @@ unsigned short baseline[NUM_SENSORS];
 unsigned short lastVal[NUM_SENSORS];
 
 //current threshold 
-unsigned short jump_threshold;
+unsigned short jump_threshold[NUM_SENSORS];
 
 //current pin index
 unsigned short currentSensor;
@@ -107,7 +107,7 @@ void setup() {
   memset(lastVal, 2048, sizeof(lastVal));
 
   //initialize jump threshold in middle of specified range
-  jump_threshold = (MIN_THRESHOLD + MAX_THRESHOLD)/2;
+  jump_threshold[currentSensor] = (MIN_THRESHOLD + MAX_THRESHOLD)/2;
 
   //start polling at first sensor
   currentSensor = 0;
@@ -133,7 +133,7 @@ void loop() {
     //adjust threshold to dynamic range of signal
     unsigned short mx = getMax(baselineBuffer);
     unsigned short mn = getMin(baselineBuffer);
-    jump_threshold = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
+    jump_threshold[currentSensor] = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
     
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
 
@@ -147,7 +147,7 @@ void loop() {
   //JUMPING
   //If jump is large enough, save val to buffer and print average jump if its full.
   //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation (MAX_CONSECUTIVE_JUMPS)
-  if (jumpVal >= jump_threshold) {
+  if (jumpVal >= jump_threshold[currentSensor]) {
 
     //CONSECUTIVE
     //2048 is default value for lastVal, so it will never match on this condition
