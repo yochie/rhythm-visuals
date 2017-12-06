@@ -14,7 +14,7 @@ unsigned const short CLOCK_RATE = 180;
 //amount of vals that we average baseline over
 unsigned const short BUFFER_SIZE = 512;
 
-//How frequently do we add an element to the baseline buffer. 
+//How frequently do we add an element to the baseline buffer.
 //Used to average baseline over longer duration without having too many values to process
 unsigned const short CYCLES_PER_BASELINE = 1;
 
@@ -41,7 +41,7 @@ unsigned const short JUMP_VARIABILITY = 128;
 
 //Minimum number of cycles that a jump must last for it to need blowback compensation
 //Setting as multiple of JUMP_BUFFER_SIZE so that we know how many values were printed
-unsigned const long MIN_JUMPS = 10*JUMP_BUFFER_SIZE;
+unsigned const long MIN_JUMPS = 10 * JUMP_BUFFER_SIZE;
 
 //number of cycles after jump during which input is ignored
 unsigned const short JUMP_BLOWBACK = 32;
@@ -84,7 +84,7 @@ unsigned short baseline[NUM_SENSORS];
 //last read value for each pin
 unsigned short lastVal[NUM_SENSORS];
 
-//current threshold 
+//current threshold
 unsigned short jump_threshold[NUM_SENSORS];
 
 //current pin index
@@ -107,7 +107,7 @@ void setup() {
   memset(lastVal, 2048, sizeof(lastVal));
 
   //initialize jump threshold in middle of specified range
-  jump_threshold[currentSensor] = (MIN_THRESHOLD + MAX_THRESHOLD)/2;
+  jump_threshold[currentSensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
 
   //start polling at first sensor
   currentSensor = 0;
@@ -134,7 +134,7 @@ void loop() {
     unsigned short mx = getMax(baselineBuffer);
     unsigned short mn = getMin(baselineBuffer);
     jump_threshold[currentSensor] = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
-    
+
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
 
     baselineCount[currentSensor] = 0;
@@ -157,18 +157,18 @@ void loop() {
       //RESET BASELINE
       //If we get many consecutive jumps without enough variability, reset baseline.
       if (cJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
-        
+
         int avg = computeAverage(cjumpBuffer[currentSensor], CONSECUTIVE_JUMP_BUFFER_SIZE);
 
         //raise average a little before resetting baseline to it: early jump vals tend to make
         //the average too low for the pressure by the time it resets, causing constant jumps
         //TODO: add delay to consecutive jump filling so that it ignores first part of any jump
         //That might be enough to remove this "hack"
-        baseline[currentSensor] = min(1024,avg*1.25);
+        baseline[currentSensor] = min(1024, avg * 1.25);
 
         Serial.println("Consecutive RESET");
         Serial.println(baseline[currentSensor]);
-        
+
         cJumpCount[currentSensor] = 0;
         cJumpIndex[currentSensor] = 0;
         jumpIndex[currentSensor] = 0;
@@ -182,13 +182,11 @@ void loop() {
         cJumpIndex[currentSensor]++;
       }
       cJumpCount[currentSensor]++;
-
     }
     //VARYING
     else {
       cJumpCount[currentSensor] = 0;
       cJumpIndex[currentSensor] = 0;
-
     }
 
     //PLACE JUMP IN BUFFER
