@@ -41,10 +41,12 @@ int val = 0;
 int cnt[NUM_SENSORS];
 short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
 short jumpBuffer[NUM_SENSORS][JUMP_BUFFER_SIZE];
+short cjumpBuffer[NUM_SENSORS][CONSECUTIVE_JUMP_BUFFER_SIZE];
+unsigned int consecutiveJumpIndex[NUM_SENSORS];
 int baseline[NUM_SENSORS];
 int lastVal[NUM_SENSORS];
-int jumpCount[NUM_SENSORS];
-int consecutiveJumpCount[NUM_SENSORS];
+int jumpIndex[NUM_SENSORS];
+unsigned long consecutiveJumpCount[NUM_SENSORS];
 bool jumped[NUM_SENSORS];
 int toWait[NUM_SENSORS];
 int currentSensor;
@@ -56,10 +58,12 @@ void setup() {
   memset(cnt, 0, sizeof(cnt));
   memset(baseline, 0, sizeof(baseline));
   memset(lastVal, 2048, sizeof(lastVal));
-  memset(jumpCount, 0, sizeof(jumpCount));
+  memset(jumpIndex, 0, sizeof(jumpIndex));
   memset(consecutiveJumpCount, 0, sizeof(consecutiveJumpCount));
   memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
+  memset(cjumpBuffer, 0, sizeof(cjumpBuffer));
+  memset(consecutiveJumpIndex, 0, sizeof(consecutiveJumpIndex));
 
   //establish first baseline using 100 values
   //this baseline will be updated throughout the loop
@@ -107,23 +111,27 @@ void loop() {
     //since val is between [0, 1024] and variability should be no larger than 1024
     //ignores first jump signal, but shouldn't really matter as we're calculating average...
     if (abs(lastVal[currentSensor] - val) < JUMP_VARIABILITY) {
-      consecutiveJumpCount[currentSensor]++;
-
-      //Serial.println("Consecutive");
-      //Serial.println(consecutiveJumpCount[currentSensor]);
-
       //RESET BASELINE
       //If we get many consecutive jumps without enough variability, reset baseline.
-      if (consecutiveJumpCount[currentSensor] >= MAX_CONSECUTIVE_JUMPS) {
+      if (consecutiveJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
         Serial.println("Consecutive RESET");
-        baseline[currentSensor] = computeAverage(jumpBuffer[currentSensor], jumpCount[currentSensor]);
+        int avg = computeAverage(cjumpBuffer[currentSensor], CONSECUTIVE_JUMP_BUFFER_SIZE);
+        baseline[currentSensor] = min(1024,avg*1.25);
         Serial.println(baseline[currentSensor]);
         consecutiveJumpCount[currentSensor] = 0;
-        jumpCount[currentSensor] = 0;
+        consecutiveJumpIndex[currentSensor] = 0;
+        jumpIndex[currentSensor] = 0;
         lastVal[currentSensor] = 2048;
         cnt[currentSensor] = 0;
         return;
       }
+
+      if (consecutiveJumpCount[currentSensor] % CYCLES_PER_CJUMP == 0) {
+        cjumpBuffer[currentSensor][consecutiveJumpIndex[currentSensor]] = val;
+        consecutiveJumpIndex[currentSensor]++;
+      }
+      consecutiveJumpCount[currentSensor]++;
+
     }
     //VARYING
     else {
@@ -132,14 +140,14 @@ void loop() {
 
     //PLACE JUMP IN BUFFER
     //If there is place in buffer, add jump there.
-    if (jumpCount[currentSensor] < JUMP_BUFFER_SIZE) {
+    if (jumpIndex[currentSensor] < JUMP_BUFFER_SIZE) {
 
       //put absolute val (not jumpVal) in buffer
-      jumpBuffer[currentSensor][jumpCount[currentSensor]] = val;
-      jumpCount[currentSensor]++;
+      jumpBuffer[currentSensor][jumpIndex[currentSensor]] = val;
+      jumpIndex[currentSensor]++;
 
       //mark as jump requiring blowback compensation
-      if (!jumped[currentSensor] && jumpCount[currentSensor] > MIN_JUMPS ) {
+      if (!jumped[currentSensor] && jumpIndex[currentSensor] > MIN_JUMPS ) {
         jumped[currentSensor] = true;
       }
 
@@ -151,15 +159,15 @@ void loop() {
       //This means we send one value every JUMP_BUFFER_SIZE iterations of the
       //main loop if the button is held down. Careful: making JUMP_BUFFER_SIZE too large
       //would cause short presses to be ignored.
-      if ( jumpCount[currentSensor] == JUMP_BUFFER_SIZE) {
-        short avgVal = computeAverage(jumpBuffer[currentSensor], jumpCount[currentSensor]);
+      if ( jumpIndex[currentSensor] == JUMP_BUFFER_SIZE) {
+        short avgVal = computeAverage(jumpBuffer[currentSensor], jumpIndex[currentSensor]);
         //Serial.print("average from buffer ");
         Serial.print("J");
         Serial.print(currentSensor);
         Serial.print(": ");
         Serial.println(constrain(avgVal - baseline[currentSensor], 0, 1024));
 
-        jumpCount[currentSensor] = 0;
+        jumpIndex[currentSensor] = 0;
         lastVal[currentSensor] = val;
       }
     }
@@ -197,8 +205,9 @@ void loop() {
     lastVal[currentSensor] = 2048;
 
     //Reset jump counters
-    jumpCount[currentSensor] = 0;
+    jumpIndex[currentSensor] = 0;
     consecutiveJumpCount[currentSensor] = 0;
+    consecutiveJumpIndex[currentSensor] = 0;
   }
   //switch to next sensor
   if (currentSensor < NUM_SENSORS - 1) {
