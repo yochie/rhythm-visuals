@@ -188,9 +188,10 @@ void loop() {
     }
 
     // If using graphing, you might want to use these lines
-    //        Serial.print("J");
-    //        Serial.print(currentSensor);
-    //        Serial.println(": 0");
+    Serial.print("J");
+    Serial.print(currentSensor);
+    Serial.println(": 0");
+    delay(1);
 
     //Using 2048 as default value that will never match the current val when testing for consecutive jumps
     lastVal[currentSensor] = 2048;
