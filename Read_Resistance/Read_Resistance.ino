@@ -52,6 +52,7 @@ unsigned const short JUMP_BLOWBACK = 32;
 unsigned short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
 
 //baseline iterator: counts the number of loop() executions while not jumping
+//this count needs to be divided by CYCLES_PER_BASELINE to get index in buffer
 unsigned long baselineCount[NUM_SENSORS];
 
 //small buffer used to signal jumps
@@ -64,10 +65,10 @@ unsigned short jumpIndex[NUM_SENSORS];
 unsigned short cjumpBuffer[NUM_SENSORS][CONSECUTIVE_JUMP_BUFFER_SIZE];
 
 //number of consecutive jumps in cycles (not all are stored)
-unsigned long consecutiveJumpCount[NUM_SENSORS];
+unsigned long cJumpCount[NUM_SENSORS];
 
 //number of stored jumps in the cjumpBuffer
-unsigned short consecutiveJumpIndex[NUM_SENSORS];
+unsigned short cJumpIndex[NUM_SENSORS];
 
 //flag indicating that a sensor had just jumped
 //used to initiate blowback waiting phase
@@ -98,8 +99,8 @@ void setup() {
   memset(jumpBuffer, 0, sizeof(jumpBuffer));
   memset(jumpIndex, 0, sizeof(jumpIndex));
   memset(cjumpBuffer, 0, sizeof(cjumpBuffer));
-  memset(consecutiveJumpCount, 0, sizeof(consecutiveJumpCount));
-  memset(consecutiveJumpIndex, 0, sizeof(consecutiveJumpIndex));
+  memset(cJumpCount, 0, sizeof(cJumpCount));
+  memset(cJumpIndex, 0, sizeof(cJumpIndex));
   memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
   memset(baseline, 0, sizeof(baseline));
@@ -155,7 +156,7 @@ void loop() {
     if (abs(lastVal[currentSensor] - val) < min(JUMP_VARIABILITY, 1024)) {
       //RESET BASELINE
       //If we get many consecutive jumps without enough variability, reset baseline.
-      if (consecutiveJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
+      if (cJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
         
         int avg = computeAverage(cjumpBuffer[currentSensor], CONSECUTIVE_JUMP_BUFFER_SIZE);
 
@@ -168,24 +169,24 @@ void loop() {
         Serial.println("Consecutive RESET");
         Serial.println(baseline[currentSensor]);
         
-        consecutiveJumpCount[currentSensor] = 0;
-        consecutiveJumpIndex[currentSensor] = 0;
+        cJumpCount[currentSensor] = 0;
+        cJumpIndex[currentSensor] = 0;
         jumpIndex[currentSensor] = 0;
         lastVal[currentSensor] = 2048;
         baselineCount[currentSensor] = 0;
         return;
       }
 
-      if (consecutiveJumpCount[currentSensor] % CYCLES_PER_CJUMP == 0) {
-        cjumpBuffer[currentSensor][consecutiveJumpIndex[currentSensor]] = val;
-        consecutiveJumpIndex[currentSensor]++;
+      if (cJumpCount[currentSensor] % CYCLES_PER_CJUMP == 0) {
+        cjumpBuffer[currentSensor][cJumpIndex[currentSensor]] = val;
+        cJumpIndex[currentSensor]++;
       }
-      consecutiveJumpCount[currentSensor]++;
+      cJumpCount[currentSensor]++;
 
     }
     //VARYING
     else {
-      consecutiveJumpCount[currentSensor] = 0;
+      cJumpCount[currentSensor] = 0;
     }
 
     //PLACE JUMP IN BUFFER
@@ -197,7 +198,7 @@ void loop() {
       jumpIndex[currentSensor]++;
 
       //mark as jump requiring blowback compensation
-      if (!jumped[currentSensor] && consecutiveJumpCount[currentSensor] > MIN_JUMPS ) {
+      if (!jumped[currentSensor] && cJumpCount[currentSensor] > MIN_JUMPS ) {
         jumped[currentSensor] = true;
       }
 
@@ -256,8 +257,8 @@ void loop() {
 
     //Reset jump counters
     jumpIndex[currentSensor] = 0;
-    consecutiveJumpCount[currentSensor] = 0;
-    consecutiveJumpIndex[currentSensor] = 0;
+    cJumpCount[currentSensor] = 0;
+    cJumpIndex[currentSensor] = 0;
   }
   //switch to next sensor
   if (currentSensor < NUM_SENSORS - 1) {
