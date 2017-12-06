@@ -83,7 +83,7 @@ void loop() {
     short mx = getMax(baselineBuffer);
     short mn = getMin(baselineBuffer);
 
-    jump_threshold = min(max(2*(mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
+    jump_threshold = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
 
     cnt[currentSensor] = 0;
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
@@ -94,9 +94,6 @@ void loop() {
 
   //New Val
   val = (short) analogRead(PINS[currentSensor]);
-  //Unsure why, but without this line, script will ofter ignore rest of serial prints
-  //Serial.println("base : ")
-  //Serial.println((String) baseline[currentSensor]);
 
   short jumpVal = val - baseline[currentSensor];
 
@@ -108,6 +105,7 @@ void loop() {
     //CONSECUTIVE
     //2048 is default value for lastVal, so it will never match on this condition
     //since val is between [0, 1024] and variability should be no larger than 1024
+    //ignores first jump signal, but shouldn't really matter as we're calculating average...
     if (abs(lastVal[currentSensor] - val) < JUMP_VARIABILITY) {
       consecutiveJumpCount[currentSensor]++;
 
@@ -176,16 +174,6 @@ void loop() {
       //Stop computing baseline for a while
       //because sensor values tend to be lower than baseline after releasing the button
       toWait[currentSensor] = JUMP_BLOWBACK;
-
-      //Reset baseline counter because baseline tends to change after button pressed
-      //so we don't want pre-jump values weighing in on new baseline.
-      //This resetting might cause problems if controller doesn't have time to
-      //recuperate from jump (JUMP_BLOWBACK) and compute a new baseline between
-      //two jumps on a single sensor. This means you need at least (JUMP_BLOWBACK + BUFFER_SIZE)*NUM_SENSORS
-      //main loop executions (cycles) to occur between two jump signals on a same sensor
-      //e.g. with JUMP_BLOWBACK set to 32, BUFFER_SIZE to 64 and NUM_SENSORs to 4, we need
-      //(32 + 64) * 4 = 640 main loops between two button presses on ay single sensor
-      //cnt[currentSensor] = 0;
     }
 
     if (toWait[currentSensor] == 0) {
