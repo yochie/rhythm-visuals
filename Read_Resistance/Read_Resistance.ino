@@ -110,7 +110,7 @@ void loop() {
     //2048 is default value for lastVal, so it will never match on this condition
     //since val is between [0, 1024] and variability should be no larger than 1024
     //ignores first jump signal, but shouldn't really matter as we're calculating average...
-    if (abs(lastVal[currentSensor] - val) < JUMP_VARIABILITY) {
+    if (abs(lastVal[currentSensor] - val) < min(JUMP_VARIABILITY, 1024)) {
       //RESET BASELINE
       //If we get many consecutive jumps without enough variability, reset baseline.
       if (consecutiveJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
