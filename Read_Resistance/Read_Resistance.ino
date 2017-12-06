@@ -91,6 +91,10 @@ unsigned short jump_threshold[NUM_SENSORS];
 //current pin index
 unsigned short currentSensor;
 
+//timing variable for analysis of execution times
+//used for debug
+//unsigned long lastTime;
+
 void setup() {
   Serial.begin(BAUD_RATE);      // open the serial port at x bps:
 
@@ -136,7 +140,14 @@ void loop() {
     unsigned short mn = getMin(baselineBuffer);
     jump_threshold[currentSensor] = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
 
+    //    lastTime = micros();
     baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
+    //    unsigned long delta = micros() - lastTime;
+    //    Serial.println(delta);
+
+    //    Serial.print("Computed new baseline : !!!!!!!!!!!!!!!!!!!!!!!!1");
+    //    Serial.println(baseline[currentSensor]);
+    //    delay(3000);
 
     baselineCount[currentSensor] = 0;
   }
@@ -156,6 +167,7 @@ void loop() {
   Serial.print(" ");
   Serial.println(500);
   delay(1);
+  //  Serial.println((String) baseline[currentSensor]);
 
   //JUMPING
   //If jump is large enough, save val to buffer and print average jump if its full.
