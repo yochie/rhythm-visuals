@@ -237,7 +237,7 @@ void loop() {
     if (toWait[currentSensor] == 0) {
       //every x loops, add value to baseline buffer for updating baseline
       if (baselineCount[currentSensor] % CYCLES_PER_BASELINE == 0) {
-        baselineBuffer[currentSensor][(int) baselineCount[currentSensor] / CYCLES_PER_BASELINE] = val;
+        baselineBuffer[currentSensor][(unsigned short) (baselineCount[currentSensor] / CYCLES_PER_BASELINE)] = val;
       }
       baselineCount[currentSensor]++;
 
