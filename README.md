@@ -10,4 +10,4 @@ is above a dynamically calculated baseline by jump_threshold units, where thresh
 Although any analog value could be read, the original intent of this project was to read voltage drop from a compressed
 anti-static foam (often used to package integrated circuits) in series with a ~5KΩ resistance to limit current. 
 
-[[https://github.com/yochie/rhythm-visuals/blob/multiple/diagram_podo.png|alt=circuit diagram]]
+![circuit diagram]rhythm-visuals/diagram_podo.png
