@@ -195,7 +195,7 @@ void loop() {
       jumpIndex[currentSensor]++;
 
       //mark as jump requiring blowback compensation
-      if (!jumped[currentSensor] && jumpIndex[currentSensor] > MIN_JUMPS ) {
+      if (!jumped[currentSensor] && consecutiveJumpCount[currentSensor] > MIN_JUMPS ) {
         jumped[currentSensor] = true;
       }
 
