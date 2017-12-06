@@ -37,19 +37,43 @@ const int JUMP_BLOWBACK = 32;
 const int NUM_SENSORS = 1;
 const int PINS[NUM_SENSORS] = {0};
 
-int val = 0;
+//main iterator: countes the number of loop() executions while not jumping
 int cnt[NUM_SENSORS];
+//array used to compute baseline while not jumping
 short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
+
+//small buffer used to signal jumps
+//the average of this array is printed every time it becomes full
 short jumpBuffer[NUM_SENSORS][JUMP_BUFFER_SIZE];
+int jumpIndex[NUM_SENSORS];
+
+
+//this is a larger scale version of the jumpBuffer index
 short cjumpBuffer[NUM_SENSORS][CONSECUTIVE_JUMP_BUFFER_SIZE];
+
+//number of consecutive jumps in cycles (not all are stored)
+unsigned long consecutiveJumpCount[NUM_SENSORS];
+
+//number of stored jumps in the cjumpBuffer
 unsigned int consecutiveJumpIndex[NUM_SENSORS];
+
+
+//flag indicating that the sensor was previously
+//used to initiate blowback waiting phase
+bool jumped[NUM_SENSORS];
+
+
+//number of cycles left to recuperate from blowback
+//(erratic/low values after pressing sensor)
+int toWait[NUM_SENSORS];
+
+
 int baseline[NUM_SENSORS];
 int lastVal[NUM_SENSORS];
-int jumpIndex[NUM_SENSORS];
-unsigned long consecutiveJumpCount[NUM_SENSORS];
-bool jumped[NUM_SENSORS];
-int toWait[NUM_SENSORS];
-int currentSensor;
+
+
+//current pin index
+short currentSensor;
 
 void setup() {
   Serial.begin(BAUD_RATE);      // open the serial port at x bps:
@@ -97,7 +121,7 @@ void loop() {
   }
 
   //New Val
-  val = (short) analogRead(PINS[currentSensor]);
+  int val = (short) analogRead(PINS[currentSensor]);
 
   short jumpVal = val - baseline[currentSensor];
 
