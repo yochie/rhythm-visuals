@@ -1,9 +1,9 @@
 const short BUFFER_SIZE = 512; //amount of vals that we average baseline over
 
-//Max amount of jump vals used to average press velocity. If a button is kept pressed,
+//Amount of jump vals used to buffer press velocity. If a button is kept pressed,
 //a jump message will be printed every time the buffer is full.
 //Avoid making too large as then short signals will be ignored
-const short JUMP_BUFFER_SIZE = 32;
+const short JUMP_BUFFER_SIZE = 48;
 
 //Difference in value from threshold that qualifies as a press
 short jump_threshold = 40;
@@ -12,24 +12,27 @@ short MIN_THRESHOLD = 30;
 
 //How much a jump can differ from the last to qualify as "consecutive"
 //make sure its in the range [0, 1024]
-const short JUMP_VARIABILITY = 1024;
+const short JUMP_VARIABILITY = 128;
 //Minimum number of cycles that a jump must be recorded for it to need blowback compensation
 const short MIN_JUMPS = 3;
 
 //Controller clock rate in MHz
+//to be used in cycle dependent settings
 const int CLOCK_RATE = 180;
 
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-const int MAX_CONSECUTIVE_JUMPS = 2000;
+unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 500;
+unsigned const int CONSECUTIVE_JUMP_BUFFER_SIZE = 1024;
+unsigned const int CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CONSECUTIVE_JUMP_BUFFER_SIZE;
 
 //How frequently do we add an element to the baseline buffer. Used so that we dont compute baseline so often.
-const short CYCLES_PER_BASELINE = 16;
+const short CYCLES_PER_BASELINE = 1;
 
 const int BAUD_RATE = 115200;
 
 //number of cycles after jump during which input is ignored
-const int JUMP_BLOWBACK = 128;
+const int JUMP_BLOWBACK = 32;
 
 const int NUM_SENSORS = 1;
 const int PINS[NUM_SENSORS] = {0};
