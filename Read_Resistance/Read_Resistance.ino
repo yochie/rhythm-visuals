@@ -61,7 +61,7 @@ unsigned long baselineCount[NUM_SENSORS];
 unsigned short jumpBuffer[NUM_SENSORS][JUMP_BUFFER_SIZE];
 unsigned short jumpIndex[NUM_SENSORS];
 
-//this is a larger scale version of the jumpBuffer index
+//this is a larger scale version of the jumpBuffer
 //it is used to reset baseline when MAX_CONSECUTIVE_JUMPS consecutive jumps occur
 unsigned short cjumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
 
