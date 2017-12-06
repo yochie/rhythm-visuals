@@ -187,6 +187,8 @@ void loop() {
     //VARYING
     else {
       cJumpCount[currentSensor] = 0;
+      cJumpIndex[currentSensor] = 0;
+
     }
 
     //PLACE JUMP IN BUFFER
