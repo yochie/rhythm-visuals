@@ -141,8 +141,8 @@ void loop() {
   }
 
   //New Val
-  int val = (short) analogRead(PINS[currentSensor]);
-  short jumpVal = val - baseline[currentSensor];
+  unsigned short val = (short) analogRead(PINS[currentSensor]);
+  unsigned short jumpVal = val - baseline[currentSensor];
 
   //JUMPING
   //If jump is large enough, save val to buffer and print average jump if its full.
@@ -158,7 +158,7 @@ void loop() {
       //If we get many consecutive jumps without enough variability, reset baseline.
       if (cJumpIndex[currentSensor] >= CONSECUTIVE_JUMP_BUFFER_SIZE) {
 
-        int avg = computeAverage(cjumpBuffer[currentSensor], CONSECUTIVE_JUMP_BUFFER_SIZE);
+        unsigned short avg = computeAverage(cjumpBuffer[currentSensor], CONSECUTIVE_JUMP_BUFFER_SIZE);
 
         //raise average a little before resetting baseline to it: early jump vals tend to make
         //the average too low for the pressure by the time it resets, causing constant jumps
