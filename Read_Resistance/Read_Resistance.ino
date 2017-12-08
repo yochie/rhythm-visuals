@@ -104,27 +104,9 @@ void setup() {
   memset(cJumpIndex, 0, sizeof(cJumpIndex));
   memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
-  memset(baseline, 0, sizeof(baseline));
+  memset(baseline, 1024, sizeof(baseline));
   memset(lastVal, 2048, sizeof(lastVal));
-
-  //initialize jump threshold in middle of specified range
-  jump_threshold[currentSensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
-
-  //start polling at first sensor
-  currentSensor = 0;
-
-  //establish first baseline using 100 values
-  //this baseline will be updated throughout the loop
-  for (int i = 0; i < 100; i++) {
-    for (int j = 0; j < NUM_SENSORS; j++) {
-      baseline[j] += analogRead(PINS[j]);
-    }
-  }
-
-  for (int j = 0; j < NUM_SENSORS; j++) {
-    //set baseline by dividing computed sum
-    baseline[j] = baseline[j] / 100;
-  }
+  memset(jump_threshold, (MIN_THRESHOLD+MAX_THRESHOLD/2), sizeof(jump_threshold));
 }
 
 void loop() {
