@@ -143,7 +143,7 @@ void loop() {
 
   //New Val
   unsigned short val = (unsigned short) analogRead(PINS[currentSensor]);
-  unsigned short jumpVal = val - baseline[currentSensor];
+  unsigned short jumpVal = max(0,val - baseline[currentSensor]);
 
   //JUMPING
   //If jump is large enough, save val to buffer and print average jump if its full.
