@@ -32,7 +32,7 @@ unsigned const short MIN_THRESHOLD = 30;
 
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 500;
+unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 4000;
 unsigned const short CJUMP_BUFFER_SIZE = 1024;
 unsigned const long CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CJUMP_BUFFER_SIZE;
 
