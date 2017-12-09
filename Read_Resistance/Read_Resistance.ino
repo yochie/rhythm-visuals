@@ -119,7 +119,8 @@ void loop() {
     }
   }
 
-  short toPrint[NUM_SENSORS];
+  unsigned short num_parameters = 4;
+  unsigned short toPrint[NUM_SENSORS][num_parameters];
   memset(toPrint, 0, sizeof(toPrint));
 
   //compute buffer content
@@ -128,6 +129,32 @@ void loop() {
     //compute buffer averages
     unsigned short sensorReadingAvg = (unsigned short) computeAverage(jumpBuffer[currentSensor], JUMP_BUFFER_SIZE);
     unsigned short distanceFromBaseline = max(0, sensorReadingAvg - baseline[currentSensor]);
+
+    //DEBUG PRINTOUTS
+    for (unsigned short parameter = 0; parameter < num_parameters; parameter++) {
+      switch (parameter) {
+        
+        //Raw value
+        case 0:
+          toPrint[currentSensor][parameter] = (MAX_READING / 2 * currentSensor) + sensorReadingAvg;
+          break;
+        
+        //Baseline
+        case 1:
+          toPrint[currentSensor][parameter] = (MAX_READING / 2 * currentSensor) + baseline[currentSensor];
+          break;
+        
+        //Threshold
+        case 2:
+          toPrint[currentSensor][parameter] = (MAX_READING / 2 * currentSensor) + baseline[currentSensor] + jump_threshold[currentSensor];
+          break;
+
+        //Consecutive
+        case 3:
+          toPrint[currentSensor][parameter] = (MAX_READING / 2 * currentSensor) + cJumpCount[currentSensor];
+          break;
+      }
+    }
 
     //JUMPING
     //If jump is large enough, add it to toPrint
@@ -182,7 +209,7 @@ void loop() {
       lastSensorReading[currentSensor] = sensorReadingAvg;
 
       //add jump value to the serial printout
-      toPrint[currentSensor] = constrain(distanceFromBaseline, 0, MAX_READING);
+      //toPrint[currentSensor] = constrain(distanceFromBaseline, MAX_READING);
     }
 
     //NOT JUMPING
@@ -228,9 +255,11 @@ void loop() {
   }
 
   //print results for all sensors in Arduino Plotter format
-  for (int i = 0; i < sizeof(toPrint) / sizeof(short); i++) {
-    Serial.print(toPrint[i]);
-    Serial.print(" ");
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    for (int p = 0; p < num_parameters; p++) {
+      Serial.print(toPrint[i][p]);
+      Serial.print(" ");
+    }
   }
   Serial.println();
   //delay(1);
