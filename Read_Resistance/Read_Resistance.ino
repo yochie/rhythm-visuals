@@ -1,8 +1,9 @@
 //CONFIGURATION
 
 //Sensor pins
-unsigned const short NUM_SENSORS = 1;
-unsigned const short PINS[NUM_SENSORS] = {0};
+//At least one plz...
+unsigned const short NUM_SENSORS = 2;
+unsigned const short PINS[NUM_SENSORS] = {0, 1};
 
 //Serial communication Hz
 unsigned const long BAUD_RATE = 115200;
@@ -107,6 +108,15 @@ void setup() {
 }
 
 void loop() {
+  short toPrint[NUM_SENSORS];
+  memset(toPrint, 0, sizeof(toPrint));
+
+  //whether or not we will be printing any thing
+  boolean printing = false;
+
+  //used to stop printing from baseline condition/rate and let the JUMPING condition do the printing
+  boolean jumping = false;
+
   for (unsigned short currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
     //If baseline buffer is full, compute its average and reset its counter
     if (baselineCount[currentSensor] > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
@@ -129,7 +139,7 @@ void loop() {
     //If jump is large enough, save val to buffer and print average jump if its full.
     //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation (MAX_CONSECUTIVE_JUMPS)
     if (jumpVal >= jump_threshold[currentSensor]) {
-
+      jumping = true;
       //CONSECUTIVE
       //2048 is default value for lastVal, so it will never match on this condition
       //since val is between [0, 1024] and variability should be no larger than 1024
@@ -195,10 +205,12 @@ void loop() {
         if ( jumpIndex[currentSensor] == JUMP_BUFFER_SIZE) {
           short avgVal = computeAverage(jumpBuffer[currentSensor], jumpIndex[currentSensor]);
           //Serial.print("average from buffer ");
-          Serial.print("J");
-          Serial.print(currentSensor);
-          Serial.print(": ");
-          Serial.println(constrain(avgVal - baseline[currentSensor], 0, 1024));
+          toPrint[currentSensor] = (currentSensor * 1024) + constrain(avgVal - baseline[currentSensor], 0, 1024);
+          printing = true;
+          //          Serial.print("J");
+          //          Serial.print(currentSensor);
+          //          Serial.print(": ");
+          //          Serial.println((currentSensor * 1024) + constrain(avgVal - baseline[currentSensor], 0, 1024));
 
           jumpIndex[currentSensor] = 0;
           lastVal[currentSensor] = val;
@@ -228,12 +240,6 @@ void loop() {
         toWait[currentSensor]--;
       }
 
-      // If using graphing, you might want to use these lines
-      Serial.print("J");
-      Serial.print(currentSensor);
-      Serial.println(": 0");
-      delay(1);
-
       //Using 2048 as default value that will never match the current val when testing for consecutive jumps
       lastVal[currentSensor] = 2048;
 
@@ -242,6 +248,25 @@ void loop() {
       cJumpCount[currentSensor] = 0;
       cJumpIndex[currentSensor] = 0;
     }
+  }
+  
+  //At the same rate that we print the jumps, print 0s when no sensors jumped
+  //note that this uses the baseline count of the first sensor. 
+  //There should be at least one sensor...
+  if (!jumping && baselineCount[0] % JUMP_BUFFER_SIZE == 0) {
+    for (int i = 0; i < NUM_SENSORS; i++) {
+      Serial.print(toPrint[i]);
+      Serial.print(" ");
+    }
+    Serial.println();
+  }
+  //otherwise were jumping, and we'll only print when the jump buffer is full (which sets printing to true)
+  else if (printing) {
+    for (int i = 0; i < NUM_SENSORS; i++) {
+      Serial.print(toPrint[i]);
+      Serial.print(" ");
+    }
+    Serial.println();
   }
 }
 
