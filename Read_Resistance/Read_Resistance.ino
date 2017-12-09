@@ -12,10 +12,11 @@ unsigned const long BAUD_RATE = 115200;
 //to be used in cycle dependent settings
 unsigned const short CLOCK_RATE = 180;
 
+//Defined by arduino...
 unsigned const short MAX_READING = 1024;
 
 //amount of sensorReadings that we average baseline over
-unsigned const short BASELINE_BUFFER_SIZE = 512;
+unsigned const short BASELINE_BUFFER_SIZE = 256;
 
 //How frequently do we add an element to the baseline buffer.
 //Used to average baseline over longer duration without having too many values to process
@@ -24,7 +25,7 @@ unsigned const short CYCLES_PER_BASELINE = 1;
 //Amount of jump vals used to buffer press velocity. If a button is kept pressed,
 //a jump message will be printed every time the buffer is full.
 //Avoid making too large as then short signals will be ignored
-unsigned const short JUMP_BUFFER_SIZE = 48;
+unsigned const short JUMP_BUFFER_SIZE = 32;
 
 //Difference in value from baseline that qualifies as a press
 //MAX_THRESHOLD is used when signal moves around
@@ -34,8 +35,8 @@ unsigned const short MIN_THRESHOLD = 30;
 
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 4000;
-unsigned const short CJUMP_BUFFER_SIZE = 1024;
+unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 10;
+unsigned const short CJUMP_BUFFER_SIZE = 512;
 unsigned const long CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CJUMP_BUFFER_SIZE;
 
 //How much a jump can differ from the last to qualify as "consecutive"
@@ -45,10 +46,10 @@ unsigned const short JUMP_VARIABILITY = 128;
 //Minimum number of consecutive jumps recorded for jump to need blowback compensation
 //Note we are refering to *recorded* consecutive jumps, not cycles.
 //ie the condition is based on cJumpIndex value
-unsigned const short MIN_JUMPS = 10;
+unsigned const short MIN_JUMPS = 5;
 
 //number of cycles after jump during which input is ignored
-unsigned const short JUMP_BLOWBACK = 32;
+unsigned const short JUMP_BLOWBACK = 8;
 
 //GLOBAL VARIABLES
 
@@ -225,12 +226,12 @@ void loop() {
   }
 
   //print results for all sensors in Arduino Plotter format
-  for (int i = 0; i < sizeof(toPrint)/ sizeof(short); i++) {
+  for (int i = 0; i < sizeof(toPrint) / sizeof(short); i++) {
     Serial.print(toPrint[i]);
     Serial.print(" ");
   }
   Serial.println();
-
+  delay(3);
 }
 
 unsigned short computeAverage(unsigned short a[], unsigned long aSize) {
