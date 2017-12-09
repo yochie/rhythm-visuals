@@ -12,7 +12,8 @@ unsigned const long BAUD_RATE = 115200;
 //to be used in cycle dependent settings
 unsigned const short CLOCK_RATE = 180;
 
-//Defined by arduino...
+//Maximum value returned by AnalogRead()
+//Always 1024 for arduino, so this shouldn't change...
 unsigned const short MAX_READING = 1024;
 
 //amount of sensorReadings that we average baseline over
@@ -32,20 +33,25 @@ unsigned const short MIN_THRESHOLD = 40;
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
 unsigned const long MAX_CONSECUTIVE_JUMPS = CLOCK_RATE * 10;
+
+//How many consecutive jumps we average over when resetting
 unsigned const short CJUMP_BUFFER_SIZE = 512;
+
+//How often we should store consecutive jump values to the cJumpBuffer
+//This is computed automatically and should not be modified manually
 unsigned const long CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CJUMP_BUFFER_SIZE;
 
 //How much a jump can differ from the last to qualify as "consecutive"
 //make sure its in the range [0, MAX_READING]
-unsigned const short JUMP_VARIABILITY = 128;
+unsigned const short CJUMP_VARIATION_TOLERANCE = 128;
 
 //Minimum number of consecutive jumps recorded for jump to need blowback compensation
 //Note we are refering to *recorded* consecutive jumps, not cycles.
 //ie the condition is based on cJumpIndex value
-unsigned const short MIN_JUMPS = 5;
+unsigned const short MIN_JUMPS_FOR_BLOWBACK = 5;
 
-//number of cycles after jump during which input is ignored
-unsigned const short JUMP_BLOWBACK = 8;
+//number of loop() cycles after jump during which input is ignored
+unsigned const short JUMP_BLOWBACK_DURATION = 8;
 
 //GLOBAL VARIABLES
 
@@ -53,11 +59,11 @@ unsigned const short JUMP_BLOWBACK = 8;
 unsigned short baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
 
 //baseline iterator: counts the number of loop() executions while not jumping
-//this count needs to be divided by CYCLES_PER_BASELINE to get index in buffer
 unsigned long baselineCount[NUM_SENSORS];
 
-//this is a larger scale version of the jumpBuffer
+//this is a buffer containing previous consecutive jumps for each sensor
 //it is used to reset baseline when MAX_CONSECUTIVE_JUMPS consecutive jumps occur
+//ie when we get stuck in a jump
 unsigned short cJumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
 
 //number of consecutive jumps in cycles (not all are stored)
@@ -121,18 +127,18 @@ void loop() {
 
     //compute buffer averages
     unsigned short sensorReadingAvg = (unsigned short) computeAverage(jumpBuffer[currentSensor], JUMP_BUFFER_SIZE);
-    unsigned short jumpVal = max(0, sensorReadingAvg - baseline[currentSensor]);
+    unsigned short distanceFromBaseline = max(0, sensorReadingAvg - baseline[currentSensor]);
 
     //JUMPING
     //If jump is large enough, add it to toPrint
     //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation (MAX_CONSECUTIVE_JUMPS)
-    if (jumpVal >= jump_threshold[currentSensor]) {
+    if (distanceFromBaseline >= jump_threshold[currentSensor]) {
 
       //CONSECUTIVE
       //2048 is default value for lastSensorReading, so it will never match on this condition
       //since sensorReading is between [0, MAX_READING] and variability should be no larger than MAX_READING
-      //Setting JUMP_VARIABILITY to MAX_READING effectively ignores any variability in consecutive jumps
-      if (abs(lastSensorReading[currentSensor] - sensorReadingAvg) < min(JUMP_VARIABILITY, MAX_READING)) {
+      //Setting CJUMP_VARIATION_TOLERANCE to MAX_READING effectively ignores any variability in consecutive jumps
+      if (abs(lastSensorReading[currentSensor] - sensorReadingAvg) < min(CJUMP_VARIATION_TOLERANCE, MAX_READING)) {
 
         //RESET BASELINE
         //If we get many consecutive jumps without enough variability, reset baseline.
@@ -142,7 +148,7 @@ void loop() {
 
           //raise average a little before resetting baseline to it: early jump vals tend to make
           //the average too low for the pressure by the time it resets, causing constant jumps
-          //TODO: add delay to consecutive jump filling so that it ignores first part of any jump
+          //TODO: add delay to consecutive jump buffer filling so that it ignores first part of any jump
           //That might be enough to remove this "hack"
           baseline[currentSensor] = min(MAX_READING, avg * 1.25);
           //          Serial.println("Consecutive RESET");
@@ -154,7 +160,7 @@ void loop() {
           baselineCount[currentSensor] = 0;
         }
 
-        //saves a jump every now and then to compute the average if we need to reset baseline
+        //saves a jump every CYCLES_PER_CJUMP to compute the average in case we need to reset baseline
         if (cJumpCount[currentSensor] % CYCLES_PER_CJUMP == 0) {
           cJumpBuffer[currentSensor][cJumpIndex[currentSensor]] = sensorReadingAvg;
           cJumpIndex[currentSensor]++;
@@ -162,7 +168,7 @@ void loop() {
         cJumpCount[currentSensor]++;
 
         //mark as jump requiring blowback compensation if long enough
-        if (!jumped[currentSensor] && cJumpIndex[currentSensor] > MIN_JUMPS ) {
+        if (!jumped[currentSensor] && cJumpIndex[currentSensor] > MIN_JUMPS_FOR_BLOWBACK ) {
           jumped[currentSensor] = true;
         }
       }
@@ -176,7 +182,7 @@ void loop() {
       lastSensorReading[currentSensor] = sensorReadingAvg;
 
       //add jump value to the serial printout
-      toPrint[currentSensor] = constrain(sensorReadingAvg - baseline[currentSensor], 0, MAX_READING);
+      toPrint[currentSensor] = constrain(distanceFromBaseline, 0, MAX_READING);
     }
 
     //NOT JUMPING
@@ -186,7 +192,7 @@ void loop() {
         jumped[currentSensor] = false;
         //Stop computing baseline for a while
         //because sensor values tend to be lower than baseline after releasing the button
-        toWait[currentSensor] = JUMP_BLOWBACK;
+        toWait[currentSensor] = JUMP_BLOWBACK_DURATION;
       }
       //If baseline buffer is full, compute its average and reset its counter
       else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
