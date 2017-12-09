@@ -18,20 +18,16 @@ unsigned const short MAX_READING = 1024;
 //amount of sensorReadings that we average baseline over
 unsigned const short BASELINE_BUFFER_SIZE = 256;
 
-//How frequently do we add an element to the baseline buffer.
-//Used to average baseline over longer duration without having too many values to process
-unsigned const short CYCLES_PER_BASELINE = 1;
-
 //Amount of jump vals used to buffer press velocity. If a button is kept pressed,
 //a jump message will be printed every time the buffer is full.
 //Avoid making too large as then short signals will be ignored
-unsigned const short JUMP_BUFFER_SIZE = 32;
+unsigned const short JUMP_BUFFER_SIZE = 64;
 
 //Difference in value from baseline that qualifies as a press
 //MAX_THRESHOLD is used when signal moves around
 //MIN_THRESHOLD is used when signal is flat
-unsigned const short MAX_THRESHOLD = 50;
-unsigned const short MIN_THRESHOLD = 30;
+unsigned const short MAX_THRESHOLD = 75;
+unsigned const short MIN_THRESHOLD = 40;
 
 //After this amount of consecutive (and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
@@ -193,7 +189,7 @@ void loop() {
         toWait[currentSensor] = JUMP_BLOWBACK;
       }
       //If baseline buffer is full, compute its average and reset its counter
-      else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
+      else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
         //adjust threshold to dynamic range of signal
         unsigned short mx = getMax(baselineBuffer);
         unsigned short mn = getMin(baselineBuffer);
@@ -231,7 +227,7 @@ void loop() {
     Serial.print(" ");
   }
   Serial.println();
-  delay(3);
+  //delay(1);
 }
 
 unsigned short computeAverage(unsigned short a[], unsigned long aSize) {
