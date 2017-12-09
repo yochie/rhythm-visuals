@@ -2,8 +2,8 @@
 
 //Sensor pins
 //At least one plz...
-unsigned const short NUM_SENSORS = 2;
-unsigned const short PINS[NUM_SENSORS] = {0, 1};
+unsigned const short NUM_SENSORS = 4;
+unsigned const short PINS[NUM_SENSORS] = {0, 1, 2, 3};
 
 //Serial communication Hz
 unsigned const long BAUD_RATE = 115200;
@@ -12,8 +12,8 @@ unsigned const long BAUD_RATE = 115200;
 //to be used in cycle dependent settings
 unsigned const short CLOCK_RATE = 180;
 
-//amount of vals that we average baseline over
-unsigned const short BUFFER_SIZE = 512;
+//amount of sensorReadings that we average baseline over
+unsigned const short BASELINE_BUFFER_SIZE = 512;
 
 //How frequently do we add an element to the baseline buffer.
 //Used to average baseline over longer duration without having too many values to process
@@ -51,16 +51,11 @@ unsigned const short JUMP_BLOWBACK = 32;
 //GLOBAL VARIABLES
 
 //array used to compute baseline while not jumping
-unsigned short baselineBuffer[NUM_SENSORS][BUFFER_SIZE];
+unsigned short baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
 
 //baseline iterator: counts the number of loop() executions while not jumping
 //this count needs to be divided by CYCLES_PER_BASELINE to get index in buffer
 unsigned long baselineCount[NUM_SENSORS];
-
-//small buffer used to signal jumps
-//the average of this array is printed every time it becomes full
-unsigned short jumpBuffer[NUM_SENSORS][JUMP_BUFFER_SIZE];
-unsigned short jumpIndex[NUM_SENSORS];
 
 //this is a larger scale version of the jumpBuffer
 //it is used to reset baseline when MAX_CONSECUTIVE_JUMPS consecutive jumps occur
@@ -84,7 +79,7 @@ unsigned short toWait[NUM_SENSORS];
 unsigned short baseline[NUM_SENSORS];
 
 //last read value for each pin
-unsigned short lastVal[NUM_SENSORS];
+unsigned short lastSensorReading[NUM_SENSORS];
 
 //current threshold
 unsigned short jump_threshold[NUM_SENSORS];
@@ -95,56 +90,51 @@ void setup() {
   //initialize global arrays to default values
   memset(baselineBuffer, 0, sizeof(baselineBuffer));
   memset(baselineCount, 0, sizeof(baselineCount));
-  memset(jumpBuffer, 0, sizeof(jumpBuffer));
-  memset(jumpIndex, 0, sizeof(jumpIndex));
   memset(cJumpBuffer, 0, sizeof(cJumpBuffer));
   memset(cJumpCount, 0, sizeof(cJumpCount));
   memset(cJumpIndex, 0, sizeof(cJumpIndex));
   memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
   memset(baseline, 1024, sizeof(baseline));
-  memset(lastVal, 2048, sizeof(lastVal));
+  memset(lastSensorReading, 2048, sizeof(lastSensorReading));
   memset(jump_threshold, (MIN_THRESHOLD + MAX_THRESHOLD / 2), sizeof(jump_threshold));
 }
 
 void loop() {
+  //small buffer used to signal jumps
+  //the average of this array for each sensor is printed at every iteration of loop()
+  unsigned short jumpBuffer[NUM_SENSORS][JUMP_BUFFER_SIZE];
+  memset(jumpBuffer, 0, sizeof(jumpBuffer));
+
+  //fill buffer
+  for (unsigned short jumpIndex = 0; jumpIndex < JUMP_BUFFER_SIZE; jumpIndex++) {
+    for (unsigned short currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
+      unsigned short sensorReading = (unsigned short) analogRead(PINS[currentSensor]);
+      jumpBuffer[currentSensor][jumpIndex] = sensorReading;
+    }
+  }
+
   short toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
 
-  //whether or not we will be printing any thing
-  boolean printing = false;
-
-  //used to stop printing from baseline condition/rate and let the JUMPING condition do the printing
-  boolean jumping = false;
-
+  //compute buffer content
   for (unsigned short currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
-    //If baseline buffer is full, compute its average and reset its counter
-    if (baselineCount[currentSensor] > (BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
 
-      //adjust threshold to dynamic range of signal
-      unsigned short mx = getMax(baselineBuffer);
-      unsigned short mn = getMin(baselineBuffer);
-      jump_threshold[currentSensor] = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
-
-      baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BUFFER_SIZE);
-
-      baselineCount[currentSensor] = 0;
-    }
-
-    //New Val
-    unsigned short val = (unsigned short) analogRead(PINS[currentSensor]);
-    unsigned short jumpVal = max(0, val - baseline[currentSensor]);
+    //compute buffer averages
+    unsigned short sensorReadingAvg = (unsigned short) computeAverage(jumpBuffer[currentSensor], JUMP_BUFFER_SIZE);
+    unsigned short jumpVal = max(0, sensorReadingAvg - baseline[currentSensor]);
 
     //JUMPING
-    //If jump is large enough, save val to buffer and print average jump if its full.
+    //If jump is large enough, add it to toPrint
     //Also makes sure that we don't get stuck in jump by restablishing baseline after some stagnation (MAX_CONSECUTIVE_JUMPS)
     if (jumpVal >= jump_threshold[currentSensor]) {
-      jumping = true;
+
       //CONSECUTIVE
-      //2048 is default value for lastVal, so it will never match on this condition
-      //since val is between [0, 1024] and variability should be no larger than 1024
-      //ignores first jump signal, but shouldn't really matter as we're calculating average...
-      if (abs(lastVal[currentSensor] - val) < min(JUMP_VARIABILITY, 1024)) {
+      //2048 is default value for lastSensorReading, so it will never match on this condition
+      //since sensorReading is between [0, 1024] and variability should be no larger than 1024
+      //Setting JUMP_VARIABILITY to 1024 effectively ignores any variability in consecutive jumps
+      if (abs(lastSensorReading[currentSensor] - sensorReadingAvg) < min(JUMP_VARIABILITY, 1024)) {
+
         //RESET BASELINE
         //If we get many consecutive jumps without enough variability, reset baseline.
         if (cJumpIndex[currentSensor] >= CJUMP_BUFFER_SIZE) {
@@ -156,24 +146,26 @@ void loop() {
           //TODO: add delay to consecutive jump filling so that it ignores first part of any jump
           //That might be enough to remove this "hack"
           baseline[currentSensor] = min(1024, avg * 1.25);
-
-          Serial.println("Consecutive RESET");
-          Serial.println(baseline[currentSensor]);
+          //          Serial.println("Consecutive RESET");
+          //          Serial.println(baseline[currentSensor]);
 
           cJumpCount[currentSensor] = 0;
           cJumpIndex[currentSensor] = 0;
-          jumpIndex[currentSensor] = 0;
-          lastVal[currentSensor] = 2048;
-          jumped[currentSensor] = false;
+          lastSensorReading[currentSensor] = 2048;
           baselineCount[currentSensor] = 0;
-          return;
         }
 
+        //saves a jump every now and then to compute the average if we need to reset baseline
         if (cJumpCount[currentSensor] % CYCLES_PER_CJUMP == 0) {
-          cJumpBuffer[currentSensor][cJumpIndex[currentSensor]] = val;
+          cJumpBuffer[currentSensor][cJumpIndex[currentSensor]] = sensorReadingAvg;
           cJumpIndex[currentSensor]++;
         }
         cJumpCount[currentSensor]++;
+
+        //mark as jump requiring blowback compensation if long enough
+        if (!jumped[currentSensor] && cJumpIndex[currentSensor] > MIN_JUMPS ) {
+          jumped[currentSensor] = true;
+        }
       }
       //VARYING
       else {
@@ -181,93 +173,62 @@ void loop() {
         cJumpIndex[currentSensor] = 0;
       }
 
-      //PLACE JUMP IN BUFFER
-      //If there is place in buffer, add jump there.
-      if (jumpIndex[currentSensor] < JUMP_BUFFER_SIZE) {
+      //store current sensorReading for stagnation check
+      lastSensorReading[currentSensor] = sensorReadingAvg;
 
-        //put absolute val (not jumpVal) in buffer
-        jumpBuffer[currentSensor][jumpIndex[currentSensor]] = val;
-        jumpIndex[currentSensor]++;
-
-        //mark as jump requiring blowback compensation
-        if (!jumped[currentSensor] && cJumpIndex[currentSensor] > MIN_JUMPS ) {
-          jumped[currentSensor] = true;
-        }
-
-        //store current val for stagnation check
-        lastVal[currentSensor] = val;
-
-        //BUFFER FULL
-        //If buffer is full, print buffer average to serial and reset counter
-        //This means we send one value every JUMP_BUFFER_SIZE iterations of the
-        //main loop if the button is held down. Careful: making JUMP_BUFFER_SIZE too large
-        //would cause short presses to be ignored.
-        if ( jumpIndex[currentSensor] == JUMP_BUFFER_SIZE) {
-          short avgVal = computeAverage(jumpBuffer[currentSensor], jumpIndex[currentSensor]);
-          //Serial.print("average from buffer ");
-          toPrint[currentSensor] = (currentSensor * 1024) + constrain(avgVal - baseline[currentSensor], 0, 1024);
-          printing = true;
-          //          Serial.print("J");
-          //          Serial.print(currentSensor);
-          //          Serial.print(": ");
-          //          Serial.println((currentSensor * 1024) + constrain(avgVal - baseline[currentSensor], 0, 1024));
-
-          jumpIndex[currentSensor] = 0;
-          lastVal[currentSensor] = val;
-        }
-      }
-
+      //add jump value to the serial printout
+      toPrint[currentSensor] = constrain(sensorReadingAvg - baseline[currentSensor], 0, 1024);
     }
+
     //NOT JUMPING
-    //Add value to buffer for baseline update and reset jump counting variables
     else {
-      //if last cycle was jump, send 0 val to signify jump is over
+      //if we just came out of a jump, wait a little before sampling baseline
       if (jumped[currentSensor]) {
         jumped[currentSensor] = false;
         //Stop computing baseline for a while
         //because sensor values tend to be lower than baseline after releasing the button
         toWait[currentSensor] = JUMP_BLOWBACK;
       }
+      //If baseline buffer is full, compute its average and reset its counter
+      else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1) * CYCLES_PER_BASELINE) {
+        //adjust threshold to dynamic range of signal
+        unsigned short mx = getMax(baselineBuffer);
+        unsigned short mn = getMin(baselineBuffer);
+        jump_threshold[currentSensor] = min(max(2 * (mx - mn), MIN_THRESHOLD), MAX_THRESHOLD);
 
-      if (toWait[currentSensor] == 0) {
-        //every x loops, add value to baseline buffer for updating baseline
-        if (baselineCount[currentSensor] % CYCLES_PER_BASELINE == 0) {
-          baselineBuffer[currentSensor][(unsigned short) (baselineCount[currentSensor] / CYCLES_PER_BASELINE)] = val;
-        }
-        baselineCount[currentSensor]++;
+        baseline[currentSensor] = computeAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE);
 
-      } else {
+        baselineCount[currentSensor] = 0;
+      }
+      //If we're still waiting for blowback, skip this sample
+      else if (toWait[currentSensor] > 0) {
         toWait[currentSensor]--;
       }
+      //Otherwise we can add average reading to baseline buffer
+      else {
+        //add value to baseline buffer for updating baseline
+        baselineBuffer[currentSensor][baselineCount[currentSensor]] = sensorReadingAvg;
+        baselineCount[currentSensor]++;
 
-      //Using 2048 as default value that will never match the current val when testing for consecutive jumps
-      lastVal[currentSensor] = 2048;
+      }
 
-      //Reset jump counters
-      jumpIndex[currentSensor] = 0;
+      //resets to default
+      //Using 2048 as default value that will never match the current sensorReading when testing for consecutive jumps
+      lastSensorReading[currentSensor] = 2048;
+
+      //Reset consecutive jump counters
       cJumpCount[currentSensor] = 0;
       cJumpIndex[currentSensor] = 0;
     }
   }
-  
-  //At the same rate that we print the jumps, print 0s when no sensors jumped
-  //note that this uses the baseline count of the first sensor. 
-  //There should be at least one sensor...
-  if (!jumping && baselineCount[0] % JUMP_BUFFER_SIZE == 0) {
-    for (int i = 0; i < NUM_SENSORS; i++) {
-      Serial.print(toPrint[i]);
-      Serial.print(" ");
-    }
-    Serial.println();
+
+  //print results for all sensors in Arduino Plotter format
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    Serial.print(toPrint[i]);
+    Serial.print(" ");
   }
-  //otherwise were jumping, and we'll only print when the jump buffer is full (which sets printing to true)
-  else if (printing) {
-    for (int i = 0; i < NUM_SENSORS; i++) {
-      Serial.print(toPrint[i]);
-      Serial.print(" ");
-    }
-    Serial.println();
-  }
+  Serial.println();
+
 }
 
 unsigned short computeAverage(unsigned short a[], unsigned long aSize) {
@@ -280,10 +241,10 @@ unsigned short computeAverage(unsigned short a[], unsigned long aSize) {
   return toreturn;
 }
 
-unsigned short getMax(unsigned short numarray[NUM_SENSORS][BUFFER_SIZE]) {
+unsigned short getMax(unsigned short numarray[NUM_SENSORS][BASELINE_BUFFER_SIZE]) {
   unsigned short mx = numarray[0][0];
   for (int i = 0; i < NUM_SENSORS; i++) {
-    for (int j = 0; j < BUFFER_SIZE; j++) {
+    for (int j = 0; j < BASELINE_BUFFER_SIZE; j++) {
       if (mx < numarray[i][j]) {
         mx = numarray[i][j];
       }
@@ -293,10 +254,10 @@ unsigned short getMax(unsigned short numarray[NUM_SENSORS][BUFFER_SIZE]) {
 }
 
 
-unsigned short getMin(unsigned short numarray[NUM_SENSORS][BUFFER_SIZE]) {
+unsigned short getMin(unsigned short numarray[NUM_SENSORS][BASELINE_BUFFER_SIZE]) {
   unsigned short mn = numarray[0][0];
   for (int i = 0; i < NUM_SENSORS; i++) {
-    for (int j = 0; j < BUFFER_SIZE; j++) {
+    for (int j = 0; j < BASELINE_BUFFER_SIZE; j++) {
       if (mn > numarray[i][j]) {
         mn = numarray[i][j];
       }
