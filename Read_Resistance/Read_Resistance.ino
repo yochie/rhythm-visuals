@@ -12,6 +12,8 @@ unsigned const long BAUD_RATE = 115200;
 //to be used in cycle dependent settings
 unsigned const short CLOCK_RATE = 180;
 
+unsigned const short MAX_READING = 1024;
+
 //amount of sensorReadings that we average baseline over
 unsigned const short BASELINE_BUFFER_SIZE = 512;
 
@@ -37,7 +39,7 @@ unsigned const short CJUMP_BUFFER_SIZE = 1024;
 unsigned const long CYCLES_PER_CJUMP = MAX_CONSECUTIVE_JUMPS / CJUMP_BUFFER_SIZE;
 
 //How much a jump can differ from the last to qualify as "consecutive"
-//make sure its in the range [0, 1024]
+//make sure its in the range [0, MAX_READING]
 unsigned const short JUMP_VARIABILITY = 128;
 
 //Minimum number of consecutive jumps recorded for jump to need blowback compensation
@@ -95,7 +97,7 @@ void setup() {
   memset(cJumpIndex, 0, sizeof(cJumpIndex));
   memset(jumped, false, sizeof(jumped));
   memset(toWait, 0, sizeof(toWait));
-  memset(baseline, 1024, sizeof(baseline));
+  memset(baseline, MAX_READING, sizeof(baseline));
   memset(lastSensorReading, 2048, sizeof(lastSensorReading));
   memset(jump_threshold, (MIN_THRESHOLD + MAX_THRESHOLD / 2), sizeof(jump_threshold));
 }
@@ -131,9 +133,9 @@ void loop() {
 
       //CONSECUTIVE
       //2048 is default value for lastSensorReading, so it will never match on this condition
-      //since sensorReading is between [0, 1024] and variability should be no larger than 1024
-      //Setting JUMP_VARIABILITY to 1024 effectively ignores any variability in consecutive jumps
-      if (abs(lastSensorReading[currentSensor] - sensorReadingAvg) < min(JUMP_VARIABILITY, 1024)) {
+      //since sensorReading is between [0, MAX_READING] and variability should be no larger than MAX_READING
+      //Setting JUMP_VARIABILITY to MAX_READING effectively ignores any variability in consecutive jumps
+      if (abs(lastSensorReading[currentSensor] - sensorReadingAvg) < min(JUMP_VARIABILITY, MAX_READING)) {
 
         //RESET BASELINE
         //If we get many consecutive jumps without enough variability, reset baseline.
@@ -145,7 +147,7 @@ void loop() {
           //the average too low for the pressure by the time it resets, causing constant jumps
           //TODO: add delay to consecutive jump filling so that it ignores first part of any jump
           //That might be enough to remove this "hack"
-          baseline[currentSensor] = min(1024, avg * 1.25);
+          baseline[currentSensor] = min(MAX_READING, avg * 1.25);
           //          Serial.println("Consecutive RESET");
           //          Serial.println(baseline[currentSensor]);
 
@@ -177,7 +179,7 @@ void loop() {
       lastSensorReading[currentSensor] = sensorReadingAvg;
 
       //add jump value to the serial printout
-      toPrint[currentSensor] = constrain(sensorReadingAvg - baseline[currentSensor], 0, 1024);
+      toPrint[currentSensor] = constrain(sensorReadingAvg - baseline[currentSensor], 0, MAX_READING);
     }
 
     //NOT JUMPING
@@ -223,7 +225,7 @@ void loop() {
   }
 
   //print results for all sensors in Arduino Plotter format
-  for (int i = 0; i < NUM_SENSORS; i++) {
+  for (int i = 0; i < sizeof(toPrint)/ sizeof(short); i++) {
     Serial.print(toPrint[i]);
     Serial.print(" ");
   }
