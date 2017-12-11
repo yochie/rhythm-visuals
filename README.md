@@ -6,7 +6,7 @@ Detecting and rendering real time analog input peaks
 ### Arduino script
 
 Read_resistance.ino is designed to be uploaded to an arduino type controller. The script sends data through the serial port to notify
-of an analog value spike on specified pins when the polled value is above a baseline by a certain threshold. The baseline is averaged
+of an analog value spike on specified pins when the polled value is above the baseline by a certain threshold. The baseline is averaged
 over the previous readings while they remain below threshold. The threshold is adjusted based on signal stability to allow for more 
 sensitive readings with more stable sensors.
 
