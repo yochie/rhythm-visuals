@@ -21,6 +21,11 @@ a different analog pin. Using a teensy 3.6 (180 MHz), stable readings for 4 simu
 
 ## Output
 
+### Processing script
+
 Draw_planck.pde is a processing script that takes input from the serial port sent by Read_resistance.ino and outputs animations.
-This script is still in the workings and is not functionnal yet. In the meantime the arduino script prints signal values in the format
-used by the arduino IDE serial plotter (ctrl-shift L). 
+This script is still in the workings and is not functionnal yet. 
+
+### Arduino serial plotter
+
+To facilitate parameter adjustments and debugging, the Read_resistance.ino script has a debug branch that can be used in conjunction with the arduino IDE serial plotter (ctrl + shift + L) to visualize the baselines, thresholds and current sensor readings for each sensor. The master branch serial output format can also be somewhat observed in the serial plotter, but with more limited information.
