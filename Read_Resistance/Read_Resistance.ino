@@ -4,13 +4,13 @@
 
 //Sensor pins
 //At least one plz...
-unsigned const short NUM_SENSORS = 1;
-unsigned const short PINS[NUM_SENSORS] = {0};
+unsigned const short NUM_SENSORS = 4;
+unsigned const short PINS[NUM_SENSORS] = {0, 1, 2, 3};
 
-const boolean DEBUG = true;
+const boolean DEBUG = false;
 
 //the note corresponding to each sensor
-unsigned const short NOTES[NUM_SENSORS] = {61};
+unsigned const short NOTES[NUM_SENSORS] = {60, 62, 64, 65};
 
 unsigned const short MIDI_CHANNEL = 0;
 
