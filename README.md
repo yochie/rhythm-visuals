@@ -29,3 +29,7 @@ This script is still in the workings and is not functionnal yet.
 ### Arduino serial plotter
 
 To facilitate parameter adjustments and debugging, the Read_resistance.ino script has a debug branch that can be used in conjunction with the arduino IDE serial plotter (ctrl + shift + L) to visualize the baselines, thresholds and current sensor readings for each sensor. The master branch serial output format can also be somewhat observed in the serial plotter, but with more limited information.
+
+### MIDI
+
+Teensy offers native MIDI output via the USB serial. Each sensor can be attributed a note. When an jump in value is detected, the teensy will send a NOTE_ON message (with reasonable latency, depending on parameters and hardware) and a corresponding NOTE_OFF message when the sensor is released. While the button is pressed, poly aftertouch messages are sent indicating the amplitude enveloppe for the note. Note that there is a tradeoff between latency and signal smoothing. As Midi prioritizes latency, you might expect more noise in the signal. I will need to look at ways to measure latency, but using 4 sensors and reducing smoothing to minimum, the latency felt manageable. I have currently tested using MIDI OX on windows with the default synthesizer, but perhaps better response times can be attained using linux low-latency kernel.
