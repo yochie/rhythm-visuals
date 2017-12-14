@@ -162,16 +162,7 @@ void loop() {
     if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
       //WAITING
       if (toWaitForMidi[currentSensor] > 0) {
-        unsigned long thisTime = micros();
-
-        unsigned long deltaTime = thisTime - lastTime[currentSensor];
-        if (deltaTime < toWaitForMidi[currentSensor]) {
-          toWaitForMidi[currentSensor] -= deltaTime;
-        } else {
-          toWaitForMidi[currentSensor] = 0;
-        }
-
-        lastTime[currentSensor] = thisTime;
+        updateRemainingTime(toWaitForMidi[currentSensor], lastTime[currentSensor]);
       }
       //STAGNATION RESET
       else if (consecutiveJumpIndex[currentSensor] == CJUMP_BUFFER_SIZE) {
@@ -185,10 +176,11 @@ void loop() {
         consecutiveJumpCount[currentSensor] = 0;
         consecutiveJumpIndex[currentSensor] = 0;
       }
-      //SIGNAL
+      //SIGNALING
       else {
         //BUFFERING
-        if (consecutiveJumpCount[currentSensor] > STAGNATION_BUFFER_DELAY && (consecutiveJumpCount[currentSensor] - STAGNATION_BUFFER_DELAY) % CYCLES_PER_CJUMP == 0) {
+        if (consecutiveJumpCount[currentSensor] > STAGNATION_BUFFER_DELAY &&
+            (consecutiveJumpCount[currentSensor] - STAGNATION_BUFFER_DELAY) % CYCLES_PER_CJUMP == 0) {
           consecutiveJumpBuffer[currentSensor][consecutiveJumpIndex[currentSensor]] = sensorReadingAvg;
           consecutiveJumpIndex[currentSensor]++;
         }
@@ -221,16 +213,7 @@ void loop() {
     else {
       //WAIT FOR MIDI
       if (toWaitForMidi[currentSensor] > 0) {
-        unsigned long thisTime = micros();
-        unsigned long deltaTime = thisTime - lastTime[currentSensor];
-
-        if (deltaTime < toWaitForMidi[currentSensor]) {
-          toWaitForMidi[currentSensor] -= deltaTime;
-        } else {
-          toWaitForMidi[currentSensor] = 0;
-        }
-
-        lastTime[currentSensor] = thisTime;
+        updateRemainingTime(toWaitForMidi[currentSensor], lastTime[currentSensor]);
       }
       //NOTE_OFF
       else if (justJumped[currentSensor]) {
@@ -259,17 +242,7 @@ void loop() {
       }
       //WAIT FOR BASELINING
       else if (toWaitForBaseline[currentSensor] > 0) {
-        unsigned long thisTime = micros();
-
-        //since this always occurs after NOTE_OFF messages, we can reuse lastTime
-        unsigned long deltaTime = thisTime - lastTime[currentSensor];
-        if (deltaTime < toWaitForBaseline[currentSensor]) {
-          toWaitForBaseline[currentSensor] -= deltaTime;
-        } else {
-          toWaitForBaseline[currentSensor] = 0;
-        }
-
-        lastTime[currentSensor] = thisTime;
+        updateRemainingTime(toWaitForBaseline[currentSensor], lastTime[currentSensor]);
 
         //reset counters
         consecutiveJumpCount[currentSensor] = 0;
@@ -335,6 +308,19 @@ unsigned short varianceFromTarget(unsigned short * a, unsigned long aSize, unsig
   return (unsigned short) pow((sum / aSize), 1);
 }
 
+//updates time left to wait and lastTime
+void updateRemainingTime(unsigned long (&left), unsigned long (&last)) {
+  unsigned long thisTime = micros();
+  unsigned long deltaTime = thisTime - last;
+  last = thisTime;
+  if (deltaTime < left) {
+    left -= deltaTime;
+  } else {
+    left = 0;
+  }
+}
+
+
 //Single use function to improve readability
 void fillJumpBuffer(unsigned short (&jBuff)[NUM_SENSORS][JUMP_BUFFER_SIZE]) {
   for (unsigned short sample = 0; sample < JUMP_BUFFER_SIZE; sample++) {
@@ -358,6 +344,7 @@ unsigned short updateThreshold(unsigned short (&baselineBuff)[BASELINE_BUFFER_SI
 
   return newThreshold;
 }
+
 
 //print results for all sensors in Arduino Plotter format
 //Note that running the debug slows down the rest of the script (requires delay to avoid overloading serial)
