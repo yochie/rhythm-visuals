@@ -18,6 +18,17 @@ unsigned const short MAX_THRESHOLD = 120;
 //MIN_THRESHOLD is used when the baseline is very stable
 unsigned const short MIN_THRESHOLD = 75;
 
+//Delays in *microseconds* after sending corresponding midi messages
+//Filters out the noise when going across threshold and limits number of
+//aftertouch messages sent
+unsigned const long NOTE_ON_DELAY = 80000;
+unsigned const long NOTE_OFF_DELAY = 20000;
+unsigned const long AFTERTOUCH_DELAY = 20000;
+
+//Delay in *microseconds* for printing
+//Prevents overloading serial communications
+unsigned const short PRINT_DELAY = 50;
+
 //used in cycle dependent settings so that performance
 //remains similar across different clocks
 unsigned const short CLOCK_RATE = 180;
@@ -27,19 +38,19 @@ unsigned const short CLOCK_RATE = 180;
 unsigned const short SCALE_FACTOR = CLOCK_RATE / NUM_SENSORS;
 
 //to avoid sending signals for noise spikes
-unsigned const short MIN_JUMPS_FOR_SIGNAL = (unsigned const short) max((0.05 * SCALE_FACTOR), 1);
+unsigned const short MIN_JUMPS_FOR_SIGNAL = (unsigned const short) max((0.01 * SCALE_FACTOR), 1);
 
 //amount of sensorReadings that we average baseline over
-unsigned const short BASELINE_BUFFER_SIZE = (unsigned const short) (5 * SCALE_FACTOR);
+unsigned const short BASELINE_BUFFER_SIZE = (unsigned const short) (20 * SCALE_FACTOR);
 
 //Amount of sensor readings used to average press velocity.
 //Avoid making too large as then you might miss short jumps and add too much latency
 //Setting it lower would reduce latency and help detecting short jumps, but also allow for more noise
-unsigned const short JUMP_BUFFER_SIZE = (unsigned const short) max((0.05 * SCALE_FACTOR), 1);
+unsigned const short JUMP_BUFFER_SIZE = (unsigned const short) max((0.01 * SCALE_FACTOR), 1);
 
 //After this amount of stagnant (consecutive and non-varying) jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-unsigned const long MAX_STAGNANT_JUMPS = (unsigned const long) (256 * SCALE_FACTOR);
+unsigned const long MAX_STAGNANT_JUMPS = (unsigned const long) (2 * SCALE_FACTOR);
 
 //Used to ignore first part of stagnant jump when resetting baseline
 unsigned const long STAGNATION_BUFFER_DELAY = MAX_STAGNANT_JUMPS / 3;
@@ -47,13 +58,14 @@ unsigned const long STAGNATION_BUFFER_DELAY = MAX_STAGNANT_JUMPS / 3;
 //stagnant jumps we average over when resetting baseline after getting stuck in jump
 unsigned const long SJUMP_BUFFER_SIZE = (unsigned const long) min(max((0.25 * SCALE_FACTOR), 1), MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY);
 
-//number of loop() cycles after jump during which baseline update is paused
-unsigned const short JUMP_BLOWBACK_DURATION = (unsigned const short) (0.125 * SCALE_FACTOR);
+//number of microseconds() after jump during which baseline update is paused
+//this delay occurs after the NOTE_OFF delay, but only avoids baseline buffering, not jumping
+unsigned const long BASELINE_BLOWBACK_DURATION = 20000;
 
 //number of cycles removed from baseline when jump is over
 //this is used to prevent jump beginning from weighing in on baseline
 //making too large would prevent baseline update while fast-tapping
-unsigned const short RETRO_JUMP_BLOWBACK_DURATION = (unsigned const short) (0.0625 * SCALE_FACTOR);
+unsigned const short RETRO_JUMP_BLOWBACK_CYCLES = (unsigned const short) (0.0625 * SCALE_FACTOR);
 
 //*SYSTEM CONSTANTS*
 //these shouldn't have to be modified
@@ -82,6 +94,9 @@ unsigned short lastSensorReading[NUM_SENSORS];
 
 //current threshold
 unsigned short jumpThreshold[NUM_SENSORS];
+
+//number of microseconds left to ignore input from each sensor
+unsigned long toWait[NUM_SENSORS];
 
 
 void setup() {
@@ -115,8 +130,11 @@ void loop() {
   //number of stagnant jumps (not all are stored)
   static unsigned long sJumpCount[NUM_SENSORS];
 
-  //number of cycles left to recuperate from blowback
-  static unsigned short toWait[NUM_SENSORS];
+
+  //used to delay baseline calculation after coming out of jump
+  static unsigned long toWaitForBaseline[NUM_SENSORS];
+
+  static unsigned long lastTime[NUM_SENSORS];
 
   //*STACK VARIABLES*
 
@@ -137,25 +155,41 @@ void loop() {
     unsigned short sensorReadingAvg = bufferAverage(jumpBuffer[currentSensor], JUMP_BUFFER_SIZE);
     unsigned short distanceAboveBaseline = max(0, sensorReadingAvg - baseline[currentSensor]);
 
-    //    toPrint[currentSensor] = sensorReadingAvg;
-//    delayMicroseconds(5);
+//    toPrint[currentSensor] = sensorReadingAvg;
 
     //JUMPING
     if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
 
-      //TOO LONG
-      if (sJumpIndex[currentSensor] == SJUMP_BUFFER_SIZE) {
+      //WAIT
+      if (toWait[currentSensor] > 0) {
+        unsigned long thisTime = micros();
+
+        unsigned long deltaTime = thisTime - lastTime[currentSensor];
+        if (deltaTime < toWait[currentSensor]){
+          toWait[currentSensor] -= deltaTime;
+        } else {
+          toWait[currentSensor] = 0;
+        }
+
+        lastTime[currentSensor] = thisTime;
+      }
+
+      //STAGNATION CHECK
+      else if (sJumpIndex[currentSensor] == SJUMP_BUFFER_SIZE) {
 
         unsigned short sJumpAvg = bufferAverage(sJumpBuffer[currentSensor], SJUMP_BUFFER_SIZE);
 
         //raise average a little to ensure we get out of jump
         baseline[currentSensor] = min(MAX_READING, sJumpAvg * 1.1);
 
+        //reset counters
         baselineCount[currentSensor] = 0;
         sJumpCount[currentSensor] = 0;
         sJumpIndex[currentSensor] = 0;
         lastSensorReading[currentSensor] = MAX_READING * 2;
-      } else {
+      }
+      //SIGNAL
+      else {
         //INCREMENT
         if (sJumpCount[currentSensor] > STAGNATION_BUFFER_DELAY &&
             (sJumpCount[currentSensor] - STAGNATION_BUFFER_DELAY) % CYCLES_PER_SJUMP == 0) {
@@ -168,38 +202,68 @@ void loop() {
         //NOTE_ON
         if (sJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
           justJumped[currentSensor] = true;
-          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, 0, 512), 0, 512, 32, 127), 1);
+          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 512), MIN_THRESHOLD, 512, 32, 127), 1);
           usbMIDI.send_now();
-          delay(50);
           // MIDI Controllers should discard incoming MIDI messages.
           while (usbMIDI.read()) {}
+          lastTime[currentSensor] = micros();
+          toWait[currentSensor] = NOTE_ON_DELAY;
         }
         //AFTERTOUCH
         else if (sJumpCount[currentSensor] > MIN_JUMPS_FOR_SIGNAL) {
-          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, 0, 512), 0, 512, 32, 127), 1);
-          // MIDI Controllers should discard incoming MIDI messages.
+          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, 0, 512), MIN_THRESHOLD, 512, 32, 127), 1);
           usbMIDI.send_now();
+          // MIDI Controllers should discard incoming MIDI messages.
           while (usbMIDI.read()) {}
-          delay(10);
+          lastTime[currentSensor] = micros();
+          toWait[currentSensor] = AFTERTOUCH_DELAY;
         }
       }
     }
     //BASELINING
     else {
+      //WAIT FOR SIGNALING
+      if (toWait[currentSensor] > 0) {
+        unsigned long thisTime = micros();
+        unsigned long deltaTime = thisTime - lastTime[currentSensor];
+        
+        if (deltaTime < toWait[currentSensor]){
+          toWait[currentSensor] -= deltaTime;
+        } else {
+          toWait[currentSensor] = 0;
+        }
+        
+        lastTime[currentSensor] = thisTime;
+      }
       //NOTE_OFF
-      if (justJumped[currentSensor]) {
+      else if (justJumped[currentSensor]) {
         usbMIDI.sendNoteOff(NOTES[currentSensor], 0, 1);
         usbMIDI.send_now();
-        delay(10);
         // MIDI Controllers should discard incoming MIDI messages.
         while (usbMIDI.read()) {}
+
         justJumped[currentSensor] = false;
-        baselineCount[currentSensor] = max(0, baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_DURATION);
-        toWait[currentSensor] = JUMP_BLOWBACK_DURATION;
+        baselineCount[currentSensor] = max((long) 0, (long) baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_CYCLES);
+        lastTime[currentSensor] = micros();
+        toWait[currentSensor] = NOTE_OFF_DELAY;
+        toWaitForBaseline[currentSensor] = BASELINE_BLOWBACK_DURATION;
+
+        //reset counters
+        lastSensorReading[currentSensor] = MAX_READING * 2;
+        sJumpCount[currentSensor] = 0;
+        sJumpIndex[currentSensor] = 0;
       }
-      //WAIT
-      else if (toWait[currentSensor] > 0) {
-        toWait[currentSensor]--;
+      //WAIT FOR BASELINING
+      else if (toWaitForBaseline[currentSensor] > 0) {
+        unsigned long thisTime = micros();
+        unsigned long deltaTime = thisTime - lastTime[currentSensor];
+        if (deltaTime < toWaitForBaseline[currentSensor]){
+          toWaitForBaseline[currentSensor] -= deltaTime;
+        } else {
+          toWaitForBaseline[currentSensor] = 0;
+        }
+        
+        lastTime[currentSensor] = thisTime;
       }
       //RESET BASELINE AND THRESHOLD
       else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
@@ -208,20 +272,24 @@ void loop() {
         baseline[currentSensor] = bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE);
         baselineCount[currentSensor] = 0;
 
+        //reset counters
+        lastSensorReading[currentSensor] = MAX_READING * 2;
+        sJumpCount[currentSensor] = 0;
+        sJumpIndex[currentSensor] = 0;
       }
       //SAVE
       else {
         baselineBuffer[currentSensor][baselineCount[currentSensor]] = sensorReadingAvg;
         baselineCount[currentSensor]++;
-      }
 
-      //RESET JUMP COUNTERS
-      lastSensorReading[currentSensor] = MAX_READING * 2;
-      sJumpCount[currentSensor] = 0;
-      sJumpIndex[currentSensor] = 0;
+        //reset counters
+        lastSensorReading[currentSensor] = MAX_READING * 2;
+        sJumpCount[currentSensor] = 0;
+        sJumpIndex[currentSensor] = 0;
+      }
     }
+//    printResults(toPrint, sizeof(toPrint) / sizeof(short));
   }
-  //  printResults(toPrint, sizeof(toPrint) / sizeof(short));
 }
 
 //*HELPERS*
@@ -269,25 +337,24 @@ void fillJumpBuffer(unsigned short (&jBuff)[NUM_SENSORS][JUMP_BUFFER_SIZE]) {
 
 //Single use function to improve readability
 unsigned short updateThreshold(unsigned short (&baselineBuff)[BASELINE_BUFFER_SIZE], unsigned short oldBaseline, unsigned short oldThreshold) {
+
   unsigned short varianceFromBaseline = varianceFromTarget(baselineBuff, BASELINE_BUFFER_SIZE, oldBaseline);
   unsigned short newThreshold = constrain(varianceFromBaseline, MIN_THRESHOLD, MAX_THRESHOLD);
 
   int deltaThreshold = newThreshold - oldThreshold;
-  if (deltaThreshold > 0) {
-    //    Serial.println(newThreshold);
-    return newThreshold;
-  }
-  else {
+  if (deltaThreshold < 0) {
     //split the difference to slow down threshold becoming more sensitive
-    //    Serial.println(max(oldThreshold + ((deltaThreshold) / 4), MIN_THRESHOLD));
-    return constrain(oldThreshold + ((deltaThreshold) / 4), MIN_THRESHOLD, MAX_THRESHOLD);
+    newThreshold = constrain(oldThreshold + ((deltaThreshold) / 4), MIN_THRESHOLD, MAX_THRESHOLD);
   }
+
+  return newThreshold;
 }
 
 //print results for all sensors in Arduino Plotter format
+//Note that running the debug slows down the rest of the script (requires delay to avoid overloading serial)
+//so you'll have to compensate for the slowdown when setting parameters
 void printResults(unsigned short toPrint[], unsigned short printSize) {
   for (unsigned short i = 0; i < printSize; i++) {
-    //
     Serial.print("0");
     Serial.print(" ");
     Serial.print(toPrint[i]);
@@ -295,17 +362,13 @@ void printResults(unsigned short toPrint[], unsigned short printSize) {
     Serial.print(baseline[i]);
     Serial.print(" ");
     Serial.print(baseline[i] + jumpThreshold[i]);
-    //    Serial.print(" ");
-    //    Serial.print(sJumpIndex[i]);
-    //    Serial.print(" ");
-    //    if (toWait[i] > 0) {
-    //      Serial.print(100);
-    //    }
-    //    else {
-    //      Serial.print(0);
-    //    }
     Serial.print(" ");
-    Serial.print(700);
+    Serial.print(baseline[i] + jumpThreshold[i]);
+//    Serial.print(" ");
+//    Serial.print(toWait[i]);
+    Serial.print(" ");
+    Serial.print(1000);
   }
   Serial.println();
+  delayMicroseconds(PRINT_DELAY);
 }
