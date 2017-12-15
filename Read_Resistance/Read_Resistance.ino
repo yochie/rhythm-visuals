@@ -41,35 +41,35 @@ unsigned const short CLOCK_RATE = 180;
 
 //Used to scale parameters based on configuration
 //Will grow with clock speed and shrink with number of sensors to sample
-unsigned const short SCALE_FACTOR = CLOCK_RATE / NUM_SENSORS;
+const float SCALE_FACTOR = (float) CLOCK_RATE / NUM_SENSORS;
 
 //amount of sensorReadings that we average baseline over
-unsigned const short BASELINE_BUFFER_SIZE = (unsigned const short) (40 * SCALE_FACTOR);
+unsigned const short BASELINE_BUFFER_SIZE = (unsigned short) (40 * SCALE_FACTOR);
 
 //Amount of sensor readings used to average press velocity.
 //Avoid making too large as then you might miss short jumps and add too much latency
 //Setting it lower would reduce latency and help detecting short jumps, but also allow for more noise
-unsigned const short JUMP_BUFFER_SIZE = (unsigned const short) max((0.01 * SCALE_FACTOR), 1);
+unsigned const short JUMP_BUFFER_SIZE = (unsigned short) max((0.01 * SCALE_FACTOR), 1);
 
 //to avoid sending signals for noise spikes, will add latency
 //similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
 //short spikes are guaranteed to not send midi messages, no matter how high they go
-unsigned const short MIN_JUMPS_FOR_SIGNAL = (unsigned const short) max((0.01 * SCALE_FACTOR), 1);
+unsigned const short MIN_JUMPS_FOR_SIGNAL = (unsigned short) max((0.01 * SCALE_FACTOR), 1);
 
 //After this amount of consecutive jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-unsigned const long MAX_STAGNANT_JUMPS = (unsigned const long) (2 * SCALE_FACTOR);
+unsigned const long MAX_STAGNANT_JUMPS = (unsigned long) (2 * SCALE_FACTOR);
 
 //Used to ignore first part of consecutive jump buffer when resetting baseline
 unsigned const long STAGNATION_BUFFER_DELAY = MAX_STAGNANT_JUMPS / 3;
 
 //consecutive jumps we average over when resetting baseline after getting stuck in jump
-unsigned const long CJUMP_BUFFER_SIZE = (unsigned const long) min(max((0.25 * SCALE_FACTOR), 1), MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY);
+unsigned const long CJUMP_BUFFER_SIZE = (unsigned long) min(max((0.25 * SCALE_FACTOR), 1), MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY);
 
 //number of values removed from baseline buffer when jump is over
 //this is used to prevent jump beginning from weighing in on baseline
 //making too large would prevent baseline update while fast-tapping
-unsigned const short RETRO_JUMP_BLOWBACK_CYCLES = (unsigned const short) (0.1 * SCALE_FACTOR);
+unsigned const short RETRO_JUMP_BLOWBACK_CYCLES = (unsigned short) (0.1 * SCALE_FACTOR);
 
 //*SYSTEM CONSTANTS*
 //these shouldn't have to be modified
@@ -83,7 +83,7 @@ unsigned const short MAX_READING = 1024;
 
 //How often should we store consecutive jump values to the consecutiveJumpBuffer
 //*DO NOT MODIFY*
-unsigned const long CYCLES_PER_CJUMP = max(((MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY) / CJUMP_BUFFER_SIZE), (unsigned const long) 1);
+unsigned const long CYCLES_PER_CJUMP = max(((MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY) / CJUMP_BUFFER_SIZE), (unsigned long) 1);
 
 //*GLOBAL VARIABLES*
 //would love to make them static and local to loop(), but they need to be initialized to non-zero values
