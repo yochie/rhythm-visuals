@@ -32,10 +32,6 @@ unsigned const long AFTERTOUCH_DELAY = 20000;
 //Prevents overloading serial communications
 unsigned const short PRINT_DELAY = 50;
 
-//number of microseconds after jump during which baseline update is paused
-//this delay occurs after the NOTE_OFF delay, but only avoids baseline buffering, not jumping
-unsigned const long BASELINE_BLOWBACK_DELAY = 0;
-
 //used in cycle dependent settings so that performance
 //remains (vaguely) similar across different clocks
 unsigned const short CLOCK_RATE = 180;
@@ -101,7 +97,6 @@ void setup() {
 void loop() {
   //*STATIC VARIABLES*
 
-  //used to initiate blowback waiting
   //set to true after MIN_JUMPS_FOR_SIGNAL consecutive jumps
   static bool justJumped[NUM_SENSORS];
 
@@ -121,9 +116,6 @@ void loop() {
 
   //number of stored consecutive jumps
   static unsigned short consecutiveJumpIndex[NUM_SENSORS];
-
-  //used to delay baseline calculation after coming out of jump
-  static unsigned long toWaitForBaseline[NUM_SENSORS];
 
   //used to delay midi signals from one another
   static unsigned long toWaitForMidi[NUM_SENSORS];
@@ -218,18 +210,6 @@ void loop() {
 
         //wait before sending more midi signals
         toWaitForMidi[currentSensor] = NOTE_OFF_DELAY;
-
-        //after waiting for midi, add an extra delay before buffering baseline
-        //this is to ignore the sensor "blowback" (low readings) after jumps
-        toWaitForBaseline[currentSensor] = BASELINE_BLOWBACK_DELAY;
-
-        //reset counters
-        consecutiveJumpCount[currentSensor] = 0;
-        consecutiveJumpIndex[currentSensor] = 0;
-      }
-      //WAIT FOR BASELINING
-      else if (toWaitForBaseline[currentSensor] > 0) {
-        updateRemainingTime(toWaitForBaseline[currentSensor], lastTime[currentSensor]);
 
         //reset counters
         consecutiveJumpCount[currentSensor] = 0;
