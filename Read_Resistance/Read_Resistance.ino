@@ -20,7 +20,7 @@ const int MAX_THRESHOLD = 150;
 //MIN_THRESHOLD is used when the baseline is very stable
 const int MIN_THRESHOLD = 150;
 
-//duration in microseconds after sending corresponding midi messages 
+//duration in microseconds after sending corresponding midi messages
 //for which no more signals are sent for that sensor
 //Filters out the noise when going across threshold and limits number of
 //aftertouch messages sent
@@ -54,13 +54,7 @@ const int MIN_JUMPS_FOR_SIGNAL = max((0.01 * SCALE_FACTOR), 1);
 
 //After this amount of consecutive jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-const int MAX_STAGNANT_JUMPS = 2 * SCALE_FACTOR;
-
-//Used to ignore first part of consecutive jump buffer when resetting baseline
-const int STAGNATION_BUFFER_DELAY = MAX_STAGNANT_JUMPS / 3;
-
-//consecutive jumps we average over when resetting baseline after getting stuck in jump
-const int CJUMP_BUFFER_SIZE = min(max((0.25 * SCALE_FACTOR), 1), MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY);
+const int MAX_CONSECUTIVE_JUMPS = (unsigned long) (2 * SCALE_FACTOR);
 
 //number of values removed from baseline buffer when jump is over
 //this is used to prevent jump beginning from weighing in on baseline
@@ -76,10 +70,6 @@ const int BAUD_RATE = 115200;
 //Maximum value returned by AnalogRead()
 //Always 1024 for arduino
 const int MAX_READING = 1023;
-
-//How often should we store consecutive jump values to the consecutiveJumpBuffer
-//*DO NOT MODIFY*
-const int CYCLES_PER_CJUMP = max(((MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY) / CJUMP_BUFFER_SIZE), 1);
 
 //*GLOBAL VARIABLES*
 //would love to make them static and local to loop(), but they need to be initialized to non-zero values
@@ -113,14 +103,8 @@ void loop() {
   //used to add values in the baselineBuffer
   static int baselineCount[NUM_SENSORS];
 
-  //used to reset baseline after getting stuck in a jump
-  static int consecutiveJumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
-
-  //number of consecutive jumps (not all are stored)
+  //number of consecutive jumps
   static int consecutiveJumpCount[NUM_SENSORS];
-
-  //number of stored consecutive jumps
-  static int consecutiveJumpIndex[NUM_SENSORS];
 
   //used to delay baseline calculation after coming out of jump
   static unsigned long toWaitForBaseline[NUM_SENSORS];
@@ -137,9 +121,9 @@ void loop() {
 
   //process buffer content for each sensor
   for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
-
     int sensorReading = analogRead(PINS[currentSensor]);
     int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
+
 
     if (DEBUG) {
       toPrint[currentSensor] = sensorReading;
@@ -152,25 +136,15 @@ void loop() {
         updateRemainingTime(toWaitForMidi[currentSensor], lastTime[currentSensor]);
       }
       //STAGNATION RESET
-      else if (consecutiveJumpIndex[currentSensor] == CJUMP_BUFFER_SIZE) {
-        int consecutiveJumpAvg = bufferAverage(consecutiveJumpBuffer[currentSensor], CJUMP_BUFFER_SIZE);
-
-        //raise average a little to ensure we get out of jump
-        baseline[currentSensor] = min(MAX_READING, consecutiveJumpAvg * 1.1);
+      else if (consecutiveJumpCount[currentSensor] == MAX_CONSECUTIVE_JUMPS) {
+        baseline[currentSensor] = sensorReading;
 
         //reset counters
         baselineCount[currentSensor] = 0;
         consecutiveJumpCount[currentSensor] = 0;
-        consecutiveJumpIndex[currentSensor] = 0;
       }
       //SIGNALING
       else {
-        //BUFFERING
-        if (consecutiveJumpCount[currentSensor] > STAGNATION_BUFFER_DELAY &&
-            (consecutiveJumpCount[currentSensor] - STAGNATION_BUFFER_DELAY) % CYCLES_PER_CJUMP == 0) {
-          consecutiveJumpBuffer[currentSensor][consecutiveJumpIndex[currentSensor]] = sensorReading;
-          consecutiveJumpIndex[currentSensor]++;
-        }
         consecutiveJumpCount[currentSensor]++;
 
         //NOTE_ON
@@ -186,7 +160,7 @@ void loop() {
         }
         //AFTERTOUCH
         else if (consecutiveJumpCount[currentSensor] > MIN_JUMPS_FOR_SIGNAL) {
-          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, 0, 512), MIN_THRESHOLD, 512, 32, 127), MIDI_CHANNEL);
+          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), MIDI_CHANNEL);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
 
@@ -214,7 +188,7 @@ void loop() {
         justJumped[currentSensor] = false;
 
         //backtrack baseline count to remove jump start
-        baselineCount[currentSensor] = max((long) 0, (long) baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_CYCLES);
+        baselineCount[currentSensor] = max( 0, baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_CYCLES);
 
         //wait before sending more midi signals
         toWaitForMidi[currentSensor] = NOTE_OFF_DELAY;
@@ -225,7 +199,6 @@ void loop() {
 
         //reset counters
         consecutiveJumpCount[currentSensor] = 0;
-        consecutiveJumpIndex[currentSensor] = 0;
       }
       //WAIT FOR BASELINING
       else if (toWaitForBaseline[currentSensor] > 0) {
@@ -233,7 +206,6 @@ void loop() {
 
         //reset counters
         consecutiveJumpCount[currentSensor] = 0;
-        consecutiveJumpIndex[currentSensor] = 0;
       }
       //RESET BASELINE AND THRESHOLD
       else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
@@ -243,7 +215,6 @@ void loop() {
         //reset counters
         baselineCount[currentSensor] = 0;
         consecutiveJumpCount[currentSensor] = 0;
-        consecutiveJumpIndex[currentSensor] = 0;
       }
       //SAVE
       else {
@@ -252,7 +223,6 @@ void loop() {
 
         //reset counters
         consecutiveJumpCount[currentSensor] = 0;
-        consecutiveJumpIndex[currentSensor] = 0;
       }
     }
   }
