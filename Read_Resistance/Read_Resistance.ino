@@ -12,13 +12,9 @@ const boolean DEBUG = true;
 //the note corresponding to each sensor
 unsigned const short NOTES[NUM_SENSORS] = {60, 64};
 
-unsigned const short MIDI_CHANNEL = 0;
+unsigned const short MIDI_CHANNEL = 1;
 
-//MAX_THRESHOLD is used when the baseline is very unstable
-unsigned const short MAX_THRESHOLD = 150;
-
-//MIN_THRESHOLD is used when the baseline is very stable
-unsigned const short MIN_THRESHOLD = 150;
+unsigned const short JUMP_THRESHOLD = 100;
 
 //duration in microseconds after sending corresponding midi messages
 //for which no more signals are sent for that sensor
@@ -64,14 +60,10 @@ unsigned const short MAX_READING = 1023;
 //current baseline for each pin
 unsigned short baseline[NUM_SENSORS];
 
-//current threshold
-unsigned short jumpThreshold[NUM_SENSORS];
-
 void setup() {
   Serial.begin(BAUD_RATE);
 
   memset(baseline, MAX_READING, sizeof(baseline));
-  memset(jumpThreshold, (MIN_THRESHOLD + MAX_THRESHOLD / 2), sizeof(jumpThreshold));
 }
 
 void loop() {
@@ -105,7 +97,7 @@ void loop() {
     }
 
     //JUMPING
-    if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
+    if (distanceAboveBaseline >= JUMP_THRESHOLD) {
       //WAITING
       if (toWaitForMidi[currentSensor] > 0) {
         updateRemainingTime(toWaitForMidi[currentSensor], lastTime[currentSensor]);
@@ -124,7 +116,7 @@ void loop() {
 
         //NOTE_ON
         if (consecutiveJumpCount[currentSensor] == 1) {
-          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), 1);
+          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, JUMP_THRESHOLD, 256), JUMP_THRESHOLD, 256, 96, 127), MIDI_CHANNEL);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
 
@@ -135,7 +127,7 @@ void loop() {
         }
         //AFTERTOUCH
         else {
-          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), 1);
+          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, JUMP_THRESHOLD, 256), JUMP_THRESHOLD, 256, 96, 127), MIDI_CHANNEL);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
 
@@ -153,7 +145,7 @@ void loop() {
       }
       //NOTE_OFF
       else if (justJumped[currentSensor]) {
-        usbMIDI.sendNoteOff(NOTES[currentSensor], 0, 1);
+        usbMIDI.sendNoteOff(NOTES[currentSensor], 0, MIDI_CHANNEL);
         usbMIDI.send_now();
         lastTime[currentSensor] = micros();
 
@@ -170,7 +162,6 @@ void loop() {
       }
       //RESET BASELINE AND THRESHOLD
       else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
-        jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
         baseline[currentSensor] = bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE);
 
         //reset counters
@@ -210,22 +201,6 @@ unsigned short bufferAverage(unsigned short * a, unsigned long aSize) {
   return (unsigned short) (sum / aSize);
 }
 
-unsigned short varianceFromTarget(unsigned short * a, unsigned long aSize, unsigned short target) {
-  unsigned long sum = 0;
-  for (unsigned long i = 0; i < aSize; i++) {
-    //makes sure we dont bust when filling up sum
-    if (sum < ULONG_MAX - a[i]) {
-      sum += pow((int) (a[i] - target), 2);
-    }
-    else {
-      Serial.println("WARNING: Exceeded ULONG_MAX while running varianceFromTarget(). Check your parameters to ensure buffers aren't too large.");
-      delay(3000);
-      return (unsigned short) constrain(ULONG_MAX / aSize, (unsigned long) 0, (unsigned long) USHRT_MAX);
-    }
-  }
-  return (unsigned short) pow((sum / aSize), 1);
-}
-
 //updates time left to wait and lastTime
 void updateRemainingTime(unsigned long (&left), unsigned long (&last)) {
   unsigned long thisTime = micros();
@@ -238,22 +213,6 @@ void updateRemainingTime(unsigned long (&left), unsigned long (&last)) {
   }
 }
 
-//Single use function to improve readability
-unsigned short updateThreshold(unsigned short (&baselineBuff)[BASELINE_BUFFER_SIZE], unsigned short oldBaseline, unsigned short oldThreshold) {
-
-  unsigned short varianceFromBaseline = varianceFromTarget(baselineBuff, BASELINE_BUFFER_SIZE, oldBaseline);
-  unsigned short newThreshold = constrain(varianceFromBaseline, MIN_THRESHOLD, MAX_THRESHOLD);
-
-  int deltaThreshold = newThreshold - oldThreshold;
-  if (deltaThreshold < 0) {
-    //split the difference to slow down threshold becoming more sensitive
-    newThreshold = constrain(oldThreshold + ((deltaThreshold) / 4), MIN_THRESHOLD, MAX_THRESHOLD);
-  }
-
-  return newThreshold;
-}
-
-
 //print results for all sensors in Arduino Plotter format
 //Note that running the debug slows down the rest of the script (requires delay to avoid overloading serial)
 //so you'll have to compensate for the slowdown when setting parameters
@@ -265,7 +224,7 @@ void printResults(unsigned short toPrint[], unsigned short printSize) {
     Serial.print(" ");
     Serial.print(baseline[i]);
     Serial.print(" ");
-    Serial.print(baseline[i] + jumpThreshold[i]);
+    Serial.print(baseline[i] + JUMP_THRESHOLD);
     Serial.print(" ");
   }
   Serial.println();
