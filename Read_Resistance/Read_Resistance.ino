@@ -58,11 +58,6 @@ unsigned const long STAGNATION_BUFFER_DELAY = MAX_STAGNANT_JUMPS / 3;
 //consecutive jumps we average over when resetting baseline after getting stuck in jump
 unsigned const long CJUMP_BUFFER_SIZE = (unsigned long) min(max((0.25 * SCALE_FACTOR), 1), MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY);
 
-//number of values removed from baseline buffer when jump is over
-//this is used to prevent jump beginning from weighing in on baseline
-//making too large would prevent baseline update while fast-tapping
-unsigned const short RETRO_JUMP_BLOWBACK_CYCLES = (unsigned short) (0.1 * SCALE_FACTOR);
-
 //*SYSTEM CONSTANTS*
 //these shouldn't have to be modified
 
@@ -206,7 +201,7 @@ void loop() {
         justJumped[currentSensor] = false;
 
         //backtrack baseline count to remove jump start
-        baselineCount[currentSensor] = max((long) 0, (long) baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_CYCLES);
+        baselineCount[currentSensor] = max((long) 0, (long) baselineCount[currentSensor];
 
         //wait before sending more midi signals
         toWaitForMidi[currentSensor] = NOTE_OFF_DELAY;
