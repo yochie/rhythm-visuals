@@ -43,11 +43,6 @@ const float SCALE_FACTOR = (float) CLOCK_RATE / NUM_SENSORS;
 //amount of sensorReadings that we average baseline over
 unsigned const short BASELINE_BUFFER_SIZE = (unsigned short) (64 * SCALE_FACTOR);
 
-//to avoid sending signals for noise spikes, will add latency
-//similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
-//short spikes are guaranteed to not send midi messages, no matter how high they go
-unsigned const short MIN_JUMPS_FOR_SIGNAL = (unsigned short) max((0.01 * SCALE_FACTOR), 1);
-
 //After this amount of consecutive jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
 unsigned const long MAX_CONSECUTIVE_JUMPS = (unsigned long) (2 * SCALE_FACTOR);
@@ -81,8 +76,6 @@ void setup() {
 
 void loop() {
   //*STATIC VARIABLES*
-
-  //set to true after MIN_JUMPS_FOR_SIGNAL consecutive jumps
   static bool justJumped[NUM_SENSORS];
 
   //used to average the baseline
@@ -135,7 +128,7 @@ void loop() {
         consecutiveJumpCount[currentSensor]++;
 
         //NOTE_ON
-        if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
+        if (consecutiveJumpCount[currentSensor] == 1) {
           usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), 1);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
@@ -146,7 +139,7 @@ void loop() {
           justJumped[currentSensor] = true;
         }
         //AFTERTOUCH
-        else if (consecutiveJumpCount[currentSensor] > MIN_JUMPS_FOR_SIGNAL) {
+        else {
           usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), 1);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
