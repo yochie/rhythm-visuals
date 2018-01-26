@@ -75,14 +75,11 @@ void setup() {
 }
 
 void loop() {
-  //*STATIC VARIABLES*
   static bool justJumped[NUM_SENSORS];
 
-  //used to average the baseline
-  //filled with the average value computed at each loop() for each sensor
+  //used to average the baseline from non-jumping sensor readings
   static unsigned short baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
 
-  //counts the number of loop() executions without jumps
   //used to add values in the baselineBuffer
   static unsigned short baselineCount[NUM_SENSORS];
 
@@ -95,11 +92,9 @@ void loop() {
   //used to compute delays in microseconds while waiting
   static unsigned long lastTime[NUM_SENSORS];
 
-  //*STACK VARIABLES*
   unsigned short toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
 
-  //process buffer content for each sensor
   for (unsigned short currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
 
     unsigned short sensorReading = (unsigned short) analogRead(PINS[currentSensor]);
