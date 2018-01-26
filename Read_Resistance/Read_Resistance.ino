@@ -4,27 +4,28 @@
 
 //Sensor pins
 //At least one plz...
-unsigned const short NUM_SENSORS = 4;
-unsigned const short PINS[NUM_SENSORS] = {0, 1, 2, 3};
+unsigned const short NUM_SENSORS = 2;
+unsigned const short PINS[NUM_SENSORS] = {1, 2};
 
-const boolean DEBUG = false;
+const boolean DEBUG = true;
 
 //the note corresponding to each sensor
-unsigned const short NOTES[NUM_SENSORS] = {60, 62, 64, 65};
+unsigned const short NOTES[NUM_SENSORS] = {60, 64};
 
 unsigned const short MIDI_CHANNEL = 0;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
-unsigned const short MAX_THRESHOLD = 120;
+unsigned const short MAX_THRESHOLD = 150;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-unsigned const short MIN_THRESHOLD = 75;
+unsigned const short MIN_THRESHOLD = 150;
 
-//Delays in microseconds after sending corresponding midi messages
+//duration in microseconds after sending corresponding midi messages 
+//for which no more signals are sent for that sensor
 //Filters out the noise when going across threshold and limits number of
 //aftertouch messages sent
-unsigned const long NOTE_ON_DELAY = 80000;
-unsigned const long NOTE_OFF_DELAY = 25000;
+unsigned const long NOTE_ON_DELAY = 100000;
+unsigned const long NOTE_OFF_DELAY = 100000;
 unsigned const long AFTERTOUCH_DELAY = 20000;
 
 //Delay in microseconds for printing
@@ -33,7 +34,7 @@ unsigned const short PRINT_DELAY = 50;
 
 //number of microseconds after jump during which baseline update is paused
 //this delay occurs after the NOTE_OFF delay, but only avoids baseline buffering, not jumping
-unsigned const long BASELINE_BLOWBACK_DELAY = 20000;
+unsigned const long BASELINE_BLOWBACK_DELAY = 0;
 
 //used in cycle dependent settings so that performance
 //remains (vaguely) similar across different clocks
@@ -44,12 +45,7 @@ unsigned const short CLOCK_RATE = 180;
 const float SCALE_FACTOR = (float) CLOCK_RATE / NUM_SENSORS;
 
 //amount of sensorReadings that we average baseline over
-unsigned const short BASELINE_BUFFER_SIZE = (unsigned short) (40 * SCALE_FACTOR);
-
-//Amount of sensor readings used to average press velocity.
-//Avoid making too large as then you might miss short jumps and add too much latency
-//Setting it lower would reduce latency and help detecting short jumps, but also allow for more noise
-unsigned const short JUMP_BUFFER_SIZE = (unsigned short) max((0.01 * SCALE_FACTOR), 1);
+unsigned const short BASELINE_BUFFER_SIZE = (unsigned short) (64 * SCALE_FACTOR);
 
 //to avoid sending signals for noise spikes, will add latency
 //similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
@@ -79,7 +75,7 @@ unsigned const long BAUD_RATE = 115200;
 
 //Maximum value returned by AnalogRead()
 //Always 1024 for arduino
-unsigned const short MAX_READING = 1024;
+unsigned const short MAX_READING = 1023;
 
 //How often should we store consecutive jump values to the consecutiveJumpBuffer
 //*DO NOT MODIFY*
@@ -136,22 +132,13 @@ void loop() {
   static unsigned long lastTime[NUM_SENSORS];
 
   //*STACK VARIABLES*
-
-  //small buffer used to smooth signal by averaging
-  unsigned short jumpBuffer[NUM_SENSORS][JUMP_BUFFER_SIZE];
-  memset(jumpBuffer, 0, sizeof(jumpBuffer));
-
   unsigned short toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
-
-  //*PROCESS SIGNAL*
-
-  fillJumpBuffer(jumpBuffer);
 
   //process buffer content for each sensor
   for (unsigned short currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
 
-    unsigned short sensorReadingAvg = bufferAverage(jumpBuffer[currentSensor], JUMP_BUFFER_SIZE);
+    unsigned short sensorReading = (unsigned short) analogRead(PINS[sensor]);
     unsigned short distanceAboveBaseline = max(0, sensorReadingAvg - baseline[currentSensor]);
 
     if (DEBUG) {
@@ -188,7 +175,7 @@ void loop() {
 
         //NOTE_ON
         if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
-          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 512), MIN_THRESHOLD, 512, 32, 127), 1);
+          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), 1);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
 
@@ -320,16 +307,6 @@ void updateRemainingTime(unsigned long (&left), unsigned long (&last)) {
   }
 }
 
-
-//Single use function to improve readability
-void fillJumpBuffer(unsigned short (&jBuff)[NUM_SENSORS][JUMP_BUFFER_SIZE]) {
-  for (unsigned short sample = 0; sample < JUMP_BUFFER_SIZE; sample++) {
-    for (unsigned short sensor = 0; sensor < NUM_SENSORS; sensor++) {
-      jBuff[sensor][sample] = (unsigned short) analogRead(PINS[sensor]);
-    }
-  }
-}
-
 //Single use function to improve readability
 unsigned short updateThreshold(unsigned short (&baselineBuff)[BASELINE_BUFFER_SIZE], unsigned short oldBaseline, unsigned short oldThreshold) {
 
@@ -359,7 +336,6 @@ void printResults(unsigned short toPrint[], unsigned short printSize) {
     Serial.print(" ");
     Serial.print(baseline[i] + jumpThreshold[i]);
     Serial.print(" ");
-    Serial.print(1000);
   }
   Serial.println();
   delayMicroseconds(PRINT_DELAY);
