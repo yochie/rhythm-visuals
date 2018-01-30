@@ -50,11 +50,11 @@ const int BASELINE_BUFFER_SIZE = 64 * SCALE_FACTOR;
 //to avoid sending signals for noise spikes, will add latency
 //similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
 //short spikes are guaranteed to not send midi messages, no matter how high they go
-const int MIN_JUMPS_FOR_SIGNAL = max((0.01 * SCALE_FACTOR), 1);
+const int MIN_JUMPS_FOR_SIGNAL = max((0.2 * SCALE_FACTOR), 1);
 
 //After this amount of consecutive jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-const int MAX_CONSECUTIVE_JUMPS = (unsigned long) (2 * SCALE_FACTOR);
+const int MAX_CONSECUTIVE_JUMPS = 2 * SCALE_FACTOR;
 
 //number of values removed from baseline buffer when jump is over
 //this is used to prevent jump beginning from weighing in on baseline
@@ -254,7 +254,7 @@ int varianceFromTarget(int * a, unsigned long aSize, int target) {
   for (unsigned long i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
     if (sum < ULONG_MAX - a[i]) {
-      sum += pow((int) (a[i] - target), 2);
+      sum += pow( (a[i] - target), 2);
     }
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running varianceFromTarget(). Check your parameters to ensure buffers aren't too large.");
@@ -262,7 +262,7 @@ int varianceFromTarget(int * a, unsigned long aSize, int target) {
       return constrain(ULONG_MAX / aSize, 0,  INT_MAX);
     }
   }
-  return (unsigned short) pow((sum / aSize), 1);
+  return pow((sum / aSize), 1);
 }
 
 //updates time left to wait and lastTime
