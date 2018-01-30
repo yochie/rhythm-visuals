@@ -4,13 +4,16 @@
 
 //Sensor pins
 //At least one plz...
-const int NUM_SENSORS = 2;
-const int PINS[NUM_SENSORS] = {1, 2};
+const int NUM_SENSORS = 1;
+const int SENSOR_PINS[NUM_SENSORS] = {1};
+
+const int NUM_MOTORS = 1;
+const int MOTOR_PINS[NUM_MOTORS] = {13};
 
 const boolean DEBUG = true;
 
 //the note corresponding to each sensor
-const int NOTES[NUM_SENSORS] = {60, 64};
+const int NOTES[NUM_SENSORS] = {60};
 
 const int MIDI_CHANNEL = 0;
 
@@ -84,6 +87,10 @@ int jumpThreshold[NUM_SENSORS];
 void setup() {
   Serial.begin(BAUD_RATE);
 
+  for (int motor = 0; motor < NUM_MOTORS; motor++) {
+    pinMode(MOTOR_PINS[motor], OUTPUT);
+  }
+
   memset(baseline, MAX_READING, sizeof(baseline));
   memset(jumpThreshold, (MIN_THRESHOLD + MAX_THRESHOLD / 2), sizeof(jumpThreshold));
 }
@@ -110,7 +117,7 @@ void loop() {
   static unsigned long toWaitForBaseline[NUM_SENSORS];
 
   //used to delay midi signals from one another
-  static unsigned long toWaitForMidi[NUM_SENSORS];
+  static unsigned long toWaitBeforeSignal[NUM_SENSORS];
 
   //used to compute delays in microseconds while waiting
   static unsigned long lastTime[NUM_SENSORS];
@@ -121,7 +128,7 @@ void loop() {
 
   //process buffer content for each sensor
   for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
-    int sensorReading = analogRead(PINS[currentSensor]);
+    int sensorReading = analogRead(SENSOR_PINS[currentSensor]);
     int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
 
 
@@ -132,8 +139,8 @@ void loop() {
     //JUMPING
     if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
       //WAITING
-      if (toWaitForMidi[currentSensor] > 0) {
-        updateRemainingTime(toWaitForMidi[currentSensor], lastTime[currentSensor]);
+      if (toWaitBeforeSignal[currentSensor] > 0) {
+        updateRemainingTime(toWaitBeforeSignal[currentSensor], lastTime[currentSensor]);
       }
       //STAGNATION RESET
       else if (consecutiveJumpCount[currentSensor] == MAX_CONSECUTIVE_JUMPS) {
@@ -149,41 +156,21 @@ void loop() {
 
         //NOTE_ON
         if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
-          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), MIDI_CHANNEL);
-          usbMIDI.send_now();
-          lastTime[currentSensor] = micros();
-
-          // MIDI Controllers should discard incoming MIDI messages.
-          while (usbMIDI.read()) {}
-          toWaitForMidi[currentSensor] = NOTE_ON_DELAY;
+          digitalWrite(sensorToMotor(currentSensor), HIGH);
+          toWaitBeforeSignal[currentSensor] = NOTE_ON_DELAY;
           justJumped[currentSensor] = true;
-        }
-        //AFTERTOUCH
-        else if (consecutiveJumpCount[currentSensor] > MIN_JUMPS_FOR_SIGNAL) {
-          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), MIDI_CHANNEL);
-          usbMIDI.send_now();
-          lastTime[currentSensor] = micros();
-
-          // MIDI Controllers should discard incoming MIDI messages.
-          while (usbMIDI.read()) {}
-          toWaitForMidi[currentSensor] = AFTERTOUCH_DELAY;
         }
       }
     }
     //BASELINING
     else {
-      //WAIT FOR MIDI
-      if (toWaitForMidi[currentSensor] > 0) {
-        updateRemainingTime(toWaitForMidi[currentSensor], lastTime[currentSensor]);
+      //WAIT FOR SIGNAL
+      if (toWaitBeforeSignal[currentSensor] > 0) {
+        updateRemainingTime(toWaitBeforeSignal[currentSensor], lastTime[currentSensor]);
       }
       //NOTE_OFF
       else if (justJumped[currentSensor]) {
-        usbMIDI.sendNoteOff(NOTES[currentSensor], 0, MIDI_CHANNEL);
-        usbMIDI.send_now();
-        lastTime[currentSensor] = micros();
-
-        // MIDI Controllers should discard incoming MIDI messages.
-        while (usbMIDI.read()) {}
+        digitalWrite(sensorToMotor(currentSensor), LOW);
 
         justJumped[currentSensor] = false;
 
@@ -191,7 +178,7 @@ void loop() {
         baselineCount[currentSensor] = max( 0, baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_CYCLES);
 
         //wait before sending more midi signals
-        toWaitForMidi[currentSensor] = NOTE_OFF_DELAY;
+        toWaitBeforeSignal[currentSensor] = NOTE_OFF_DELAY;
 
         //after waiting for midi, add an extra delay before buffering baseline
         //this is to ignore the sensor "blowback" (low readings) after jumps
@@ -243,7 +230,7 @@ int bufferAverage(int * a, unsigned long aSize) {
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running bufferAverage(). Check your parameters to ensure buffers aren't too large.");
       delay(3000);
-      return constrain(ULONG_MAX / aSize, 0, INT_MAX) ;
+      return INT_MAX;
     }
   }
   return (int) (sum / aSize);
@@ -259,7 +246,7 @@ int varianceFromTarget(int * a, unsigned long aSize, int target) {
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running varianceFromTarget(). Check your parameters to ensure buffers aren't too large.");
       delay(3000);
-      return constrain(ULONG_MAX / aSize, 0,  INT_MAX);
+      return INT_MAX;
     }
   }
   return pow((sum / aSize), 1);
@@ -310,3 +297,8 @@ void printResults(int toPrint[], int printSize) {
   Serial.println();
   delayMicroseconds(PRINT_DELAY);
 }
+
+int sensorToMotor(int sensorPin) {
+  return MOTOR_PINS[0];
+}
+
