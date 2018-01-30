@@ -4,21 +4,21 @@
 
 //Sensor pins
 //At least one plz...
-unsigned const short NUM_SENSORS = 2;
-unsigned const short PINS[NUM_SENSORS] = {1, 2};
+const int NUM_SENSORS = 2;
+const int PINS[NUM_SENSORS] = {1, 2};
 
 const boolean DEBUG = true;
 
 //the note corresponding to each sensor
-unsigned const short NOTES[NUM_SENSORS] = {60, 64};
+const int NOTES[NUM_SENSORS] = {60, 64};
 
-unsigned const short MIDI_CHANNEL = 0;
+const int MIDI_CHANNEL = 0;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
-unsigned const short MAX_THRESHOLD = 150;
+const int MAX_THRESHOLD = 150;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-unsigned const short MIN_THRESHOLD = 150;
+const int MIN_THRESHOLD = 150;
 
 //duration in microseconds after sending corresponding midi messages 
 //for which no more signals are sent for that sensor
@@ -30,7 +30,7 @@ unsigned const long AFTERTOUCH_DELAY = 20000;
 
 //Delay in microseconds for printing
 //Prevents overloading serial communications
-unsigned const short PRINT_DELAY = 50;
+const int PRINT_DELAY = 50;
 
 //number of microseconds after jump during which baseline update is paused
 //this delay occurs after the NOTE_OFF delay, but only avoids baseline buffering, not jumping
@@ -38,58 +38,58 @@ unsigned const long BASELINE_BLOWBACK_DELAY = 0;
 
 //used in cycle dependent settings so that performance
 //remains (vaguely) similar across different clocks
-unsigned const short CLOCK_RATE = 180;
+const int CLOCK_RATE = 180;
 
 //Used to scale parameters based on configuration
 //Will grow with clock speed and shrink with number of sensors to sample
 const float SCALE_FACTOR = (float) CLOCK_RATE / NUM_SENSORS;
 
 //amount of sensorReadings that we average baseline over
-unsigned const short BASELINE_BUFFER_SIZE = (unsigned short) (64 * SCALE_FACTOR);
+const int BASELINE_BUFFER_SIZE = 64 * SCALE_FACTOR;
 
 //to avoid sending signals for noise spikes, will add latency
 //similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
 //short spikes are guaranteed to not send midi messages, no matter how high they go
-unsigned const short MIN_JUMPS_FOR_SIGNAL = (unsigned short) max((0.01 * SCALE_FACTOR), 1);
+const int MIN_JUMPS_FOR_SIGNAL = max((0.01 * SCALE_FACTOR), 1);
 
 //After this amount of consecutive jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-unsigned const long MAX_STAGNANT_JUMPS = (unsigned long) (2 * SCALE_FACTOR);
+const int MAX_STAGNANT_JUMPS = 2 * SCALE_FACTOR;
 
 //Used to ignore first part of consecutive jump buffer when resetting baseline
-unsigned const long STAGNATION_BUFFER_DELAY = MAX_STAGNANT_JUMPS / 3;
+const int STAGNATION_BUFFER_DELAY = MAX_STAGNANT_JUMPS / 3;
 
 //consecutive jumps we average over when resetting baseline after getting stuck in jump
-unsigned const long CJUMP_BUFFER_SIZE = (unsigned long) min(max((0.25 * SCALE_FACTOR), 1), MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY);
+const int CJUMP_BUFFER_SIZE = min(max((0.25 * SCALE_FACTOR), 1), MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY);
 
 //number of values removed from baseline buffer when jump is over
 //this is used to prevent jump beginning from weighing in on baseline
 //making too large would prevent baseline update while fast-tapping
-unsigned const short RETRO_JUMP_BLOWBACK_CYCLES = (unsigned short) (0.1 * SCALE_FACTOR);
+const int RETRO_JUMP_BLOWBACK_CYCLES = 0.1 * SCALE_FACTOR;
 
 //*SYSTEM CONSTANTS*
 //these shouldn't have to be modified
 
 //Serial communication Hz
-unsigned const long BAUD_RATE = 115200;
+const int BAUD_RATE = 115200;
 
 //Maximum value returned by AnalogRead()
 //Always 1024 for arduino
-unsigned const short MAX_READING = 1023;
+const int MAX_READING = 1023;
 
 //How often should we store consecutive jump values to the consecutiveJumpBuffer
 //*DO NOT MODIFY*
-unsigned const long CYCLES_PER_CJUMP = max(((MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY) / CJUMP_BUFFER_SIZE), (unsigned long) 1);
+const int CYCLES_PER_CJUMP = max(((MAX_STAGNANT_JUMPS - STAGNATION_BUFFER_DELAY) / CJUMP_BUFFER_SIZE), 1);
 
 //*GLOBAL VARIABLES*
 //would love to make them static and local to loop(), but they need to be initialized to non-zero values
 //std::vector allows non-zero initialization, but I'm not sure I should include it just for this purpose...
 
 //current baseline for each pin
-unsigned short baseline[NUM_SENSORS];
+int baseline[NUM_SENSORS];
 
 //current threshold
-unsigned short jumpThreshold[NUM_SENSORS];
+int jumpThreshold[NUM_SENSORS];
 
 void setup() {
   Serial.begin(BAUD_RATE);
@@ -107,20 +107,20 @@ void loop() {
 
   //used to average the baseline
   //filled with the average value computed at each loop() for each sensor
-  static unsigned short baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
+  static int baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
 
   //counts the number of loop() executions without jumps
   //used to add values in the baselineBuffer
-  static unsigned short baselineCount[NUM_SENSORS];
+  static int baselineCount[NUM_SENSORS];
 
   //used to reset baseline after getting stuck in a jump
-  static unsigned short consecutiveJumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
+  static int consecutiveJumpBuffer[NUM_SENSORS][CJUMP_BUFFER_SIZE];
 
   //number of consecutive jumps (not all are stored)
-  static unsigned long consecutiveJumpCount[NUM_SENSORS];
+  static int consecutiveJumpCount[NUM_SENSORS];
 
   //number of stored consecutive jumps
-  static unsigned short consecutiveJumpIndex[NUM_SENSORS];
+  static int consecutiveJumpIndex[NUM_SENSORS];
 
   //used to delay baseline calculation after coming out of jump
   static unsigned long toWaitForBaseline[NUM_SENSORS];
@@ -132,17 +132,17 @@ void loop() {
   static unsigned long lastTime[NUM_SENSORS];
 
   //*STACK VARIABLES*
-  unsigned short toPrint[NUM_SENSORS];
+  int toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
 
   //process buffer content for each sensor
-  for (unsigned short currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
+  for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
 
-    unsigned short sensorReading = (unsigned short) analogRead(PINS[sensor]);
-    unsigned short distanceAboveBaseline = max(0, sensorReadingAvg - baseline[currentSensor]);
+    int sensorReading = analogRead(PINS[currentSensor]);
+    int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
 
     if (DEBUG) {
-      toPrint[currentSensor] = sensorReadingAvg;
+      toPrint[currentSensor] = sensorReading;
     }
 
     //JUMPING
@@ -153,7 +153,7 @@ void loop() {
       }
       //STAGNATION RESET
       else if (consecutiveJumpIndex[currentSensor] == CJUMP_BUFFER_SIZE) {
-        unsigned short consecutiveJumpAvg = bufferAverage(consecutiveJumpBuffer[currentSensor], CJUMP_BUFFER_SIZE);
+        int consecutiveJumpAvg = bufferAverage(consecutiveJumpBuffer[currentSensor], CJUMP_BUFFER_SIZE);
 
         //raise average a little to ensure we get out of jump
         baseline[currentSensor] = min(MAX_READING, consecutiveJumpAvg * 1.1);
@@ -168,7 +168,7 @@ void loop() {
         //BUFFERING
         if (consecutiveJumpCount[currentSensor] > STAGNATION_BUFFER_DELAY &&
             (consecutiveJumpCount[currentSensor] - STAGNATION_BUFFER_DELAY) % CYCLES_PER_CJUMP == 0) {
-          consecutiveJumpBuffer[currentSensor][consecutiveJumpIndex[currentSensor]] = sensorReadingAvg;
+          consecutiveJumpBuffer[currentSensor][consecutiveJumpIndex[currentSensor]] = sensorReading;
           consecutiveJumpIndex[currentSensor]++;
         }
         consecutiveJumpCount[currentSensor]++;
@@ -247,7 +247,7 @@ void loop() {
       }
       //SAVE
       else {
-        baselineBuffer[currentSensor][baselineCount[currentSensor]] = sensorReadingAvg;
+        baselineBuffer[currentSensor][baselineCount[currentSensor]] = sensorReading;
         baselineCount[currentSensor]++;
 
         //reset counters
@@ -263,7 +263,7 @@ void loop() {
 
 //*HELPERS*
 
-unsigned short bufferAverage(unsigned short * a, unsigned long aSize) {
+int bufferAverage(int * a, unsigned long aSize) {
   unsigned long sum = 0;
   for (unsigned long i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
@@ -273,13 +273,13 @@ unsigned short bufferAverage(unsigned short * a, unsigned long aSize) {
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running bufferAverage(). Check your parameters to ensure buffers aren't too large.");
       delay(3000);
-      return (unsigned short) constrain(ULONG_MAX / aSize, (unsigned long) 0, (unsigned long) USHRT_MAX) ;
+      return constrain(ULONG_MAX / aSize, 0, INT_MAX) ;
     }
   }
-  return (unsigned short) (sum / aSize);
+  return (int) (sum / aSize);
 }
 
-unsigned short varianceFromTarget(unsigned short * a, unsigned long aSize, unsigned short target) {
+int varianceFromTarget(int * a, unsigned long aSize, int target) {
   unsigned long sum = 0;
   for (unsigned long i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
@@ -289,7 +289,7 @@ unsigned short varianceFromTarget(unsigned short * a, unsigned long aSize, unsig
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running varianceFromTarget(). Check your parameters to ensure buffers aren't too large.");
       delay(3000);
-      return (unsigned short) constrain(ULONG_MAX / aSize, (unsigned long) 0, (unsigned long) USHRT_MAX);
+      return constrain(ULONG_MAX / aSize, 0,  INT_MAX);
     }
   }
   return (unsigned short) pow((sum / aSize), 1);
@@ -308,10 +308,10 @@ void updateRemainingTime(unsigned long (&left), unsigned long (&last)) {
 }
 
 //Single use function to improve readability
-unsigned short updateThreshold(unsigned short (&baselineBuff)[BASELINE_BUFFER_SIZE], unsigned short oldBaseline, unsigned short oldThreshold) {
+int updateThreshold(int (&baselineBuff)[BASELINE_BUFFER_SIZE], int oldBaseline, int oldThreshold) {
 
-  unsigned short varianceFromBaseline = varianceFromTarget(baselineBuff, BASELINE_BUFFER_SIZE, oldBaseline);
-  unsigned short newThreshold = constrain(varianceFromBaseline, MIN_THRESHOLD, MAX_THRESHOLD);
+  int varianceFromBaseline = varianceFromTarget(baselineBuff, BASELINE_BUFFER_SIZE, oldBaseline);
+  int newThreshold = constrain(varianceFromBaseline, MIN_THRESHOLD, MAX_THRESHOLD);
 
   int deltaThreshold = newThreshold - oldThreshold;
   if (deltaThreshold < 0) {
@@ -326,8 +326,8 @@ unsigned short updateThreshold(unsigned short (&baselineBuff)[BASELINE_BUFFER_SI
 //print results for all sensors in Arduino Plotter format
 //Note that running the debug slows down the rest of the script (requires delay to avoid overloading serial)
 //so you'll have to compensate for the slowdown when setting parameters
-void printResults(unsigned short toPrint[], unsigned short printSize) {
-  for (unsigned short i = 0; i < printSize; i++) {
+void printResults(int toPrint[], int printSize) {
+  for (int i = 0; i < printSize; i++) {
     Serial.print("0");
     Serial.print(" ");
     Serial.print(toPrint[i]);
