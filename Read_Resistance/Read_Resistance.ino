@@ -175,7 +175,7 @@ void loop() {
 
         //NOTE_ON
         if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
-          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), 1);
+          usbMIDI.sendNoteOn(NOTES[currentSensor], map(constrain(distanceAboveBaseline, MIN_THRESHOLD, 128), MIN_THRESHOLD, 128, 96, 127), MIDI_CHANNEL);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
 
@@ -186,7 +186,7 @@ void loop() {
         }
         //AFTERTOUCH
         else if (consecutiveJumpCount[currentSensor] > MIN_JUMPS_FOR_SIGNAL) {
-          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, 0, 512), MIN_THRESHOLD, 512, 32, 127), 1);
+          usbMIDI.sendPolyPressure(NOTES[currentSensor], map(constrain(distanceAboveBaseline, 0, 512), MIN_THRESHOLD, 512, 32, 127), MIDI_CHANNEL);
           usbMIDI.send_now();
           lastTime[currentSensor] = micros();
 
@@ -204,7 +204,7 @@ void loop() {
       }
       //NOTE_OFF
       else if (justJumped[currentSensor]) {
-        usbMIDI.sendNoteOff(NOTES[currentSensor], 0, 1);
+        usbMIDI.sendNoteOff(NOTES[currentSensor], 0, MIDI_CHANNEL);
         usbMIDI.send_now();
         lastTime[currentSensor] = micros();
 
