@@ -59,22 +59,9 @@ const int BASELINE_BUFFER_SIZE = 1000;
 //Multiply with BASELINE_SAMPLE_DELAY  to get the rise time to reach the threshold.
 const int RETRO_JUMP_BLOWBACK_SAMPLES = 3000 / BASELINE_SAMPLE_DELAY;
 
-//used in cycle dependent settings so that performance
-//remains (vaguely) similar across different clocks
-const int CLOCK_RATE = 180;
-
-//Used to scale parameters based on configuration
-//Will grow with clock speed and shrink with number of sensors to sample
-const float SCALE_FACTOR = (float) CLOCK_RATE / NUM_SENSORS;
-
-//to avoid sending signals for noise spikes, will add latency
-//similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
-//short spikes are guaranteed to not send midi messages, no matter how high they go
-const int MIN_JUMPS_FOR_SIGNAL = max((0 * SCALE_FACTOR), 1);
-
-//After this amount of consecutive jumps is reached,
+//After this amount of sustains
 //the baseline is reset to that jump sequences avg velocity
-unsigned const long MAX_CONSECUTIVE_JUMPS = 250 * SCALE_FACTOR;
+unsigned const long MAX_CONSECUTIVE_SUSTAINS = 10 * 1000000 / SUSTAIN_DELAY;
 
 //*SYSTEM CONSTANTS*
 //these shouldn't have to be modified
@@ -116,16 +103,13 @@ void loop() {
   //*STATIC VARIABLES*
 
   //used to send falling() signal
-  //set to true after rising() signal 
+  //set to true after rising() signal
   static bool justJumped[NUM_SENSORS];
 
   //filled with the average value computed at each loop() for each sensor
   static int baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
   static int baselineBufferIndex[NUM_SENSORS];
 
-
-  static unsigned long consecutiveJumpCount[NUM_SENSORS];
-  
   static int sustainCount[NUM_SENSORS];
 
   //used to delay baseline calculation after coming out of jump and between samples
@@ -158,51 +142,50 @@ void loop() {
         updateRemainingTime(toWaitBeforeSignal[currentSensor], lastSignalTime[currentSensor]);
       }
       //STAGNATION RESET
-      else if (consecutiveJumpCount[currentSensor] == MAX_CONSECUTIVE_JUMPS) {
+      else if (sustainCount[currentSensor] > MAX_CONSECUTIVE_SUSTAINS) {
         baseline[currentSensor] = sensorReading;
 
         //reset counters
         baselineBufferIndex[currentSensor] = 0;
-        consecutiveJumpCount[currentSensor] = 0;
         sustainCount[currentSensor] = 0;
       }
       //SIGNALING
       else {
-        consecutiveJumpCount[currentSensor]++;
-
-        //TRIGGER TIMER
-        if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
+        //VELOCITY_DELAY
+        if (sustainCount[currentSensor] == 0) {
           lastSignalTime[currentSensor] = micros();
           toWaitBeforeSignal[currentSensor] = NOTE_VELOCITY_DELAY;
         }
-        //SAMPLE VELOCITY
-        else  if (consecutiveJumpCount[currentSensor] > MIN_JUMPS_FOR_SIGNAL) {
-          //NOTE_ON
-          if (sustainCount[currentSensor] == 0) {            
-            rising(currentSensor, distanceAboveBaseline);
-            lastSignalTime[currentSensor] = micros();
-            toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;
-            justJumped[currentSensor] = true;
-            sustainCount[currentSensor]++;
-          }
-          //SUSTAIN
-          else {
-            sustained(currentSensor, distanceAboveBaseline, NOTE_ON_DELAY + ((sustainCount[currentSensor]-1) * SUSTAIN_DELAY));
-            lastSignalTime[currentSensor] = micros();
-            toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;
-            sustainCount[currentSensor]++;
-          }
+        //RISING
+        else if (sustainCount[currentSensor] == 1) {
+          rising(currentSensor, distanceAboveBaseline);
+                    
+          lastSignalTime[currentSensor] = micros();
+          toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;          
+          justJumped[currentSensor] = true;
+          sustainCount[currentSensor]++;
         }
+        //SUSTAIN
+        else {
+          sustained(currentSensor, distanceAboveBaseline, NOTE_VELOCITY_DELAY + ((sustainCount[currentSensor] - 1) * SUSTAIN_DELAY));
+          
+          lastSignalTime[currentSensor] = micros();
+          toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;
+          sustainCount[currentSensor]++;
+        }
+
+        //jump counter
+        sustainCount[currentSensor]++;
       }
     }
     //BASELINING
     else {
-      //NOTE_OFF
+      //FALLING
       if (justJumped[currentSensor]) {
         falling(currentSensor);
-        digitalWrite(sensorToMotor(currentSensor), LOW);
-
+        
         //wait before sending more midi signals
+        //debounces falling edge
         lastSignalTime[currentSensor] = micros();
         toWaitBeforeSignal[currentSensor] = NOTE_OFF_DELAY;
 
@@ -214,10 +197,11 @@ void loop() {
 
         justJumped[currentSensor] = false;
 
-        //backtrack baseline count to remove jump start
+        //backtrack baseline count to remove jump start 
+        //(might not do anything if we just updated baseline)
         baselineBufferIndex[currentSensor] = max( 0, baselineBufferIndex[currentSensor] - RETRO_JUMP_BLOWBACK_SAMPLES);
       }
-      //WAIT BEFOR BASELINING
+      //WAIT BEFORE BASELINING
       else if (toWaitBeforeBaseline[currentSensor] > 0) {
         updateRemainingTime(toWaitBeforeBaseline[currentSensor], lastBaselineTime[currentSensor]);
       }
@@ -229,7 +213,7 @@ void loop() {
         //reset counter
         baselineBufferIndex[currentSensor] = 0;
       }
-      //SAVE
+      //SAMPLE BASELINE
       else {
         baselineBuffer[currentSensor][baselineBufferIndex[currentSensor]] = sensorReading;
         baselineBufferIndex[currentSensor]++;
@@ -240,12 +224,12 @@ void loop() {
       }
 
       //reset jump counter
-      consecutiveJumpCount[currentSensor] = 0;
       sustainCount[currentSensor] = 0;
     }
-  }
-  if (DEBUG) {
-    printResults(toPrint, sizeof(toPrint) / sizeof(int));
+
+    if (DEBUG) {
+      printResults(toPrint, sizeof(toPrint) / sizeof(int));
+    }
   }
 }
 
@@ -375,11 +359,11 @@ void sustained(int sensor, int velocity, unsigned long duration) {
     }
   }
   if (WITH_MIDI) {
-    usbMIDI.sendPolyPressure(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
-    usbMIDI.send_now();
-
-    // MIDI Controllers should discard incoming MIDI messages.
-    while (usbMIDI.read()) {}
+    //    usbMIDI.sendPolyPressure(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
+    //    usbMIDI.send_now();
+    //
+    //    // MIDI Controllers should discard incoming MIDI messages.
+    //    while (usbMIDI.read()) {}
   }
 }
 
