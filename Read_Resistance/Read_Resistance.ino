@@ -40,11 +40,11 @@ unsigned const long BASELINE_BLOWBACK_DELAY = 3000;
 const int BASELINE_BUFFER_SIZE = 1000;
 
 //number of samples removed from baseline buffer when jump is over
-//This is used to prevent by removing rising edge portion of signal 
+//This is used to prevent by removing rising edge portion of signal
 //that is below threshold from weighing in on baseline.
 //Making too large would prevent baseline update while fast-tapping.
 //Multiply with BASELINE_SAMPLE_DELAY  to get the rise time to reach the threshold.
-const int RETRO_JUMP_BLOWBACK_SAMPLES = 3000/BASELINE_SAMPLE_DELAY;
+const int RETRO_JUMP_BLOWBACK_SAMPLES = 3000 / BASELINE_SAMPLE_DELAY;
 
 //used in cycle dependent settings so that performance
 //remains (vaguely) similar across different clocks
@@ -249,19 +249,22 @@ int varianceFromTarget(int * a, int aSize, int target) {
       break;
     }
   }
-  return (int) (pow((sum / i), 1));
+
+  return (int) (sum / i);
 }
 
 //updates time left to wait and given last time that are both passed by reference
 void updateRemainingTime(unsigned long (&left), unsigned long (&last)) {
   unsigned long thisTime = micros();
   unsigned long deltaTime = thisTime - last;
-  last = thisTime;
+
   if (deltaTime < left) {
     left -= deltaTime;
   } else {
     left = 0;
   }
+
+  last = thisTime;
 }
 
 //Single use function to improve readability
