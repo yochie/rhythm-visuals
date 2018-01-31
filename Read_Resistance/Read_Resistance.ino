@@ -131,7 +131,6 @@ void loop() {
     int sensorReading = analogRead(SENSOR_PINS[currentSensor]);
     int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
 
-
     if (DEBUG) {
       toPrint[currentSensor] = sensorReading;
     }
@@ -157,6 +156,7 @@ void loop() {
         //NOTE_ON
         if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
           digitalWrite(sensorToMotor(currentSensor), HIGH);
+          lastTime[currentSensor] = micros();
           toWaitBeforeSignal[currentSensor] = NOTE_ON_DELAY;
           justJumped[currentSensor] = true;
         }
@@ -171,6 +171,7 @@ void loop() {
       //NOTE_OFF
       else if (justJumped[currentSensor]) {
         digitalWrite(sensorToMotor(currentSensor), LOW);
+        lastTime[currentSensor] = micros();
 
         justJumped[currentSensor] = false;
 
@@ -180,7 +181,7 @@ void loop() {
         //wait before sending more midi signals
         toWaitBeforeSignal[currentSensor] = NOTE_OFF_DELAY;
 
-        //after waiting for midi, add an extra delay before buffering baseline
+        //after waiting for signaling, add an extra delay before buffering baseline
         //this is to ignore the sensor "blowback" (low readings) after jumps
         toWaitForBaseline[currentSensor] = BASELINE_BLOWBACK_DELAY;
 
