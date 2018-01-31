@@ -220,7 +220,8 @@ void loop() {
 
 int bufferAverage(int * a, int aSize) {
   unsigned long sum = 0;
-  for (int i = 0; i < aSize; i++) {
+  int i;
+  for (i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
     if (sum < (ULONG_MAX - a[i])) {
       sum += a[i];
@@ -228,15 +229,16 @@ int bufferAverage(int * a, int aSize) {
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running bufferAverage(). Check your parameters to ensure buffers aren't too large.");
       delay(1000);
-      return INT_MAX;
+      break;
     }
   }
-  return (sum / aSize);
+  return (int) (sum / i);
 }
 
 int varianceFromTarget(int * a, int aSize, int target) {
   unsigned long sum = 0;
-  for (int i = 0; i < aSize; i++) {
+  int i;
+  for (i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
     if (sum < ULONG_MAX - a[i]) {
       sum += pow( (a[i] - target), 2);
@@ -244,10 +246,10 @@ int varianceFromTarget(int * a, int aSize, int target) {
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running varianceFromTarget(). Check your parameters to ensure buffers aren't too large.");
       delay(1000);
-      return INT_MAX;
+      break;
     }
   }
-  return pow((sum / aSize), 1);
+  return (int) (pow((sum / i), 1));
 }
 
 //updates time left to wait and given last time that are both passed by reference
