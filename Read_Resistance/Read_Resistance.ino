@@ -18,14 +18,14 @@ const int MAX_THRESHOLD = 200;
 //MIN_THRESHOLD is used when the baseline is very stable
 const int MIN_THRESHOLD = 100;
 
-//duration in microseconds after sending corresponding midi messages
+//Delay in microseconds after sending corresponding midi messages
 //for which no more signals are sent for that sensor
 //Filters out the noise when going across threshold and limits number of
 //aftertouch messages sent
 unsigned const long NOTE_ON_DELAY = 15000;
 unsigned const long NOTE_OFF_DELAY = 15000;
 
-//number of micro seconds between baseline samples
+//Delay in micro seconds between baseline samples
 unsigned const long BASELINE_SAMPLE_DELAY = 500;
 
 //Delay in microseconds after printing
@@ -33,19 +33,18 @@ unsigned const long BASELINE_SAMPLE_DELAY = 500;
 const int PRINT_DELAY = 50;
 
 //number of microseconds after jump during which baseline update is paused
-//this delay occurs after the NOTE_OFF delay, but only avoids baseline buffering, not jumping
-unsigned const long BASELINE_BLOWBACK_DELAY = 1000;
+unsigned const long BASELINE_BLOWBACK_DELAY = 3000;
 
 //amount of baseline samples that we average baseline over
-//multiply with BASELINE_SAMPLE_DELAY to get baseline update duration
+//Multiply with BASELINE_SAMPLE_DELAY to get baseline update duration.
 const int BASELINE_BUFFER_SIZE = 1000;
 
 //number of samples removed from baseline buffer when jump is over
-//this is used to prevent jump beginning from weighing in on baseline
-//making too large would prevent baseline update while fast-tapping
-//this parameter multiplied with the baseline sample delay should correspond to
-//the rise time to reach the threshold
-const int RETRO_JUMP_BLOWBACK_CYCLES = 4;
+//This is used to prevent by removing rising edge portion of signal 
+//that is below threshold from weighing in on baseline.
+//Making too large would prevent baseline update while fast-tapping.
+//Multiply with BASELINE_SAMPLE_DELAY  to get the rise time to reach the threshold.
+const int RETRO_JUMP_BLOWBACK_SAMPLES = 4;
 
 //used in cycle dependent settings so that performance
 //remains (vaguely) similar across different clocks
@@ -71,7 +70,7 @@ unsigned const long MAX_CONSECUTIVE_JUMPS = 250 * SCALE_FACTOR;
 const int BAUD_RATE = 115200;
 
 //Maximum value returned by AnalogRead()
-//Always 1024 for arduino
+//Always 1023 for arduino
 const int MAX_READING = 1023;
 
 //*GLOBAL VARIABLES*
@@ -115,14 +114,15 @@ void loop() {
   //number of consecutive jumps
   static unsigned long consecutiveJumpCount[NUM_SENSORS];
 
-  //used to delay baseline calculation after coming out of jump
-  static unsigned long toWaitForBaseline[NUM_SENSORS];
+  //used to delay baseline calculation after coming out of jump and between samples
+  static unsigned long toWaitBeforeBaseline[NUM_SENSORS];
 
   //used to delay midi signals from one another
   static unsigned long toWaitBeforeSignal[NUM_SENSORS];
 
-  //used to compute delays in microseconds while waiting
-  static unsigned long lastTime[NUM_SENSORS];
+  //used to calculate time difference in microseconds while waiting
+  static unsigned long lastSignalTime[NUM_SENSORS];
+  static unsigned long lastBaselineTime[NUM_SENSORS];
 
   //*STACK VARIABLES*
   int toPrint[NUM_SENSORS];
@@ -141,7 +141,7 @@ void loop() {
     if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
       //WAITING
       if (toWaitBeforeSignal[currentSensor] > 0) {
-        updateRemainingTime(toWaitBeforeSignal[currentSensor], lastTime[currentSensor]);
+        updateRemainingTime(toWaitBeforeSignal[currentSensor], lastSignalTime[currentSensor]);
       }
       //STAGNATION RESET
       else if (consecutiveJumpCount[currentSensor] == MAX_CONSECUTIVE_JUMPS) {
@@ -158,7 +158,7 @@ void loop() {
         //NOTE_ON
         if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
           digitalWrite(sensorToMotor(currentSensor), HIGH);
-          lastTime[currentSensor] = micros();
+          lastSignalTime[currentSensor] = micros();
           toWaitBeforeSignal[currentSensor] = NOTE_ON_DELAY;
           justJumped[currentSensor] = true;
         }
@@ -166,56 +166,49 @@ void loop() {
     }
     //BASELINING
     else {
-      //WAIT FOR SIGNAL
-      if (toWaitBeforeSignal[currentSensor] > 0) {
-        updateRemainingTime(toWaitBeforeSignal[currentSensor], lastTime[currentSensor]);
-      }
       //NOTE_OFF
-      else if (justJumped[currentSensor]) {
+      if (justJumped[currentSensor]) {
         digitalWrite(sensorToMotor(currentSensor), LOW);
-        lastTime[currentSensor] = micros();
+
+        //wait before sending more midi signals
+        lastSignalTime[currentSensor] = micros();
+        toWaitBeforeSignal[currentSensor] = NOTE_OFF_DELAY;
+
+        //wait before buffering baseline
+        //this is to ignore the sensor "blowback" (erratic readings after jumps)
+        //and remove falling edge portion of signal that is below threshold
+        lastBaselineTime[currentSensor] = micros();
+        toWaitBeforeBaseline[currentSensor] = BASELINE_BLOWBACK_DELAY;
 
         justJumped[currentSensor] = false;
 
         //backtrack baseline count to remove jump start
-        baselineCount[currentSensor] = max( 0, baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_CYCLES);
-
-        //wait before sending more midi signals
-        toWaitBeforeSignal[currentSensor] = NOTE_OFF_DELAY;
-
-        //after waiting for signaling, add an extra delay before buffering baseline
-        //this is to ignore the sensor "blowback" (low readings) after jumps
-        toWaitForBaseline[currentSensor] = BASELINE_BLOWBACK_DELAY;
-
-        //reset counters
-        consecutiveJumpCount[currentSensor] = 0;
+        baselineCount[currentSensor] = max( 0, baselineCount[currentSensor] - RETRO_JUMP_BLOWBACK_SAMPLES);
       }
-      //WAIT FOR BASELINING
-      else if (toWaitForBaseline[currentSensor] > 0) {
-        updateRemainingTime(toWaitForBaseline[currentSensor], lastTime[currentSensor]);
-
-        //reset counters
-        consecutiveJumpCount[currentSensor] = 0;
+      //WAIT BEFOR BASELINING
+      else if (toWaitBeforeBaseline[currentSensor] > 0) {
+        updateRemainingTime(toWaitBeforeBaseline[currentSensor], lastBaselineTime[currentSensor]);
       }
       //RESET BASELINE AND THRESHOLD
       else if (baselineCount[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
         jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
         baseline[currentSensor] = bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE);
 
-        //reset counters
+        //reset counter
         baselineCount[currentSensor] = 0;
-        consecutiveJumpCount[currentSensor] = 0;
       }
       //SAVE
       else {
         baselineBuffer[currentSensor][baselineCount[currentSensor]] = sensorReading;
         baselineCount[currentSensor]++;
 
-        //reset counters
-        consecutiveJumpCount[currentSensor] = 0;
-        lastTime[currentSensor] = micros();
-        toWaitForBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
+        //reset timer
+        lastBaselineTime[currentSensor] = micros();
+        toWaitBeforeBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
       }
+
+      //reset jump counter
+      consecutiveJumpCount[currentSensor] = 0;
     }
   }
   if (DEBUG) {
@@ -257,7 +250,7 @@ int varianceFromTarget(int * a, int aSize, int target) {
   return pow((sum / aSize), 1);
 }
 
-//updates time left to wait and lastTime
+//updates time left to wait and given last time that are both passed by reference
 void updateRemainingTime(unsigned long (&left), unsigned long (&last)) {
   unsigned long thisTime = micros();
   unsigned long deltaTime = thisTime - last;
