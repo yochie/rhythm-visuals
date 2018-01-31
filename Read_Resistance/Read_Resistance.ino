@@ -217,38 +217,38 @@ void loop() {
     }
   }
   if (DEBUG) {
-    printResults(toPrint, sizeof(toPrint) / sizeof(short));
+    printResults(toPrint, sizeof(toPrint) / sizeof(int));
   }
 }
 
 //*HELPERS*
 
-int bufferAverage(int * a, unsigned long aSize) {
+int bufferAverage(int * a, int aSize) {
   unsigned long sum = 0;
-  for (unsigned long i = 0; i < aSize; i++) {
+  for (int i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
     if (sum < (ULONG_MAX - a[i])) {
-      sum = sum + a[i];
+      sum += a[i];
     }
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running bufferAverage(). Check your parameters to ensure buffers aren't too large.");
-      delay(3000);
+      delay(1000);
       return INT_MAX;
     }
   }
-  return (int) (sum / aSize);
+  return (sum / aSize);
 }
 
-int varianceFromTarget(int * a, unsigned long aSize, int target) {
+int varianceFromTarget(int * a, int aSize, int target) {
   unsigned long sum = 0;
-  for (unsigned long i = 0; i < aSize; i++) {
+  for (int i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
     if (sum < ULONG_MAX - a[i]) {
       sum += pow( (a[i] - target), 2);
     }
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running varianceFromTarget(). Check your parameters to ensure buffers aren't too large.");
-      delay(3000);
+      delay(1000);
       return INT_MAX;
     }
   }
