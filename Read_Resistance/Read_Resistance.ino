@@ -7,7 +7,7 @@
 const int NUM_SENSORS = 1;
 const int SENSOR_PINS[NUM_SENSORS] = {1};
 
-const boolean DEBUG = false;
+const boolean DEBUG = true;
 
 /*MIDI CONFIG*/
 const boolean WITH_MIDI = true;
@@ -21,10 +21,10 @@ const int MOTOR_PINS[NUM_MOTORS] = {13};
 unsigned const long MAX_MOTOR_PULSE_DURATION = 100000;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
-const int MAX_THRESHOLD = 200;
+const int MAX_THRESHOLD = 150;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 100;
+const int MIN_THRESHOLD = 150;
 
 //Time between threshold traversal and rising() signal
 //Allows for velocity measurment and ignoring very short jumps
@@ -32,7 +32,7 @@ unsigned const long NOTE_VELOCITY_DELAY = 2000;
 
 //Delay in microseconds after sending falling signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_OFF_DELAY = 5000;
+unsigned const long NOTE_OFF_DELAY = 10000;
 
 //Delay in microseconds between sustain signals
 unsigned const long SUSTAIN_DELAY = 50000;
