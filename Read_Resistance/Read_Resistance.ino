@@ -87,12 +87,14 @@ int jumpThreshold[NUM_SENSORS];
 void setup() {
   Serial.begin(BAUD_RATE);
 
+  for (int sensor = 0; sensor < NUM_SENSORS; sensor++) {
+    baseline[sensor] = analogRead(SENSOR_PINS[sensor]);
+    jumpThreshold[sensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
+  }
+
   for (int motor = 0; motor < NUM_MOTORS; motor++) {
     pinMode(MOTOR_PINS[motor], OUTPUT);
   }
-
-  memset(baseline, MAX_READING, sizeof(baseline));
-  memset(jumpThreshold, (MIN_THRESHOLD + MAX_THRESHOLD / 2), sizeof(jumpThreshold));
 }
 
 void loop() {
