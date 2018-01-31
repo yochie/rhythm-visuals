@@ -116,7 +116,7 @@ void loop() {
   //set to true after rising() signal
   static bool justJumped[NUM_SENSORS];
 
-  //filled with the average value computed at each loop() for each sensor
+  //Sensor values while not jumping
   static int baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
   static int baselineBufferIndex[NUM_SENSORS];
 
@@ -132,10 +132,9 @@ void loop() {
 
   //used to calculate time difference in microseconds while waiting
   static unsigned long lastRisingTime[NUM_SENSORS];
-  static unsigned long lastBaselineTime[NUM_SENSORS];
   static unsigned long lastSustainingTime[NUM_SENSORS];
+  static unsigned long lastBaselineTime[NUM_SENSORS];
 
-  //*STACK VARIABLES*
   int toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
 
@@ -158,9 +157,11 @@ void loop() {
       }
       //RISING
       else if (sustainCount[currentSensor] == 1) {
+        //WAIT
         if (toWaitBeforeRising[currentSensor] > 0) {
           updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
         }
+        //SIGNAL
         else {
           rising(currentSensor, distanceAboveBaseline);
 
@@ -176,6 +177,7 @@ void loop() {
       }
       //SUSTAINING
       else {
+        //RESET
         if (sustainCount[currentSensor] > MAX_CONSECUTIVE_SUSTAINS) {
           baseline[currentSensor] = sensorReading;
 
@@ -183,9 +185,11 @@ void loop() {
           baselineBufferIndex[currentSensor] = 0;
           sustainCount[currentSensor] = 0;
         }
+        //WAIT
         else if (toWaitBeforeSustaining[currentSensor] > 0) {
           updateRemainingTime(toWaitBeforeSustaining[currentSensor], lastSustainingTime[currentSensor]);
         }
+        //SIGNAL
         else {
           sustained(currentSensor, distanceAboveBaseline, NOTE_VELOCITY_DELAY + ((sustainCount[currentSensor] - 1) * SUSTAIN_DELAY));
 
@@ -195,15 +199,15 @@ void loop() {
         }
       }
     }
-    //BASELINING
+    //NOT JUMPING
     else {
       //FALLING
       if (justJumped[currentSensor]) {
-        //WAIT_BEFORE_FALLING
+        //WAIT
         if (toWaitBeforeFalling[currentSensor]) {
           updateRemainingTime(toWaitBeforeFalling[currentSensor], lastRisingTime[currentSensor]);
         }
-        //FALL
+        //SIGNAL
         else {
           falling(currentSensor);
 
@@ -225,26 +229,29 @@ void loop() {
           baselineBufferIndex[currentSensor] = max( 0, baselineBufferIndex[currentSensor] - RETRO_JUMP_BLOWBACK_SAMPLES);
         }
       }
-      //WAIT BEFORE BASELINING
-      else if (toWaitBeforeBaseline[currentSensor] > 0) {
-        updateRemainingTime(toWaitBeforeBaseline[currentSensor], lastBaselineTime[currentSensor]);
-      }
-      //RESET BASELINE AND THRESHOLD
-      else if (baselineBufferIndex[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
-        jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
-        baseline[currentSensor] = bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE);
-
-        //reset counter
-        baselineBufferIndex[currentSensor] = 0;
-      }
-      //SAMPLE BASELINE
+      //BASELINING
       else {
-        baselineBuffer[currentSensor][baselineBufferIndex[currentSensor]] = sensorReading;
-        baselineBufferIndex[currentSensor]++;
+        //RESET
+        if (baselineBufferIndex[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
+          jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
+          baseline[currentSensor] = bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE);
 
-        //reset timer
-        lastBaselineTime[currentSensor] = micros();
-        toWaitBeforeBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
+          //reset counter
+          baselineBufferIndex[currentSensor] = 0;
+        }
+        //WAIT
+        else if (toWaitBeforeBaseline[currentSensor] > 0) {
+          updateRemainingTime(toWaitBeforeBaseline[currentSensor], lastBaselineTime[currentSensor]);
+        }
+        //SAMPLE
+        else {
+          baselineBuffer[currentSensor][baselineBufferIndex[currentSensor]] = sensorReading;
+          baselineBufferIndex[currentSensor]++;
+
+          //reset timer
+          lastBaselineTime[currentSensor] = micros();
+          toWaitBeforeBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
+        }
       }
 
       //reset jump counter
