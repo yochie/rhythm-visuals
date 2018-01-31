@@ -44,7 +44,7 @@ const int BASELINE_BUFFER_SIZE = 1000;
 //that is below threshold from weighing in on baseline.
 //Making too large would prevent baseline update while fast-tapping.
 //Multiply with BASELINE_SAMPLE_DELAY  to get the rise time to reach the threshold.
-const int RETRO_JUMP_BLOWBACK_SAMPLES = 4;
+const int RETRO_JUMP_BLOWBACK_SAMPLES = 3000/BASELINE_SAMPLE_DELAY;
 
 //used in cycle dependent settings so that performance
 //remains (vaguely) similar across different clocks
