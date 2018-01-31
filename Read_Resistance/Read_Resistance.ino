@@ -12,32 +12,40 @@ const int MOTOR_PINS[NUM_MOTORS] = {13};
 
 const boolean DEBUG = true;
 
-//the note corresponding to each sensor
-const int NOTES[NUM_SENSORS] = {60};
-
-const int MIDI_CHANNEL = 0;
-
 //MAX_THRESHOLD is used when the baseline is very unstable
-const int MAX_THRESHOLD = 150;
+const int MAX_THRESHOLD = 200;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 150;
+const int MIN_THRESHOLD = 100;
 
 //duration in microseconds after sending corresponding midi messages
 //for which no more signals are sent for that sensor
 //Filters out the noise when going across threshold and limits number of
 //aftertouch messages sent
-unsigned const long NOTE_ON_DELAY = 100000;
-unsigned const long NOTE_OFF_DELAY = 100000;
-unsigned const long AFTERTOUCH_DELAY = 20000;
+unsigned const long NOTE_ON_DELAY = 15000;
+unsigned const long NOTE_OFF_DELAY = 15000;
 
-//Delay in microseconds for printing
+//number of micro seconds between baseline samples
+unsigned const long BASELINE_SAMPLE_DELAY = 500;
+
+//Delay in microseconds after printing
 //Prevents overloading serial communications
 const int PRINT_DELAY = 50;
 
 //number of microseconds after jump during which baseline update is paused
 //this delay occurs after the NOTE_OFF delay, but only avoids baseline buffering, not jumping
-unsigned const long BASELINE_BLOWBACK_DELAY = 0;
+unsigned const long BASELINE_BLOWBACK_DELAY = 1000;
+
+//amount of baseline samples that we average baseline over
+//multiply with BASELINE_SAMPLE_DELAY to get baseline update duration
+const int BASELINE_BUFFER_SIZE = 1000;
+
+//number of samples removed from baseline buffer when jump is over
+//this is used to prevent jump beginning from weighing in on baseline
+//making too large would prevent baseline update while fast-tapping
+//this parameter multiplied with the baseline sample delay should correspond to
+//the rise time to reach the threshold
+const int RETRO_JUMP_BLOWBACK_CYCLES = 4;
 
 //used in cycle dependent settings so that performance
 //remains (vaguely) similar across different clocks
@@ -47,9 +55,6 @@ const int CLOCK_RATE = 180;
 //Will grow with clock speed and shrink with number of sensors to sample
 const float SCALE_FACTOR = (float) CLOCK_RATE / NUM_SENSORS;
 
-//amount of sensorReadings that we average baseline over
-const int BASELINE_BUFFER_SIZE = 64 * SCALE_FACTOR;
-
 //to avoid sending signals for noise spikes, will add latency
 //similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
 //short spikes are guaranteed to not send midi messages, no matter how high they go
@@ -57,12 +62,7 @@ const int MIN_JUMPS_FOR_SIGNAL = max((0.2 * SCALE_FACTOR), 1);
 
 //After this amount of consecutive jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
-const int MAX_CONSECUTIVE_JUMPS = 2 * SCALE_FACTOR;
-
-//number of values removed from baseline buffer when jump is over
-//this is used to prevent jump beginning from weighing in on baseline
-//making too large would prevent baseline update while fast-tapping
-const int RETRO_JUMP_BLOWBACK_CYCLES = 0.1 * SCALE_FACTOR;
+unsigned const long MAX_CONSECUTIVE_JUMPS = 250 * SCALE_FACTOR;
 
 //*SYSTEM CONSTANTS*
 //these shouldn't have to be modified
@@ -113,7 +113,7 @@ void loop() {
   static int baselineCount[NUM_SENSORS];
 
   //number of consecutive jumps
-  static int consecutiveJumpCount[NUM_SENSORS];
+  static unsigned long consecutiveJumpCount[NUM_SENSORS];
 
   //used to delay baseline calculation after coming out of jump
   static unsigned long toWaitForBaseline[NUM_SENSORS];
@@ -213,6 +213,8 @@ void loop() {
 
         //reset counters
         consecutiveJumpCount[currentSensor] = 0;
+        lastTime[currentSensor] = micros();
+        toWaitForBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
       }
     }
   }
@@ -296,6 +298,9 @@ void printResults(int toPrint[], int printSize) {
     Serial.print(" ");
     Serial.print(baseline[i] + jumpThreshold[i]);
     Serial.print(" ");
+    Serial.print(MAX_READING);
+    Serial.print(" ");
+
   }
   Serial.println();
   delayMicroseconds(PRINT_DELAY);
