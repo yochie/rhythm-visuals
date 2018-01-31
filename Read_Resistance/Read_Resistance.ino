@@ -7,10 +7,18 @@
 const int NUM_SENSORS = 1;
 const int SENSOR_PINS[NUM_SENSORS] = {1};
 
+const boolean DEBUG = false;
+
+/*MIDI CONFIG*/
+const boolean WITH_MIDI = true;
+const int NOTES[NUM_SENSORS] = {60};
+const int MIDI_CHANNEL = 1;
+
+/*MOTOR CONFIG*/
+const boolean WITH_MOTORS = true;
 const int NUM_MOTORS = 1;
 const int MOTOR_PINS[NUM_MOTORS] = {13};
-
-const boolean DEBUG = true;
+unsigned const long MAX_MOTOR_PULSE_DURATION = 100000;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
 const int MAX_THRESHOLD = 200;
@@ -22,8 +30,10 @@ const int MIN_THRESHOLD = 100;
 //for which no more signals are sent for that sensor
 //Filters out the noise when going across threshold and limits number of
 //aftertouch messages sent
-unsigned const long NOTE_ON_DELAY = 15000;
-unsigned const long NOTE_OFF_DELAY = 15000;
+unsigned const long NOTE_ON_DELAY = 20000;
+unsigned const long NOTE_OFF_DELAY = 20000;
+unsigned const long SUSTAIN_DELAY = 50000;
+
 
 //Delay in micro seconds between baseline samples
 unsigned const long BASELINE_SAMPLE_DELAY = 500;
@@ -57,7 +67,7 @@ const float SCALE_FACTOR = (float) CLOCK_RATE / NUM_SENSORS;
 //to avoid sending signals for noise spikes, will add latency
 //similar to what JUMP_BUFFER_SIZE does, but it is even more restrictive because
 //short spikes are guaranteed to not send midi messages, no matter how high they go
-const int MIN_JUMPS_FOR_SIGNAL = max((0.2 * SCALE_FACTOR), 1);
+const int MIN_JUMPS_FOR_SIGNAL = max((0.5 * SCALE_FACTOR), 1);
 
 //After this amount of consecutive jumps is reached,
 //the baseline is reset to that jump sequences avg velocity
@@ -84,15 +94,18 @@ int baseline[NUM_SENSORS];
 int jumpThreshold[NUM_SENSORS];
 
 void setup() {
-  Serial.begin(BAUD_RATE);
-
+  if (DEBUG || WITH_MIDI) {
+    Serial.begin(BAUD_RATE);
+  }
   for (int sensor = 0; sensor < NUM_SENSORS; sensor++) {
     baseline[sensor] = analogRead(SENSOR_PINS[sensor]);
     jumpThreshold[sensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
   }
 
-  for (int motor = 0; motor < NUM_MOTORS; motor++) {
-    pinMode(MOTOR_PINS[motor], OUTPUT);
+  if (WITH_MOTORS) {
+    for (int motor = 0; motor < NUM_MOTORS; motor++) {
+      pinMode(MOTOR_PINS[motor], OUTPUT);
+    }
   }
 }
 
@@ -113,6 +126,7 @@ void loop() {
 
   //number of consecutive jumps
   static unsigned long consecutiveJumpCount[NUM_SENSORS];
+  static int sustainCount = 0;
 
   //used to delay baseline calculation after coming out of jump and between samples
   static unsigned long toWaitBeforeBaseline[NUM_SENSORS];
@@ -157,10 +171,16 @@ void loop() {
 
         //NOTE_ON
         if (consecutiveJumpCount[currentSensor] == MIN_JUMPS_FOR_SIGNAL) {
-          digitalWrite(sensorToMotor(currentSensor), HIGH);
+          rising(currentSensor, distanceAboveBaseline);
           lastSignalTime[currentSensor] = micros();
           toWaitBeforeSignal[currentSensor] = NOTE_ON_DELAY;
           justJumped[currentSensor] = true;
+        }
+        else  if (consecutiveJumpCount[currentSensor] >= MIN_JUMPS_FOR_SIGNAL) {
+          sustained(currentSensor, distanceAboveBaseline, NOTE_ON_DELAY + (sustainCount * SUSTAIN_DELAY));
+          lastSignalTime[currentSensor] = micros();
+          toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;
+          sustainCount++;
         }
       }
     }
@@ -168,6 +188,7 @@ void loop() {
     else {
       //NOTE_OFF
       if (justJumped[currentSensor]) {
+        falling(currentSensor);
         digitalWrite(sensorToMotor(currentSensor), LOW);
 
         //wait before sending more midi signals
@@ -306,5 +327,47 @@ void printResults(int toPrint[], int printSize) {
 
 int sensorToMotor(int sensorPin) {
   return MOTOR_PINS[0];
+}
+
+void rising(int sensor, int velocity) {
+  if (WITH_MOTORS) {
+    digitalWrite(sensorToMotor(sensor), HIGH);
+  }
+  if (WITH_MIDI) {
+    usbMIDI.sendNoteOn(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
+    usbMIDI.send_now();
+
+    // MIDI Controllers should discard incoming MIDI messages.
+    while (usbMIDI.read()) {}
+  }
+}
+
+void falling(int sensor) {
+  if (WITH_MOTORS) {
+    digitalWrite(sensorToMotor(sensor), LOW);
+  }
+
+  if (WITH_MIDI) {
+    usbMIDI.sendNoteOff(NOTES[sensor], 0, MIDI_CHANNEL);
+    usbMIDI.send_now();
+
+    // MIDI Controllers should discard incoming MIDI messages.
+    while (usbMIDI.read()) {}
+  }
+}
+
+void sustained(int sensor, int velocity, unsigned long duration) {
+  if (WITH_MOTORS) {
+    if (duration >= MAX_MOTOR_PULSE_DURATION) {
+      digitalWrite(sensorToMotor(sensor), LOW);
+    }
+  }
+  if (WITH_MIDI) {
+    usbMIDI.sendPolyPressure(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
+    usbMIDI.send_now();
+
+    // MIDI Controllers should discard incoming MIDI messages.
+    while (usbMIDI.read()) {}
+  }
 }
 
