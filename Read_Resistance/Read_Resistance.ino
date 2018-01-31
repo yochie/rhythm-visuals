@@ -4,14 +4,14 @@
 
 //Sensor pins
 //At least one plz...
-const int NUM_SENSORS = 1;
-const int SENSOR_PINS[NUM_SENSORS] = {1};
+const int NUM_SENSORS = 4;
+const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 
-const boolean DEBUG = true;
+const boolean DEBUG = false;
 
 /*MIDI CONFIG*/
 const boolean WITH_MIDI = true;
-const int NOTES[NUM_SENSORS] = {60};
+const int NOTES[NUM_SENSORS] = {60, 62, 64, 65};
 const int MIDI_CHANNEL = 1;
 
 /*MOTOR CONFIG*/
@@ -61,7 +61,7 @@ const int RETRO_JUMP_BLOWBACK_SAMPLES = 3000 / BASELINE_SAMPLE_DELAY;
 
 //After this amount of sustains
 //the baseline is reset to that jump sequences avg velocity
-unsigned const long MAX_CONSECUTIVE_SUSTAINS = 10 * 1000000 / SUSTAIN_DELAY;
+const int MAX_CONSECUTIVE_SUSTAINS = 10 * 1000000 / SUSTAIN_DELAY;
 
 //*SYSTEM CONSTANTS*
 //these shouldn't have to be modified
@@ -159,16 +159,16 @@ void loop() {
         //RISING
         else if (sustainCount[currentSensor] == 1) {
           rising(currentSensor, distanceAboveBaseline);
-                    
+
           lastSignalTime[currentSensor] = micros();
-          toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;          
+          toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;
           justJumped[currentSensor] = true;
           sustainCount[currentSensor]++;
         }
         //SUSTAIN
         else {
           sustained(currentSensor, distanceAboveBaseline, NOTE_VELOCITY_DELAY + ((sustainCount[currentSensor] - 1) * SUSTAIN_DELAY));
-          
+
           lastSignalTime[currentSensor] = micros();
           toWaitBeforeSignal[currentSensor] = SUSTAIN_DELAY;
           sustainCount[currentSensor]++;
@@ -183,7 +183,7 @@ void loop() {
       //FALLING
       if (justJumped[currentSensor]) {
         falling(currentSensor);
-        
+
         //wait before sending more midi signals
         //debounces falling edge
         lastSignalTime[currentSensor] = micros();
@@ -197,7 +197,7 @@ void loop() {
 
         justJumped[currentSensor] = false;
 
-        //backtrack baseline count to remove jump start 
+        //backtrack baseline count to remove jump start
         //(might not do anything if we just updated baseline)
         baselineBufferIndex[currentSensor] = max( 0, baselineBufferIndex[currentSensor] - RETRO_JUMP_BLOWBACK_SAMPLES);
       }
@@ -226,10 +226,9 @@ void loop() {
       //reset jump counter
       sustainCount[currentSensor] = 0;
     }
-
-    if (DEBUG) {
-      printResults(toPrint, sizeof(toPrint) / sizeof(int));
-    }
+  }
+  if (DEBUG) {
+    printResults(toPrint, sizeof(toPrint) / sizeof(int));
   }
 }
 
