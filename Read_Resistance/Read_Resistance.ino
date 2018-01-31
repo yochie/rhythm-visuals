@@ -23,7 +23,7 @@ const int SECOND = 1000000;
 const int NUM_SENSORS = 4;
 const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 
-const boolean DEBUG = true;
+const boolean DEBUG = false;
 
 /*MIDI CONFIG*/
 const boolean WITH_MIDI = true;
@@ -44,18 +44,18 @@ const int MIN_THRESHOLD = 150;
 
 //Time between threshold traversal and rising() signal
 //Allows for velocity measurment and ignoring very short jumps
-unsigned const long NOTE_VELOCITY_DELAY = 0.5 * MILLISECOND;
+unsigned const long NOTE_VELOCITY_DELAY = 1 * MILLISECOND;
 
 //Delay in microseconds after sending rising() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_ON_DELAY = 25 * MILLISECOND;
+unsigned const long NOTE_ON_DELAY = 35 * MILLISECOND;
 
 //Delay in microseconds after sending falling() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_OFF_DELAY = 25 * MILLISECOND;
+unsigned const long NOTE_OFF_DELAY = 35 * MILLISECOND;
 
 //Delay in microseconds between sustain() signals
-unsigned const long SUSTAIN_DELAY = 50 * MILLISECOND;
+unsigned const long SUSTAIN_DELAY = 100 * MILLISECOND;
 
 //Delay in micro seconds between baseline samples
 unsigned const long BASELINE_SAMPLE_DELAY = 0.5 * MILLISECOND;
@@ -63,10 +63,10 @@ unsigned const long BASELINE_SAMPLE_DELAY = 0.5 * MILLISECOND;
 //Delay in microseconds adter each line of debug messages
 //Blocking (uses delay() function)
 //Prevents overloading serial communications
-const int PRINT_DELAY = 50 * MICROSECOND;
+const int PRINT_DELAY = 200 * MICROSECOND;
 
 //number of microseconds after jump during which baseline update is paused
-unsigned const long BASELINE_BLOWBACK_DELAY = 2 * MILLISECOND;
+unsigned const long BASELINE_BLOWBACK_DELAY = 10 * MILLISECOND;
 
 //TODO: change constant to timing notation
 //amount of baseline samples that we average baseline over
@@ -79,7 +79,7 @@ const int BASELINE_BUFFER_SIZE = 1000;
 //that is below threshold from weighing in on baseline.
 //Making too large would prevent baseline update while fast-tapping.
 //Multiply with BASELINE_SAMPLE_DELAY  to get the rise time to reach the threshold.
-const int RETRO_JUMP_BLOWBACK_SAMPLES = (1 * MILLISECOND) / BASELINE_SAMPLE_DELAY;
+const int RETRO_JUMP_BLOWBACK_SAMPLES = (0.5 * MILLISECOND) / BASELINE_SAMPLE_DELAY;
 
 //TODO: move division to the code
 //After this amount of sustains
@@ -257,9 +257,9 @@ void loop() {
       //reset jump counter
       sustainCount[currentSensor] = 0;
     }
-    if (DEBUG) {
-      printResults(toPrint, sizeof(toPrint) / sizeof(int));
-    }
+  }
+  if (DEBUG) {
+    printResults(toPrint, sizeof(toPrint) / sizeof(int));
   }
 }
 //*HELPERS*
