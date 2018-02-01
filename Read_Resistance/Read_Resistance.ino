@@ -32,9 +32,18 @@ const int MIDI_CHANNEL = 1;
 
 /*MOTOR CONFIG*/
 const boolean WITH_MOTORS = true;
-const int NUM_MOTORS = 1;
-const int MOTOR_PINS[NUM_MOTORS] = {13};
-unsigned const long MAX_MOTOR_PULSE_DURATION = 100 * MILLISECOND;
+const int NUM_MOTORS = 2;
+const int MOTOR_PINS[NUM_MOTORS] = {12, 24};
+
+//Used to show when motor would activate when none are used
+const int LED_PIN = 13;
+
+//Gives the index of the motor to use for each sensor
+//Uses LED_PIN when -1
+const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, -1, 1, -1};
+
+//To limit duty cycle
+unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
 const int MAX_THRESHOLD = 150;
@@ -103,6 +112,8 @@ void setup() {
   }
 
   if (WITH_MOTORS) {
+    pinMode(LED_PIN, OUTPUT);
+
     for (int motor = 0; motor < NUM_MOTORS; motor++) {
       pinMode(MOTOR_PINS[motor], OUTPUT);
     }
@@ -227,10 +238,16 @@ void loop() {
           //backtrack baseline count to remove jump start
           //(might not do anything if we just updated baseline)
           baselineBufferIndex[currentSensor] = max( 0, baselineBufferIndex[currentSensor] - RETRO_JUMP_BLOWBACK_SAMPLES);
+
+          //reset jump counter
+          sustainCount[currentSensor] = 0;
         }
       }
       //BASELINING
       else {
+        //reset jump counter
+        sustainCount[currentSensor] = 0;
+
         //RESET
         if (baselineBufferIndex[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
           jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
@@ -253,9 +270,6 @@ void loop() {
           toWaitBeforeBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
         }
       }
-
-      //reset jump counter
-      sustainCount[currentSensor] = 0;
     }
   }
   if (DEBUG) {
@@ -350,8 +364,14 @@ void printResults(int toPrint[], int printSize) {
   delayMicroseconds(PRINT_DELAY);
 }
 
-int sensorToMotor(int sensorPin) {
-  return MOTOR_PINS[0];
+int sensorToMotor(int sensorIndex) {
+  if (SENSOR_TO_MOTOR[sensorIndex] == -1) {
+    //Turn on LED instead of motor
+    return LED_PIN;
+  }
+  else {
+    return SENSOR_TO_MOTOR[sensorIndex];
+  }
 }
 
 void rising(int sensor, int velocity) {
