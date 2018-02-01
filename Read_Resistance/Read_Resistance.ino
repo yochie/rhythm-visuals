@@ -40,10 +40,10 @@ const int LED_PIN = 13;
 
 //Gives the index of the motor to use for each sensor
 //Uses LED_PIN when -1
-const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, -1, 1, -1};
+const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, 1, 0, 1};
 
 //To limit duty cycle
-unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
+unsigned const long MAX_MOTOR_PULSE_DURATION = 100 * MILLISECOND;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
 const int MAX_THRESHOLD = 150;
@@ -57,11 +57,11 @@ unsigned const long NOTE_VELOCITY_DELAY = 1 * MILLISECOND;
 
 //Delay in microseconds after sending rising() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_ON_DELAY = 35 * MILLISECOND;
+unsigned const long NOTE_ON_DELAY = 45 * MILLISECOND;
 
 //Delay in microseconds after sending falling() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_OFF_DELAY = 35 * MILLISECOND;
+unsigned const long NOTE_OFF_DELAY = 45 * MILLISECOND;
 
 //Delay in microseconds between sustain() signals
 unsigned const long SUSTAIN_DELAY = 100 * MILLISECOND;
@@ -72,7 +72,7 @@ unsigned const long BASELINE_SAMPLE_DELAY = 0.5 * MILLISECOND;
 //Delay in microseconds adter each line of debug messages
 //Blocking (uses delay() function)
 //Prevents overloading serial communications
-const int PRINT_DELAY = 200 * MICROSECOND;
+const int PRINT_DELAY = 50 * MICROSECOND;
 
 //number of microseconds after jump during which baseline update is paused
 unsigned const long BASELINE_BLOWBACK_DELAY = 10 * MILLISECOND;
@@ -96,6 +96,7 @@ const int RETRO_JUMP_BLOWBACK_SAMPLES = (0.5 * MILLISECOND) / BASELINE_SAMPLE_DE
 const int MAX_CONSECUTIVE_SUSTAINS = (10 * SECOND) / SUSTAIN_DELAY;
 
 //*GLOBAL VARIABLES*
+
 //current baseline for each pin
 int baseline[NUM_SENSORS];
 
@@ -146,10 +147,10 @@ void loop() {
   static unsigned long lastSustainingTime[NUM_SENSORS];
   static unsigned long lastBaselineTime[NUM_SENSORS];
 
+  //for debug
   int toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
 
-  //process buffer content for each sensor
   for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
     int sensorReading = analogRead(SENSOR_PINS[currentSensor]);
     int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
@@ -370,7 +371,7 @@ int sensorToMotor(int sensorIndex) {
     return LED_PIN;
   }
   else {
-    return SENSOR_TO_MOTOR[sensorIndex];
+    return MOTOR_PINS[SENSOR_TO_MOTOR[sensorIndex]];
   }
 }
 
