@@ -2,8 +2,6 @@
 
 #include "config.h"
 
-//*GLOBAL VARIABLES*
-
 //current baseline for each pin
 int baseline[NUM_SENSORS];
 
@@ -29,23 +27,25 @@ void setup() {
       digitalWrite(MOTOR_PINS[motor], LOW);
     }
   }
+  
+  if (WITH_MIDI) {
+    //wait to ensure Midi mapper has had time to detect midi input
+    delay(5000);
 
-  //wait to ensure Midi mapper has had time to detect midi input
-  delay(5000);
+    //Set midi soundfont bank
+    usbMIDI.sendControlChange(0, BANK, MIDI_CHANNEL);
+    usbMIDI.send_now();
 
-  //Set midi soundfont bank
-  usbMIDI.sendControlChange(0, BANK, MIDI_CHANNEL);
-  usbMIDI.send_now();
+    // MIDI Controllers should discard incoming MIDI messages.
+    while (usbMIDI.read()) {}
 
-  // MIDI Controllers should discard incoming MIDI messages.
-  while (usbMIDI.read()) {}
+    //Set midi instrument
+    usbMIDI.sendProgramChange(PROGRAM, MIDI_CHANNEL);
+    usbMIDI.send_now();
 
-  //Set midi instrument
-  usbMIDI.sendProgramChange(PROGRAM, MIDI_CHANNEL);
-  usbMIDI.send_now();
-
-  // MIDI Controllers should discard incoming MIDI messages.
-  while (usbMIDI.read()) {}
+    // MIDI Controllers should discard incoming MIDI messages.
+    while (usbMIDI.read()) {}
+  }
 }
 
 void loop() {
@@ -59,7 +59,7 @@ void loop() {
   static int baselineBufferIndex[NUM_SENSORS];
 
   //number of sustained() signals (minus two) sent for current jump
-  //Also incremented when threshold is first traversed 
+  //Also incremented when threshold is first traversed
   //and when rising() signal is sent thereafter
   static int sustainCount[NUM_SENSORS];
 
@@ -215,6 +215,7 @@ void loop() {
     printResults(toPrint, sizeof(toPrint) / sizeof(int));
   }
 }
+
 //*HELPERS*
 
 int bufferAverage(int * a, int aSize) {
