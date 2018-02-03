@@ -29,9 +29,11 @@ const boolean DEBUG = false;
 const boolean WITH_MIDI = true;
 const int NOTES[NUM_SENSORS] = {60, 62, 64, 65};
 const int MIDI_CHANNEL = 1;
+const int BANK = 127;
+const int PROGRAM = 24;
 
 /*MOTOR CONFIG*/
-const boolean WITH_MOTORS = true;
+const boolean WITH_MOTORS = false;
 const int NUM_MOTORS = 2;
 const int MOTOR_PINS[NUM_MOTORS] = {12, 24};
 
@@ -112,13 +114,31 @@ void setup() {
     jumpThreshold[sensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
   }
 
-  if (WITH_MOTORS) {
+  //write low to motors even if WITH_MOTORS is false
+  //just to be sure they stay low
+  if (NUM_MOTORS > 0) {
     pinMode(LED_PIN, OUTPUT);
 
     for (int motor = 0; motor < NUM_MOTORS; motor++) {
       pinMode(MOTOR_PINS[motor], OUTPUT);
+      digitalWrite(MOTOR_PINS[motor], LOW);
     }
   }
+  delay(5000);
+  usbMIDI.sendControlChange(0, 127, MIDI_CHANNEL);
+  usbMIDI.send_now();
+
+  // MIDI Controllers should discard incoming MIDI messages.
+  while (usbMIDI.read()) {}
+  delay(1000);
+
+  usbMIDI.sendProgramChange(PROGRAM, MIDI_CHANNEL);
+  usbMIDI.send_now();
+
+  // MIDI Controllers should discard incoming MIDI messages.
+  while (usbMIDI.read()) {}
+
+
 }
 
 void loop() {
@@ -163,9 +183,16 @@ void loop() {
     if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
       //VELOCITY OFFSET
       if (sustainCount[currentSensor] == 0) {
-        lastRisingTime[currentSensor] = micros();
-        toWaitBeforeRising[currentSensor] = NOTE_VELOCITY_DELAY;
-        sustainCount[currentSensor]++;
+        //WAIT
+        if (toWaitBeforeRising[currentSensor] > 0) {
+          updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
+        }
+        //TRIGGER DELAY
+        else {
+          lastRisingTime[currentSensor] = micros();
+          toWaitBeforeRising[currentSensor] = NOTE_VELOCITY_DELAY;
+          sustainCount[currentSensor]++;
+        }
       }
       //RISING
       else if (sustainCount[currentSensor] == 1) {
