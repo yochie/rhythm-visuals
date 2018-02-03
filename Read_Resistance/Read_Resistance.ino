@@ -385,10 +385,8 @@ void printResults(int toPrint[], int printSize) {
     Serial.print(" ");
     Serial.print(baseline[i] + jumpThreshold[i]);
     Serial.print(" ");
-    Serial.print(MAX_READING);
-    Serial.print(" ");
-
   }
+  Serial.print(MAX_READING);
   Serial.println();
   delayMicroseconds(PRINT_DELAY);
 }
