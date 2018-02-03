@@ -127,12 +127,11 @@ void setup() {
     }
   }
   delay(5000);
-  usbMIDI.sendControlChange(0, 127, MIDI_CHANNEL);
+  usbMIDI.sendControlChange(0, BANK, MIDI_CHANNEL);
   usbMIDI.send_now();
 
   // MIDI Controllers should discard incoming MIDI messages.
   while (usbMIDI.read()) {}
-  delay(1000);
 
   usbMIDI.sendProgramChange(PROGRAM, MIDI_CHANNEL);
   usbMIDI.send_now();
