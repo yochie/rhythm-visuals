@@ -1,43 +1,31 @@
 #include <limits.h>
 
-//*SYSTEM CONSTANTS*
-//these shouldn't have to be modified
-
-//Serial communication Hz
-const int BAUD_RATE = 115200;
-
-//Maximum value returned by AnalogRead()
-//Always 1023 for arduino
-const int MAX_READING = 1023;
-
 //Used to improve readability of configuration
-//Gives number in microseconds since that is the timing unit
+//Gives number in microseconds
 const int MICROSECOND = 1;
 const int MILLISECOND = 1000;
 const int SECOND = 1000000;
 
-//*CONFIGURATION CONSTANTS*
-
-//Sensor pins
 //At least one plz...
 const int NUM_SENSORS = 4;
 const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 
-const boolean DEBUG = false;
+//print readings to arduino plotter
+const boolean DEBUG = true;
 
 /*MIDI CONFIG*/
 const boolean WITH_MIDI = true;
 const int NOTES[NUM_SENSORS] = {60, 62, 64, 65};
 const int MIDI_CHANNEL = 1;
 const int BANK = 127;
-const int PROGRAM = 24;
+const int PROGRAM = 0;
 
 /*MOTOR CONFIG*/
-const boolean WITH_MOTORS = false;
+const boolean WITH_MOTORS = true;
 const int NUM_MOTORS = 2;
 const int MOTOR_PINS[NUM_MOTORS] = {12, 24};
 
-//Used to show when motor would activate when none are used
+//Used as substitute for motors
 const int LED_PIN = 13;
 
 //Gives the index of the motor to use for each sensor
@@ -45,13 +33,27 @@ const int LED_PIN = 13;
 const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, 1, 0, 1};
 
 //To limit duty cycle
-unsigned const long MAX_MOTOR_PULSE_DURATION = 100 * MILLISECOND;
+unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
 
-//MAX_THRESHOLD is used when the baseline is very unstable
-const int MAX_THRESHOLD = 150;
+/*SENSOR CONFIG*/
+
+//*SYSTEM CONSTANTS*
+//Serial communication Hz
+const int BAUD_RATE = 115200;
+
+//Maximum value returned by AnalogRead()
+//Normally 1023 with arduino, but the operational amplifiers
+//used in the sensor circuitry have a  maximum output voltage
+//of 2V when powered at 3.3V
+const int MAX_READING = 700;
+
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 150;
+const int MIN_THRESHOLD = 125;
+
+//MAX_THRESHOLD is used when the baseline is very unstable
+const int MAX_THRESHOLD = 200;
+
 
 //Time between threshold traversal and rising() signal
 //Allows for velocity measurment and ignoring very short jumps
@@ -59,11 +61,11 @@ unsigned const long NOTE_VELOCITY_DELAY = 1 * MILLISECOND;
 
 //Delay in microseconds after sending rising() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_ON_DELAY = 45 * MILLISECOND;
+unsigned const long NOTE_ON_DELAY = 65 * MILLISECOND;
 
 //Delay in microseconds after sending falling() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_OFF_DELAY = 45 * MILLISECOND;
+unsigned const long NOTE_OFF_DELAY = 65 * MILLISECOND;
 
 //Delay in microseconds between sustain() signals
 unsigned const long SUSTAIN_DELAY = 100 * MILLISECOND;
@@ -77,7 +79,7 @@ unsigned const long BASELINE_SAMPLE_DELAY = 0.5 * MILLISECOND;
 const int PRINT_DELAY = 50 * MICROSECOND;
 
 //number of microseconds after jump during which baseline update is paused
-unsigned const long BASELINE_BLOWBACK_DELAY = 10 * MILLISECOND;
+unsigned const long BASELINE_BLOWBACK_DELAY = 40 * MILLISECOND;
 
 //TODO: change constant to timing notation
 //amount of baseline samples that we average baseline over
