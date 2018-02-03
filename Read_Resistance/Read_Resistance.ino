@@ -406,7 +406,11 @@ void rising(int sensor, int velocity) {
     digitalWrite(sensorToMotor(sensor), HIGH);
   }
   if (WITH_MIDI) {
-    usbMIDI.sendNoteOn(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
+    int maxVelocity = MAX_READING - baseline[sensor];
+    int constrainedVelocity = constrain(velocity, jumpThreshold[sensor], maxVelocity);
+    int scaledVelocity =  map(constrainedVelocity, jumpThreshold[sensor], maxVelocity, 64, 127);
+    
+    usbMIDI.sendNoteOn(NOTES[sensor], scaledVelocity, MIDI_CHANNEL);
     usbMIDI.send_now();
 
     // MIDI Controllers should discard incoming MIDI messages.
