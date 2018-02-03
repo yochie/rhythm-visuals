@@ -11,6 +11,19 @@ const int NUM_SENSORS = 4;
 //analog pin numbers for each sensor
 const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 
+/*SERIAL CONFIG*/
+
+//print readings to arduino plotter
+const boolean DEBUG = false;
+
+//Serial communication Hz
+const int BAUD_RATE = 115200;
+
+//Delay in microseconds adter each line of debug messages
+//Blocking (uses delay() function)
+//Prevents overloading serial communications
+const int PRINT_DELAY = 50 * MICROSECOND;
+
 /*MIDI CONFIG*/
 
 const boolean WITH_MIDI = true;
@@ -91,19 +104,6 @@ const int RETRO_JUMP_BLOWBACK_SAMPLES = (0.5 * MILLISECOND) / BASELINE_SAMPLE_DE
 //After this amount of sustains
 //the baseline is reset to the last sensor reading
 const int MAX_CONSECUTIVE_SUSTAINS = (10 * SECOND) / SUSTAIN_DELAY;
-
-/*SERIAL CONFIG*/
-
-//print readings to arduino plotter
-const boolean DEBUG = true;
-
-//Serial communication Hz
-const int BAUD_RATE = 115200;
-
-//Delay in microseconds adter each line of debug messages
-//Blocking (uses delay() function)
-//Prevents overloading serial communications
-const int PRINT_DELAY = 50 * MICROSECOND;
 
 //*GLOBAL VARIABLES*
 
