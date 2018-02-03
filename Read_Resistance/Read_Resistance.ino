@@ -94,11 +94,11 @@ const int MAX_CONSECUTIVE_SUSTAINS = (10 * SECOND) / SUSTAIN_DELAY;
 
 /*SERIAL CONFIG*/
 
-//Serial communication Hz
-const int BAUD_RATE = 115200;
-
 //print readings to arduino plotter
 const boolean DEBUG = true;
+
+//Serial communication Hz
+const int BAUD_RATE = 115200;
 
 //Delay in microseconds adter each line of debug messages
 //Blocking (uses delay() function)
