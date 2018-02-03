@@ -34,7 +34,7 @@ const int PROGRAM = 0;
 
 /*MOTOR CONFIG*/
 
-const boolean WITH_MOTORS = true;
+const boolean WITH_MOTORS = false;
 const int NUM_MOTORS = 2;
 
 //digital pin numbers for each sensor
@@ -342,8 +342,9 @@ int varianceFromTarget(int * a, int aSize, int target) {
   int i;
   for (i = 0; i < aSize; i++) {
     //makes sure we dont bust when filling up sum
-    if (sum < ULONG_MAX - a[i]) {
-      sum += pow( (a[i] - target), 2);
+    int toAdd = pow( (a[i] - target), 2);
+    if (sum < ULONG_MAX - toAdd) {
+      sum += toAdd;
     }
     else {
       Serial.println("WARNING: Exceeded ULONG_MAX while running varianceFromTarget(). Check your parameters to ensure buffers aren't too large.");
