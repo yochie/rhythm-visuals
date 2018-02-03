@@ -1,19 +1,18 @@
 #include <limits.h>
 
+//Gives number of microseconds for corresponding duration
 //Used to improve readability of configuration
-//Gives number in microseconds
-const int MICROSECOND = 1;
-const int MILLISECOND = 1000;
-const int SECOND = 1000000;
+const unsigned long MICROSECOND = 1;
+const unsigned long MILLISECOND = 1000;
+const unsigned long SECOND = 1000000;
 
-//At least one plz...
 const int NUM_SENSORS = 4;
+
+//analog pin numbers for each sensor
 const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 
-//print readings to arduino plotter
-const boolean DEBUG = true;
-
 /*MIDI CONFIG*/
+
 const boolean WITH_MIDI = true;
 const int NOTES[NUM_SENSORS] = {60, 62, 64, 65};
 const int MIDI_CHANNEL = 1;
@@ -21,15 +20,19 @@ const int BANK = 127;
 const int PROGRAM = 0;
 
 /*MOTOR CONFIG*/
+
 const boolean WITH_MOTORS = true;
 const int NUM_MOTORS = 2;
+
+//digital pin numbers for each sensor
 const int MOTOR_PINS[NUM_MOTORS] = {12, 24};
 
 //Used as substitute for motors
 const int LED_PIN = 13;
 
-//Gives the index of the motor to use for each sensor
-//Uses LED_PIN when -1
+//index of MOTO_PIN to map for each sensor
+//Needs to be in the range [-1, NUM_MOTORS].
+//Uses LED_PIN instead of motor when -1
 const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, 1, 0, 1};
 
 //To limit duty cycle
@@ -37,23 +40,17 @@ unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
 
 /*SENSOR CONFIG*/
 
-//*SYSTEM CONSTANTS*
-//Serial communication Hz
-const int BAUD_RATE = 115200;
-
 //Maximum value returned by AnalogRead()
 //Normally 1023 with arduino, but the operational amplifiers
 //used in the sensor circuitry have a  maximum output voltage
 //of 2V when powered at 3.3V
 const int MAX_READING = 700;
 
-
 //MIN_THRESHOLD is used when the baseline is very stable
 const int MIN_THRESHOLD = 125;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
 const int MAX_THRESHOLD = 200;
-
 
 //Time between threshold traversal and rising() signal
 //Allows for velocity measurment and ignoring very short jumps
@@ -67,16 +64,12 @@ unsigned const long NOTE_ON_DELAY = 65 * MILLISECOND;
 //for which no more signals are sent for that sensor
 unsigned const long NOTE_OFF_DELAY = 65 * MILLISECOND;
 
-//Delay in microseconds between sustain() signals
+//Delay in microseconds between sustained() signals
+//Also the delay between rising() and sustained()
 unsigned const long SUSTAIN_DELAY = 100 * MILLISECOND;
 
 //Delay in micro seconds between baseline samples
 unsigned const long BASELINE_SAMPLE_DELAY = 0.5 * MILLISECOND;
-
-//Delay in microseconds adter each line of debug messages
-//Blocking (uses delay() function)
-//Prevents overloading serial communications
-const int PRINT_DELAY = 50 * MICROSECOND;
 
 //number of microseconds after jump during which baseline update is paused
 unsigned const long BASELINE_BLOWBACK_DELAY = 40 * MILLISECOND;
@@ -99,6 +92,19 @@ const int RETRO_JUMP_BLOWBACK_SAMPLES = (0.5 * MILLISECOND) / BASELINE_SAMPLE_DE
 //the baseline is reset to the last sensor reading
 const int MAX_CONSECUTIVE_SUSTAINS = (10 * SECOND) / SUSTAIN_DELAY;
 
+/*SERIAL CONFIG*/
+
+//Serial communication Hz
+const int BAUD_RATE = 115200;
+
+//print readings to arduino plotter
+const boolean DEBUG = true;
+
+//Delay in microseconds adter each line of debug messages
+//Blocking (uses delay() function)
+//Prevents overloading serial communications
+const int PRINT_DELAY = 50 * MICROSECOND;
+
 //*GLOBAL VARIABLES*
 
 //current baseline for each pin
@@ -116,8 +122,8 @@ void setup() {
     jumpThreshold[sensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
   }
 
-  //write low to motors even if WITH_MOTORS is false
-  //just to be sure they stay low
+  //write LOW to motors even if WITH_MOTORS is false
+  //just to be sure they stay off if they are still plugged in
   if (NUM_MOTORS > 0) {
     pinMode(LED_PIN, OUTPUT);
 
@@ -126,26 +132,28 @@ void setup() {
       digitalWrite(MOTOR_PINS[motor], LOW);
     }
   }
+
+  //wait to ensure Midi mapper has had time to detect midi input
   delay(5000);
+
+  //Set midi soundfont bank
   usbMIDI.sendControlChange(0, BANK, MIDI_CHANNEL);
   usbMIDI.send_now();
 
   // MIDI Controllers should discard incoming MIDI messages.
   while (usbMIDI.read()) {}
 
+  //Set midi instrument
   usbMIDI.sendProgramChange(PROGRAM, MIDI_CHANNEL);
   usbMIDI.send_now();
 
   // MIDI Controllers should discard incoming MIDI messages.
   while (usbMIDI.read()) {}
-
-
 }
 
 void loop() {
   //*STATIC VARIABLES*
 
-  //used to send falling() signal
   //set to true after rising() signal
   static bool justJumped[NUM_SENSORS];
 
@@ -153,6 +161,9 @@ void loop() {
   static int baselineBuffer[NUM_SENSORS][BASELINE_BUFFER_SIZE];
   static int baselineBufferIndex[NUM_SENSORS];
 
+  //number of sustained() signals (minus two) sent for current jump
+  //Also incremented when threshold is first traversed 
+  //and when rising() signal is sent thereafter
   static int sustainCount[NUM_SENSORS];
 
   //used to delay baseline calculation after coming out of jump and between samples
@@ -164,6 +175,8 @@ void loop() {
   static unsigned long toWaitBeforeSustaining[NUM_SENSORS];
 
   //used to calculate time difference in microseconds while waiting
+  //lastRisingTime is used for both toWaitBeforeRising and toWaitBeforeFalling
+  //since these never overlap
   static unsigned long lastRisingTime[NUM_SENSORS];
   static unsigned long lastSustainingTime[NUM_SENSORS];
   static unsigned long lastBaselineTime[NUM_SENSORS];
@@ -409,7 +422,7 @@ void rising(int sensor, int velocity) {
     int maxVelocity = MAX_READING - baseline[sensor];
     int constrainedVelocity = constrain(velocity, jumpThreshold[sensor], maxVelocity);
     int scaledVelocity =  map(constrainedVelocity, jumpThreshold[sensor], maxVelocity, 64, 127);
-    
+
     usbMIDI.sendNoteOn(NOTES[sensor], scaledVelocity, MIDI_CHANNEL);
     usbMIDI.send_now();
 
