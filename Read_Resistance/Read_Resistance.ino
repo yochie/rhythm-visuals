@@ -8,6 +8,9 @@ int baseline[NUM_SENSORS];
 //current threshold
 int jumpThreshold[NUM_SENSORS];
 
+//used to space motor activations from one another
+int tapsToIgnore[NUM_SENSORS];
+
 void setup() {
   if (DEBUG || WITH_MIDI) {
     Serial.begin(BAUD_RATE);
@@ -27,7 +30,7 @@ void setup() {
       digitalWrite(MOTOR_PINS[motor], LOW);
     }
   }
-  
+
   if (WITH_MIDI) {
     //wait to ensure Midi mapper has had time to detect midi input
     delay(5000);
@@ -315,7 +318,12 @@ int sensorToMotor(int sensorIndex) {
 
 void rising(int sensor, int velocity) {
   if (WITH_MOTORS) {
-    digitalWrite(sensorToMotor(sensor), HIGH);
+    if (tapsToIgnore[sensor] == 0) {
+      tapsToIgnore[sensor] = TAPS_PER_PULSE - 1;
+      digitalWrite(sensorToMotor(sensor), HIGH);
+    } else {
+      tapsToIgnore[sensor]--;
+    }
   }
   if (WITH_MIDI) {
     int maxVelocity = MAX_READING - baseline[sensor];
@@ -327,15 +335,19 @@ void rising(int sensor, int velocity) {
 
     // MIDI Controllers should discard incoming MIDI messages.
     while (usbMIDI.read()) {}
+
   }
 }
 
 void falling(int sensor) {
   if (WITH_MOTORS) {
-    digitalWrite(sensorToMotor(sensor), LOW);
+    if ((tapsToIgnore[sensor]) == TAPS_PER_PULSE - 1) {
+      digitalWrite(sensorToMotor(sensor), LOW);
+    }
   }
 
   if (WITH_MIDI) {
+
     usbMIDI.sendNoteOff(NOTES[sensor], 0, MIDI_CHANNEL);
     usbMIDI.send_now();
 

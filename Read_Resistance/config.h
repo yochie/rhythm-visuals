@@ -32,7 +32,7 @@ const int PROGRAM = 0;
 
 /*MOTOR CONFIG*/
 
-const boolean WITH_MOTORS = false;
+const boolean WITH_MOTORS = true;
 const int NUM_MOTORS = 2;
 
 //digital pin numbers for each sensor
@@ -47,7 +47,10 @@ const int LED_PIN = 13;
 const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, 1, 0, 1};
 
 //To limit duty cycle
-unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
+unsigned const long MAX_MOTOR_PULSE_DURATION = 500 * MILLISECOND;
+
+//To limit puppet movement
+int TAPS_PER_PULSE = 1;
 
 /*SENSOR CONFIG*/
 
@@ -58,7 +61,7 @@ unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
 const int MAX_READING = 700;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 125;
+const int MIN_THRESHOLD = 150;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
 const int MAX_THRESHOLD = 200;
