@@ -12,7 +12,7 @@ const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 /*SERIAL CONFIG*/
 
 //print readings to arduino plotter
-const boolean DEBUG = false;
+const boolean DEBUG = true;
 
 //Serial communication Hz
 const int BAUD_RATE = 115200;
@@ -36,18 +36,18 @@ const boolean WITH_MOTORS = true;
 const int NUM_MOTORS = 2;
 
 //digital pin numbers for each sensor
-const int MOTOR_PINS[NUM_MOTORS] = {12, 24};
+const int MOTOR_PINS[NUM_MOTORS] = {11, 12};
 
 //Used as substitute for motors
 const int LED_PIN = 13;
 
 //index of MOTO_PIN to map for each sensor
-//Needs to be in the range [-1, NUM_MOTORS].
+//Needs to be in the range [-1, NUM_MOTORS - 1].
 //Uses LED_PIN instead of motor when -1
-const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, 1, 0, 1};
+const int SENSOR_TO_MOTOR[NUM_SENSORS] = {1, 0, 0, 1};
 
 //To limit duty cycle
-unsigned const long MAX_MOTOR_PULSE_DURATION = 500 * MILLISECOND;
+unsigned const long MAX_MOTOR_PULSE_DURATION = 300 * MILLISECOND;
 
 //To limit puppet movement
 int TAPS_PER_PULSE = 1;
@@ -61,10 +61,13 @@ int TAPS_PER_PULSE = 1;
 const int MAX_READING = 700;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 150;
+const int MIN_THRESHOLD = 200;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
 const int MAX_THRESHOLD = 200;
+
+//Used to cap baseline to ensure there is place to jump below MAX_READING
+const int MIN_JUMPING_RANGE = 75;
 
 //Time between threshold traversal and rising() signal
 //Allows for velocity measurment and ignoring very short jumps

@@ -193,7 +193,8 @@ void loop() {
         //RESET
         if (baselineBufferIndex[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
           jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
-          baseline[currentSensor] = bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE);
+          int maxBaseline = MAX_READING - jumpThreshold[currentSensor] - MIN_JUMPING_RANGE;
+          baseline[currentSensor] = min(bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE), maxBaseline);
 
           //reset counter
           baselineBufferIndex[currentSensor] = 0;
