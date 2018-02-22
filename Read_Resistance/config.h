@@ -47,7 +47,7 @@ const int LED_PIN = 13;
 const int SENSOR_TO_MOTOR[NUM_SENSORS] = {1, 0, 0, 1};
 
 //To limit duty cycle
-unsigned const long MAX_MOTOR_PULSE_DURATION = 300 * MILLISECOND;
+unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
 
 //To limit puppet movement
 int TAPS_PER_PULSE = 1;
@@ -58,16 +58,16 @@ int TAPS_PER_PULSE = 1;
 //Normally 1023 with arduino, but the operational amplifiers
 //used in the sensor circuitry have a  maximum output voltage
 //of 2V when powered at 3.3V
-const int MAX_READING = 700;
+const int MAX_READING = 675;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 200;
+const int MIN_THRESHOLD = 250;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
-const int MAX_THRESHOLD = 200;
+const int MAX_THRESHOLD = 250;
 
 //Used to cap baseline to ensure there is place to jump below MAX_READING
-const int MIN_JUMPING_RANGE = 75;
+const int MIN_JUMPING_RANGE = 80;
 
 //Time between threshold traversal and rising() signal
 //Allows for velocity measurment and ignoring very short jumps
