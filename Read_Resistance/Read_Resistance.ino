@@ -64,6 +64,8 @@ void loop() {
   //number of sustained() signals (minus two) sent for current jump
   //Also incremented when threshold is first traversed
   //and when rising() signal is sent thereafter
+  //TODO:change default value for sustainCount to something negative (?) so that it
+  //becomes 1 only when the first sustain() signal is sent
   static int sustainCount[NUM_SENSORS];
 
   //used to delay baseline calculation after coming out of jump and between samples
@@ -77,6 +79,9 @@ void loop() {
   //used to calculate time difference in microseconds while waiting
   //lastRisingTime is used for both toWaitBeforeRising and toWaitBeforeFalling
   //since these never overlap
+  //TODO: create additional variables to add readability and use them as their name suggests
+  //right now the times stored in these isn't the last time the corresponding signal was sent,
+  //rather the last time the remaining duration was checked. This is bad.
   static unsigned long lastRisingTime[NUM_SENSORS];
   static unsigned long lastSustainingTime[NUM_SENSORS];
   static unsigned long lastBaselineTime[NUM_SENSORS];
@@ -98,6 +103,7 @@ void loop() {
       //VELOCITY OFFSET
       if (sustainCount[currentSensor] == 0) {
         //WAIT
+        //waiting is caused by recent falling() signal
         if (toWaitBeforeRising[currentSensor] > 0) {
           updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
         }
@@ -105,12 +111,17 @@ void loop() {
         else {
           lastRisingTime[currentSensor] = micros();
           toWaitBeforeRising[currentSensor] = NOTE_VELOCITY_DELAY;
+
+          //increment sustain count to signify that threshold was crossed
+          //this usage of sustainCount is counter intuitive since we haven't actually
+          //sent any sustain() signals yet, but it does reduce number of static variables
           sustainCount[currentSensor]++;
         }
       }
       //RISING
       else if (sustainCount[currentSensor] == 1) {
         //WAIT
+        //waiting is caused by velocity the velocity offset delay
         if (toWaitBeforeRising[currentSensor] > 0) {
           updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
         }

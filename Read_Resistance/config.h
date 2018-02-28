@@ -61,10 +61,10 @@ int TAPS_PER_PULSE = 1;
 const int MAX_READING = 675;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 250;
+const int MIN_THRESHOLD = 350;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
-const int MAX_THRESHOLD = 250;
+const int MAX_THRESHOLD = 350;
 
 //Used to cap baseline to ensure there is place to jump below MAX_READING
 const int MIN_JUMPING_RANGE = 80;
