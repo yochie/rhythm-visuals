@@ -25,7 +25,7 @@ const int PRINT_DELAY = 50 * MICROSECOND;
 /*MIDI CONFIG*/
 
 const boolean WITH_MIDI = true;
-const int NOTES[NUM_SENSORS] = {60, 62, 64, 65};
+const int NOTES[NUM_SENSORS] = {80, 82, 84, 85};
 const int MIDI_CHANNEL = 1;
 const int BANK = 127;
 const int PROGRAM = 0;
@@ -61,10 +61,10 @@ int TAPS_PER_PULSE = 1;
 const int MAX_READING = 675;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 350;
+const int MIN_THRESHOLD = 150;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
-const int MAX_THRESHOLD = 350;
+const int MAX_THRESHOLD = 150;
 
 //Used to cap baseline to ensure there is place to jump below MAX_READING
 const int MIN_JUMPING_RANGE = 80;

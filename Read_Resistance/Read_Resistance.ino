@@ -304,16 +304,16 @@ int updateThreshold(int (&baselineBuff)[BASELINE_BUFFER_SIZE], int oldBaseline, 
 //so you'll have to compensate for the slowdown when setting parameters
 void printResults(int toPrint[], int printSize) {
   for (int i = 0; i < printSize; i++) {
-    Serial.print("0");
+    Serial.print(i * MAX_READING);
     Serial.print(" ");
-    Serial.print(toPrint[i]);
+    Serial.print(i * MAX_READING + toPrint[i]);
     Serial.print(" ");
-    Serial.print(baseline[i]);
+    Serial.print(i * MAX_READING + baseline[i]);
     Serial.print(" ");
-    Serial.print(baseline[i] + jumpThreshold[i]);
+    Serial.print(i * MAX_READING + baseline[i] + jumpThreshold[i]);
     Serial.print(" ");
   }
-  Serial.print(MAX_READING);
+  Serial.print(printSize * MAX_READING + MAX_READING);
   Serial.println();
   delayMicroseconds(PRINT_DELAY);
 }
