@@ -343,11 +343,14 @@ void rising(int sensor, int velocity) {
     int scaledVelocity =  map(constrainedVelocity, jumpThreshold[sensor], maxVelocity, 64, 127);
 
     usbMIDI.sendNoteOn(NOTES[sensor], scaledVelocity, MIDI_CHANNEL);
-    usbMIDI.send_now();
 
-    // MIDI Controllers should discard incoming MIDI messages.
-    while (usbMIDI.read()) {}
+    if (IS_CLOCKING_PAD[sensor]) {
+      usbMIDI.sendRealTime(usbMIDI.Clock);
+      usbMIDI.send_now();
 
+      // MIDI Controllers should discard incoming MIDI messages.
+      while (usbMIDI.read()) {}
+    }
   }
 }
 
