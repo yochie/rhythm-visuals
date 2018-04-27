@@ -2,24 +2,33 @@ import themidibus.*;
 import javax.sound.midi.MidiMessage; 
 import java.util.Arrays; 
 
-
 //Midi config
+//Look at console to see available midi inputs and set
+//the index of your midi device here
+//TODO:  use gui to select midi input device
 int midiDevice  = 0;
+
 MidiBus myBus;
-int[] notes = {60, 62, 64, 65}; 
+
+//ordering here dictates correspondence to pads according to the following:
+// BOTTOM_RIGHT // BOTTOM_LEFT // TOP_LEFT // TOP_RIGHT
+Integer[] notes = {60, 62, 64, 65}; 
+
+//midi controller specific
+final int MAX_VELOCITY = 128;
 
 //Drawing config
-final int NUM_PADS = 4;
+final int NUM_PADS = notes.length;
 final float SHRINK_FACTOR = 0.95;
-final float MAX_CIRCLE_WIDTH = 350;
-final float MIN_CIRCLE_WIDTH = 20;
+final int MAX_CIRCLE_WIDTH = 350;
+final int MIN_CIRCLE_WIDTH = 20;
 
 //Shape stuff
 PShape planche; //bg images shape
 PGraphics pg; //bg images graphic
 ArrayList<PShape> sensorCircles; //list of circles that represent sensors
 ArrayList<Integer> newWidths; //list of circle circle sizes updated by callback
-ArrayList<Boolean> widthChanged; //list of circle circle sizes updated by callback
+ArrayList<Boolean> padPressed; //list of circle circle sizes updated by callback
 
 
 void setup() {
@@ -29,7 +38,7 @@ void setup() {
   MidiBus.list(); 
   myBus = new MidiBus(this, midiDevice, 1); 
 
-  //Draw plank with appropriate number of sides
+  //Create static background image
   noFill();
   stroke(255, 0, 0);
   planche = polygon(300, NUM_PADS, 45);
@@ -39,81 +48,79 @@ void setup() {
   pg.shape(planche);
   pg.endDraw();
 
-  //initialize dynamic widths
+  //initialize variables set by midi callback
   newWidths = new ArrayList<Integer>();
-  widthChanged = new ArrayList<Boolean>();
+  padPressed = new ArrayList<Boolean>();
   for ( int i = 0; i < NUM_PADS; i++) {
     newWidths.add((int)(MIN_CIRCLE_WIDTH));
-    widthChanged.add(false);
+    padPressed.add(false);
   }
 
   //Initialize and draw circles that will be representing sensors on the planck
-  sensorCircles = new ArrayList<PShape>();
   stroke(0, 255, 0);
-  PShape e;
+  sensorCircles = new ArrayList<PShape>();
   for (int i = 0; i < NUM_PADS; i++) {
     pushMatrix();
     translate(planche.getVertex(i).x, planche.getVertex(i).y);
-    e = createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH);
+    sensorCircles.add(createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH));
     popMatrix();
-    sensorCircles.add(e);
   }
 }
 
 void draw() {
 
-  //Set planck as bg image using static buffer
+  //Redraw bg to erase previous frame
   background(pg);
 
-  //Loop through vertices of the plank, draw circle while reducing its size if above min
+  //Redraw circles, setting new widths when a sensor was pressed and
+  //reducing their size otherwise
   for (int i = 0; i < NUM_PADS; i++) {
     pushMatrix();
-    translate(planche.getVertex(i).x, planche.getVertex(i).y);
-    PShape e = sensorCircles.get(i);
-    int eWidth =(int) e.getWidth();
-    
-    if (widthChanged.get(i)) {
-      e.resetMatrix();
-      e.scale(newWidths.get(i) / MIN_CIRCLE_WIDTH);
-      widthChanged.set(i, false);
-    } else if (eWidth > MIN_CIRCLE_WIDTH) {
-      e.scale(SHRINK_FACTOR);
+    PVector vertex = planche.getVertex(i);
+    translate(vertex.x, vertex.y);
+    PShape circle = sensorCircles.get(i);
+
+    if (padPressed.get(i)) {
+      circle.resetMatrix();
+      circle.scale(newWidths.get(i) / MIN_CIRCLE_WIDTH);
+      padPressed.set(i, false);
+    } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
+      circle.scale(SHRINK_FACTOR);
     }
 
-    int ecolor = 150;
-    stroke(ecolor);
-    shape(e);
+    shape(circle);
     popMatrix();
   }
 }
 
-//Function copied from https://processing.org/examples/regularpolygon.html and modified to return polygon aligned with center of screen
-PShape polygon(float radius, int npoints, int angled) {
+//copied from https://processing.org/examples/regularpolygon.html 
+//and modified for angledOffset and centering
+PShape polygon(float radius, int npoints, int angledOffset) {
   float angle = TWO_PI / npoints;
   PShape s = createShape();
   s.beginShape();
-  for (float a = radians(angled); a < TWO_PI + radians(angled); a += angle) {
-    float sx = width/2 + cos(a) * radius;
-    float sy = height/2 + sin(a) * radius;
+  for (float a = radians(angledOffset); a < TWO_PI + radians(angledOffset); a += angle) {
+    int sx = Math.round(width/2 + cos(a) * radius);
+    int sy = Math.round(height/2 + sin(a) * radius);
     s.vertex(sx, sy);
   }
   s.endShape(CLOSE);
   return s;
 }
-void midiMessage(MidiMessage message, long timestamp, String bus_name) { 
+
+//Called by MidiBus library whenever a new midi message is received
+void midiMessage(MidiMessage message) { 
   int note = (int)(message.getMessage()[1] & 0xFF) ;
   int vel = (int)(message.getMessage()[2] & 0xFF);
-
   println("note: " + note + " vel: "+ vel);
+  
   int pad = noteToPad(note);
-  if (pad >= 0 && (vel != 0)) {
-    println("tapped");
-    newWidths.set(pad, (int) map(vel, 0, 128, 0, MAX_CIRCLE_WIDTH));
-    widthChanged.set(pad, true);
+  if (pad >= 0 && (vel > 0)) {
+    padPressed.set(pad, true);
+    newWidths.set(pad, (int) map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH));
   }
 }
 
 int noteToPad (int note) {
-  Arrays.sort(notes);
-  return Arrays.binarySearch(notes, note);
+  return Arrays.asList(notes).indexOf(note);
 }
