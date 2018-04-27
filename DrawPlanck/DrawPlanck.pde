@@ -37,7 +37,7 @@ void setup() {
   MidiBus.list(); 
   myBus = new MidiBus(this, midiDevice, 1); 
 
-  //Create background shape and static image (PGraphic)
+  //Create background shape (PShape) and static image (PGraphic)
   noFill();
   stroke(255, 0, 0);
   planche = polygon(300, NUM_PADS, 45);
