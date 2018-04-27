@@ -12,7 +12,7 @@ MidiBus myBus;
 
 //ordering here dictates correspondence to pads according to the following:
 // BOTTOM_RIGHT // BOTTOM_LEFT // TOP_LEFT // TOP_RIGHT
-Integer[] notes = {60, 62, 64, 65}; 
+Integer[] notes = {85, 84, 80, 82}; 
 
 //midi controller specific
 final int MAX_VELOCITY = 128;
