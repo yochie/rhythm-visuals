@@ -23,8 +23,12 @@ a different analog pin. Using a teensy 3.6 (180 MHz), stable readings for 4 simu
 
 ### Processing script
 
-Draw_planck.pde is a processing script that takes input from the serial port sent by Read_resistance.ino and outputs animations.
-This script is still in the workings and is not functionnal yet. 
+Draw_planck.pde is a processing script that takes input from the midi port and generates animations.
+This script is still in the workings, but it is currently functionnal. To use it, install 
+processing (http://processing.org/). Then, using the library importer from the processing IDE, install
+the java MidiBus library. You can then run the the script from processing. You might need to change the
+midiDevice variable at the top of the file to the index of the port your device uses. A list of available
+devices will be printed to console on startup (need to make this into a GUI).
 
 ### Arduino serial plotter
 
