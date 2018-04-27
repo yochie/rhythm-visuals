@@ -55,7 +55,7 @@ void setup() {
     padWasPressed.add(false);
   }
 
-  //Initialize and draw circles that will be representing sensors on the planck
+  //Initialize circles that will be representing sensors on the planck
   stroke(0, 255, 0);
   sensorCircles = new ArrayList<PShape>();
   for (int i = 0; i < NUM_PADS; i++) {
