@@ -50,7 +50,7 @@ void setup() {
   //initialize variables set by midi callback
   newWidths = new ArrayList<Integer>();
   padWasPressed = new ArrayList<Boolean>();
-  for ( int i = 0; i < NUM_PADS; i++) {
+  for ( int pad = 0; pad < NUM_PADS; pad++) {
     newWidths.add((int)(MIN_CIRCLE_WIDTH));
     padWasPressed.add(false);
   }
@@ -58,9 +58,10 @@ void setup() {
   //Initialize circles that will be representing sensors on the planck
   stroke(0, 255, 0);
   sensorCircles = new ArrayList<PShape>();
-  for (int i = 0; i < NUM_PADS; i++) {
+  for (int pad = 0; pad < NUM_PADS; pad++) {
     pushMatrix();
-    translate(planche.getVertex(i).x, planche.getVertex(i).y);
+    PVector vertex = planche.getVertex(pad);
+    translate(vertex.x, vertex.y);
     sensorCircles.add(createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH));
     popMatrix();
   }
