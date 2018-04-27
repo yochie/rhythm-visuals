@@ -27,9 +27,8 @@ final int MIN_CIRCLE_WIDTH = 20;
 PShape planche; //bg images shape
 PGraphics pg; //bg images graphic
 ArrayList<PShape> sensorCircles; //list of circles that represent sensors
-ArrayList<Integer> newWidths; //list of circle circle sizes updated by callback
-ArrayList<Boolean> padPressed; //list of circle circle sizes updated by callback
-
+ArrayList<Integer> newWidths; //list of circle sizes updated by callback
+ArrayList<Boolean> padPressed; //flags indicating a pad was pressed, also updated by callback
 
 void setup() {
   size(1024, 768, P2D);
