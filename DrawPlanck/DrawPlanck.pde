@@ -2,16 +2,19 @@ import themidibus.*;
 import javax.sound.midi.MidiMessage; 
 import java.util.Arrays; 
 
-//Constants
-final int NUM_SIDES = 4;
-final float SHRINK_FACTOR = 0.9;
-final float MAX_CIRCLE_WIDTH = 350;
-final float MIN_CIRCLE_WIDTH = 20;
 
-//Global vars
+//Midi config
 int midiDevice  = 0;
 MidiBus myBus;
 int[] notes = {60, 62, 64, 65}; 
+
+//Drawing config
+final int NUM_PADS = 4;
+final float SHRINK_FACTOR = 0.95;
+final float MAX_CIRCLE_WIDTH = 350;
+final float MIN_CIRCLE_WIDTH = 20;
+
+//Shape stuff
 PShape planche; //bg images shape
 PGraphics pg; //bg images graphic
 ArrayList<PShape> sensorCircles; //list of circles that represent sensors
@@ -29,7 +32,7 @@ void setup() {
   //Draw plank with appropriate number of sides
   noFill();
   stroke(255, 0, 0);
-  planche = polygon(300, NUM_SIDES, 45);
+  planche = polygon(300, NUM_PADS, 45);
   pg = createGraphics(width, height);
   pg.beginDraw();
   pg.background(25);
@@ -39,7 +42,7 @@ void setup() {
   //initialize dynamic widths
   newWidths = new ArrayList<Integer>();
   widthChanged = new ArrayList<Boolean>();
-  for ( int i = 0; i < NUM_SIDES; i++) {
+  for ( int i = 0; i < NUM_PADS; i++) {
     newWidths.add((int)(MIN_CIRCLE_WIDTH));
     widthChanged.add(false);
   }
@@ -48,7 +51,7 @@ void setup() {
   sensorCircles = new ArrayList<PShape>();
   stroke(0, 255, 0);
   PShape e;
-  for (int i = 0; i < NUM_SIDES; i++) {
+  for (int i = 0; i < NUM_PADS; i++) {
     pushMatrix();
     translate(planche.getVertex(i).x, planche.getVertex(i).y);
     e = createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH);
@@ -63,7 +66,7 @@ void draw() {
   background(pg);
 
   //Loop through vertices of the plank, draw circle while reducing its size if above min
-  for (int i = 0; i < NUM_SIDES; i++) {
+  for (int i = 0; i < NUM_PADS; i++) {
     pushMatrix();
     translate(planche.getVertex(i).x, planche.getVertex(i).y);
     PShape e = sensorCircles.get(i);
