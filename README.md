@@ -32,7 +32,7 @@ devices will be printed to console on startup (need to make this into a GUI).
 
 ### Arduino serial plotter
 
-To facilitate parameter adjustments and debugging, the Read_resistance.ino script has a debug branch that can be used in conjunction with the arduino IDE serial plotter (ctrl + shift + L) to visualize the baselines, thresholds and current sensor readings for each sensor. The master branch serial output format can also be somewhat observed in the serial plotter, but with more limited information.
+To facilitate parameter adjustments and debugging, the Read_resistance.ino script has a debug config switch that can be used in conjunction with the arduino IDE serial plotter (ctrl + shift + L) to visualize the baselines, thresholds and current sensor readings for each sensor.
 
 ### MIDI
 
