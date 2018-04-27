@@ -28,7 +28,7 @@ PShape planche; //bg images shape
 PGraphics pg; //bg images graphic
 ArrayList<PShape> sensorCircles; //list of circles that represent sensors
 ArrayList<Integer> newWidths; //list of circle sizes updated by callback
-ArrayList<Boolean> padPressed; //flags indicating a pad was pressed, also updated by callback
+ArrayList<Boolean> padWasPressed; //flags indicating a pad was pressed, also updated by callback
 
 void setup() {
   size(1024, 768, P2D);
@@ -49,10 +49,10 @@ void setup() {
 
   //initialize variables set by midi callback
   newWidths = new ArrayList<Integer>();
-  padPressed = new ArrayList<Boolean>();
+  padWasPressed = new ArrayList<Boolean>();
   for ( int i = 0; i < NUM_PADS; i++) {
     newWidths.add((int)(MIN_CIRCLE_WIDTH));
-    padPressed.add(false);
+    padWasPressed.add(false);
   }
 
   //Initialize and draw circles that will be representing sensors on the planck
@@ -79,10 +79,10 @@ void draw() {
     translate(vertex.x, vertex.y);
     PShape circle = sensorCircles.get(pad);
 
-    if (padPressed.get(pad)) {
+    if (padWasPressed.get(pad)) {
       circle.resetMatrix();
       circle.scale(newWidths.get(pad) / MIN_CIRCLE_WIDTH);
-      padPressed.set(pad, false);
+      padWasPressed.set(pad, false);
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
       circle.scale(SHRINK_FACTOR);
     }
@@ -115,7 +115,7 @@ void midiMessage(MidiMessage message) {
   
   int pad = noteToPad(note);
   if (pad >= 0 && (vel > 0)) {
-    padPressed.set(pad, true);
+    padWasPressed.set(pad, true);
     newWidths.set(pad, (int) map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH));
   }
 }
