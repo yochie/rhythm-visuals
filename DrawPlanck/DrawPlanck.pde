@@ -37,7 +37,7 @@ void setup() {
   MidiBus.list(); 
   myBus = new MidiBus(this, midiDevice, 1); 
 
-  //Create static background image
+  //Create background shape and static image (PGraphic)
   noFill();
   stroke(255, 0, 0);
   planche = polygon(300, NUM_PADS, 45);
@@ -73,16 +73,16 @@ void draw() {
 
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
-  for (int i = 0; i < NUM_PADS; i++) {
+  for (int pad = 0; pad < NUM_PADS; pad++) {
     pushMatrix();
-    PVector vertex = planche.getVertex(i);
+    PVector vertex = planche.getVertex(pad);
     translate(vertex.x, vertex.y);
-    PShape circle = sensorCircles.get(i);
+    PShape circle = sensorCircles.get(pad);
 
-    if (padPressed.get(i)) {
+    if (padPressed.get(pad)) {
       circle.resetMatrix();
-      circle.scale(newWidths.get(i) / MIN_CIRCLE_WIDTH);
-      padPressed.set(i, false);
+      circle.scale(newWidths.get(pad) / MIN_CIRCLE_WIDTH);
+      padPressed.set(pad, false);
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
       circle.scale(SHRINK_FACTOR);
     }
