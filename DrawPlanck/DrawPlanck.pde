@@ -116,7 +116,7 @@ void midiMessage(MidiMessage message) {
   int pad = noteToPad(note);
   if (pad >= 0 && (vel > 0)) {
     padWasPressed.set(pad, true);
-    newWidths.set(pad, (int) map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH));
+    newWidths.set(pad,Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
   }
 }
 
