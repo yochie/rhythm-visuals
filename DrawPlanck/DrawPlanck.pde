@@ -24,7 +24,7 @@ final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 20;
 final float rotationSpeed = 0.0005;
 final int pressesForSlave = 4;
-final int maxSlaves = 4;
+final int maxSlaves = 10;
 float rotation = 0;
 
 //Shape stuff
@@ -95,15 +95,29 @@ void draw() {
     PShape circle = sensorCircles.get(pad);
 
     if (padWasPressed.get(pad)) {
+      //reset pressCounter on other pads
+      for (int otherpad = 0; otherpad<NUM_PADS; otherpad++) {
+        if (otherpad != pad) {
+          pressCounter.set(otherpad, 0);
+        }
+      }
+      //increment own presscounter
+      pressCounter.set(pad, pressCounter.get(pad) + 1);
+      
+      //scale sensor circles
       circle.resetMatrix();
       circle.scale(newWidths.get(pad) / MIN_CIRCLE_WIDTH);
+      
+      //reset pressed flag
       padWasPressed.set(pad, false);
-      pressCounter.set(pad, pressCounter.get(pad) + 1);
+      
+      //create slave
       if (pressCounter.get(pad) >= pressesForSlave && slaves.size() < maxSlaves) {
-        slaves.add(new BouncingSlave(pad, screenX(0, 0), screenY(0, 0)));
+        slaves.add(new BouncingSlave(pad, (int)screenX(0, 0), (int)screenY(0, 0)));
         pressCounter.set(pad, 0);
       }
-
+      
+      //Grow slaves
       for (BouncingSlave slave : slaves) {
         if (slave.master == pad) {
           slave.grow();
@@ -113,20 +127,22 @@ void draw() {
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
       circle.scale(SHRINK_FACTOR);
     }
-
-    int newColor = Math.round(map(constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
-    //println("color: " + circle.getWidth() + " to " + newColor);
-    circle.setStroke(color(newColor, 100, 200));
-
+    
+    //push circle outwards    
     pushMatrix();
     rotate(TWO_PI * (0.125 + (pad*0.25)));
     translate(circle.getWidth() - MIN_CIRCLE_WIDTH, 0);
-
+    
+    //scale color
+    int newColor = Math.round(map(constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
+    circle.setStroke(color(newColor, 100, 200));
     shape(circle);
     popMatrix();
     popMatrix();
   }
   popMatrix();
+  
+  //maintain slave movement
   for (BouncingSlave slave : slaves) {
     slave.update();
   }
