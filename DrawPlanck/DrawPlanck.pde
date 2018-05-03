@@ -22,6 +22,8 @@ final int NUM_PADS = notes.length;
 final float SHRINK_FACTOR = 0.95;
 final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 20;
+final float rotationSpeed = 0.005;
+float rotation = 0;
 
 //Shape stuff
 PShape planche; //bg images shape
@@ -43,7 +45,7 @@ void setup() {
   pg = createGraphics(width, height);
   pg.beginDraw();
   pg.background(25);
-  pg.shape(planche);
+  //pg.shape(planche);
   pg.endDraw();
   background(pg);
 
@@ -69,7 +71,10 @@ void setup() {
 }
 
 void draw() {
-
+  translate(width/2, height/2);
+  rotation += TWO_PI * rotationSpeed;
+  rotate(rotation);
+  translate(-width/2, -height/2);
   //Redraw bg to erase previous frame
   background(pg);
 
