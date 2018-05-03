@@ -22,16 +22,19 @@ final int NUM_PADS = notes.length;
 final float SHRINK_FACTOR = 0.95;
 final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 20;
-final float rotationSpeed = 0.005;
+final float rotationSpeed = 0.0005;
+final int pressesForSlave = 4;
+final int maxSlaves = 4;
 float rotation = 0;
 
 //Shape stuff
 PShape planche; //bg images shape
 PGraphics pg; //bg images graphic
 ArrayList<PShape> sensorCircles; //list of circles that represent sensors
+ArrayList<BouncingSlave> slaves;
 ArrayList<Integer> newWidths; //list of circle sizes updated by callback
 ArrayList<Boolean> padWasPressed; //flags indicating a pad was pressed, also updated by callback
-
+ArrayList<Integer> pressCounter; 
 void setup() {
   size(800, 600, P2D);
   //setup midi
@@ -41,7 +44,7 @@ void setup() {
   //Create background shape (PShape) and static image (PGraphic)
   noFill();
   stroke(255, 0, 0);
-  planche = polygon(150, NUM_PADS, 45);
+  planche = polygon(50, NUM_PADS, 45);
   pg = createGraphics(width, height);
   pg.beginDraw();
   pg.background(25);
@@ -52,9 +55,12 @@ void setup() {
   //initialize variables set by midi callback
   newWidths = new ArrayList<Integer>();
   padWasPressed = new ArrayList<Boolean>();
+  pressCounter = new ArrayList<Integer>();
+
   for ( int pad = 0; pad < NUM_PADS; pad++) {
     newWidths.add((int)(MIN_CIRCLE_WIDTH));
     padWasPressed.add(false);
+    pressCounter.add(0);
   }
 
   //Initialize circles that will be representing sensors on the planck
@@ -67,10 +73,12 @@ void setup() {
     sensorCircles.add(createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH));
     popMatrix();
   }
+  slaves = new ArrayList<BouncingSlave>();
   colorMode(HSB, 255);
 }
 
 void draw() {
+  pushMatrix();
   translate(width/2, height/2);
   rotation += TWO_PI * rotationSpeed;
   rotate(rotation);
@@ -90,9 +98,22 @@ void draw() {
       circle.resetMatrix();
       circle.scale(newWidths.get(pad) / MIN_CIRCLE_WIDTH);
       padWasPressed.set(pad, false);
+      pressCounter.set(pad, pressCounter.get(pad) + 1);
+      if (pressCounter.get(pad) >= pressesForSlave && slaves.size() < maxSlaves) {
+        slaves.add(new BouncingSlave(pad, screenX(0, 0), screenY(0, 0)));
+        pressCounter.set(pad, 0);
+      }
+
+      for (BouncingSlave slave : slaves) {
+        if (slave.master == pad) {
+          slave.grow();
+          println("growing");
+        }
+      }
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
       circle.scale(SHRINK_FACTOR);
     }
+
     int newColor = Math.round(map(constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
     //println("color: " + circle.getWidth() + " to " + newColor);
     circle.setStroke(color(newColor, 100, 200));
@@ -100,10 +121,14 @@ void draw() {
     pushMatrix();
     rotate(TWO_PI * (0.125 + (pad*0.25)));
     translate(circle.getWidth() - MIN_CIRCLE_WIDTH, 0);
-    
+
     shape(circle);
     popMatrix();
     popMatrix();
+  }
+  popMatrix();
+  for (BouncingSlave slave : slaves) {
+    slave.update();
   }
 }
 
@@ -137,4 +162,45 @@ void midiMessage(MidiMessage message) {
 
 int noteToPad (int note) {
   return Arrays.asList(notes).indexOf(note);
+}
+
+private class BouncingSlave {
+  private int master;
+  private int rad = MIN_CIRCLE_WIDTH;        // Width of the shape
+  private float xpos, ypos;    // Starting position of shape    
+
+  private float xspeed = 2.8;  // Speed of the shape
+  private float yspeed = 2.2;  // Speed of the shape
+
+  private int xdirection = 1;  // Left or Right
+  private int ydirection = 1;  // Top to Bottom
+
+  public BouncingSlave(int master, int xpos, int ypos) {
+    this.master = master;
+    this.xpos = xpos;
+    this.ypos = ypos;
+  }
+  public void update() {
+    // Update the position of the shape
+    this.xpos = this.xpos + ( this.xspeed * this.xdirection );
+    this.ypos = this.ypos + ( this.yspeed * this.ydirection );
+
+    // Test to see if the shape exceeds the boundaries of the screen
+    // If it does, reverse its direction by multiplying by -1
+    if (this.xpos > width-this.rad || this.xpos < this.rad) {
+      this.xdirection *= -1;
+    }
+    if (ypos > height-rad || ypos < rad) {
+      this.ydirection *= -1;
+    }
+
+    if (this.rad > MIN_CIRCLE_WIDTH) {
+      this.rad *= 0.95;
+    }
+    // Draw the shape
+    ellipse(this.xpos, this.ypos, this.rad, this.rad);
+  }
+  public void grow() {
+    this.rad = MAX_CIRCLE_WIDTH;
+  }
 }
