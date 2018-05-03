@@ -31,7 +31,7 @@ ArrayList<Integer> newWidths; //list of circle sizes updated by callback
 ArrayList<Boolean> padWasPressed; //flags indicating a pad was pressed, also updated by callback
 
 void setup() {
-  size(800,600,P2D);
+  size(800, 600, P2D);
   //setup midi
   MidiBus.list(); 
   myBus = new MidiBus(this, midiDevice, 1); 
@@ -65,6 +65,7 @@ void setup() {
     sensorCircles.add(createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH));
     popMatrix();
   }
+  colorMode(HSB, 255);
 }
 
 void draw() {
@@ -74,7 +75,6 @@ void draw() {
 
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
-  colorMode(HSB, 255);
   for (int pad = 0; pad < NUM_PADS; pad++) {
     pushMatrix();
     PVector vertex = planche.getVertex(pad);
@@ -88,14 +88,18 @@ void draw() {
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
       circle.scale(SHRINK_FACTOR);
     }
-    int newColor = Math.round(map(constrain(circle.getWidth(),MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
-    println("color: " + circle.getWidth() + " to " + newColor);
-    //noStroke();
+    int newColor = Math.round(map(constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
+    //println("color: " + circle.getWidth() + " to " + newColor);
     circle.setStroke(color(newColor, 100, 200));
+
+    pushMatrix();
+    rotate(TWO_PI * (0.125 + (pad*0.25)));
+    translate(circle.getWidth() - MIN_CIRCLE_WIDTH, 0);
+    
     shape(circle);
     popMatrix();
+    popMatrix();
   }
-  colorMode(RGB, 255);
 }
 
 //copied from https://processing.org/examples/regularpolygon.html 
