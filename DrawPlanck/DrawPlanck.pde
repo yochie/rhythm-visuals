@@ -20,7 +20,7 @@ final int MAX_VELOCITY = 128;
 //Drawing config
 final int NUM_PADS = notes.length;
 final float SHRINK_FACTOR = 0.95;
-final int MAX_CIRCLE_WIDTH = 350;
+final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 20;
 
 //Shape stuff
@@ -31,8 +31,7 @@ ArrayList<Integer> newWidths; //list of circle sizes updated by callback
 ArrayList<Boolean> padWasPressed; //flags indicating a pad was pressed, also updated by callback
 
 void setup() {
-  size(1024, 768, P2D);
-
+  size(800,600,P2D);
   //setup midi
   MidiBus.list(); 
   myBus = new MidiBus(this, midiDevice, 1); 
@@ -40,12 +39,13 @@ void setup() {
   //Create background shape (PShape) and static image (PGraphic)
   noFill();
   stroke(255, 0, 0);
-  planche = polygon(300, NUM_PADS, 45);
+  planche = polygon(150, NUM_PADS, 45);
   pg = createGraphics(width, height);
   pg.beginDraw();
   pg.background(25);
   pg.shape(planche);
   pg.endDraw();
+  background(pg);
 
   //initialize variables set by midi callback
   newWidths = new ArrayList<Integer>();
@@ -74,6 +74,7 @@ void draw() {
 
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
+  colorMode(HSB, 255);
   for (int pad = 0; pad < NUM_PADS; pad++) {
     pushMatrix();
     PVector vertex = planche.getVertex(pad);
@@ -87,10 +88,14 @@ void draw() {
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
       circle.scale(SHRINK_FACTOR);
     }
-
+    int newColor = Math.round(map(constrain(circle.getWidth(),MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
+    println("color: " + circle.getWidth() + " to " + newColor);
+    //noStroke();
+    circle.setStroke(color(newColor, 100, 200));
     shape(circle);
     popMatrix();
   }
+  colorMode(RGB, 255);
 }
 
 //copied from https://processing.org/examples/regularpolygon.html 
@@ -113,11 +118,11 @@ void midiMessage(MidiMessage message) {
   int note = (int)(message.getMessage()[1] & 0xFF) ;
   int vel = (int)(message.getMessage()[2] & 0xFF);
   println("note: " + note + " vel: "+ vel);
-  
+
   int pad = noteToPad(note);
   if (pad >= 0 && (vel > 0)) {
     padWasPressed.set(pad, true);
-    newWidths.set(pad,Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
+    newWidths.set(pad, Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
   }
 }
 
