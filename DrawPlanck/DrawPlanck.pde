@@ -19,10 +19,12 @@ final int MAX_VELOCITY = 100;
 final int NUM_PADS = notes.length;
 final float SHRINK_FACTOR = 0.95;
 final int MAX_CIRCLE_WIDTH = 200;
-final int MIN_CIRCLE_WIDTH = 20;
+final int MIN_CIRCLE_WIDTH = 40;
+final int MAX_SLAVE_CIRCLE_WIDTH = MAX_CIRCLE_WIDTH/2;
+final int MIN_SLAVE_CIRCLE_WIDTH = MIN_CIRCLE_WIDTH/3;
 final float rotationSpeed = 0.0005;
 final int pressesForSlave = 2;
-final int maxSlaves = 20;
+final int maxSlaves = 100;
 
 //Shape stuff
 PShape planche; //bg images shape
@@ -39,6 +41,7 @@ float rotation = 0;
 void setup() {
   //size(800, 600, P2D);
   fullScreen(P2D);
+  frameRate(100);
 
   //setup midi
   MidiBus.list(); 
@@ -47,7 +50,7 @@ void setup() {
   //Create background shape (PShape) and static image (PGraphic)
   noFill();
   stroke(255, 0, 0);
-  planche = polygon(50, NUM_PADS, 45);
+  planche = polygon(100, NUM_PADS, 45);
   pg = createGraphics(width, height);
   pg.beginDraw();
   pg.background(25);
@@ -133,8 +136,10 @@ void draw() {
       circle.scale(SHRINK_FACTOR);
     }
     //scale color
-    int newColor = Math.round(map(constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
-    circle.setStroke(color(newColor, 100, 200));    
+    float constrainedWidth = constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH);
+    int newColor = Math.round(map(constrainedWidth, MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 200));
+    circle.setStroke(color(newColor, 255, 255));  
+    circle.setStrokeWeight(5);
 
     //push circle outwards    
     pushMatrix();
@@ -177,6 +182,8 @@ void midiMessage(MidiMessage message) {
   int pad = noteToPad(note);
   if (pad >= 0 && (vel > 0)) {
     padWasPressed.set(pad, true);
+    
+    //TODO: move math to main loop, set newVelocity instead
     newWidths.set(pad, Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
   }
 }
@@ -188,19 +195,25 @@ int noteToPad (int note) {
 //based on https://processing.org/examples/bounce.html
 private class BouncingSlave {
   private int master;
-  private int rad = MIN_CIRCLE_WIDTH;        // Width of the shape
+  private int rad = MIN_SLAVE_CIRCLE_WIDTH;        // Width of the shape
   private float xpos, ypos;    // Starting position of shape    
 
-  private float xspeed = 2.8;  // Speed of the shape
-  private float yspeed = 2.2;  // Speed of the shape
+  private float xspeed;  // Speed of the shape
+  private float yspeed;  // Speed of the shape
 
   private int xdirection = 1;  // Left or Right
   private int ydirection = 1;  // Top to Bottom
+  private int circleColor = 0;
 
   public BouncingSlave(int master, int xpos, int ypos) {
     this.master = master;
     this.xpos = xpos;
     this.ypos = ypos;
+    this.xspeed = random(1,4);
+    this.yspeed = random(1,4);
+    this.circleColor = (int)random(50,120);
+    this.xdirection = (int) pow(-1,(int) random(1,3));
+    this.ydirection = (int) pow(-1,(int) random(1,3));
   }
   public void update() {
     // Update the position of the shape
@@ -216,13 +229,14 @@ private class BouncingSlave {
       this.ydirection *= -1;
     }
 
-    if (this.rad > MIN_CIRCLE_WIDTH) {
-      this.rad *= 0.95;
+    if (this.rad > MIN_SLAVE_CIRCLE_WIDTH) {
+      this.rad *= 0.98;
     }
     // Draw the shape
+    stroke(color(this.circleColor,255,255));
     ellipse(this.xpos, this.ypos, this.rad, this.rad);
   }
   public void grow() {
-    this.rad = MAX_CIRCLE_WIDTH;
+    this.rad = MAX_SLAVE_CIRCLE_WIDTH;
   }
 }
