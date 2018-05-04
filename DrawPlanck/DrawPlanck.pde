@@ -22,6 +22,7 @@ final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 40;
 final int MAX_SLAVE_CIRCLE_WIDTH = MAX_CIRCLE_WIDTH/2;
 final int MIN_SLAVE_CIRCLE_WIDTH = MIN_CIRCLE_WIDTH/3;
+final float LOGO_SCALING = 0.1;
 final float rotationSpeed = 0.0005;
 final int pressesForSlave = 2;
 final int maxSlaves = 100;
@@ -52,8 +53,14 @@ void setup() {
   stroke(255, 0, 0);
   planche = polygon(100, NUM_PADS, 45);
   pg = createGraphics(width, height);
+  PImage logo;
+  logo = loadImage("Logo_violon_de_jos_vecto.png");
+  println();
   pg.beginDraw();
   pg.background(25);
+  int newWidth = (int)logo.width * LOGO_SCALING;
+  int newHeight = (int) logo.height * LOGO_SCALING;
+  pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   pg.endDraw();
 
   //global state
@@ -182,7 +189,7 @@ void midiMessage(MidiMessage message) {
   int pad = noteToPad(note);
   if (pad >= 0 && (vel > 0)) {
     padWasPressed.set(pad, true);
-    
+
     //TODO: move math to main loop, set newVelocity instead
     newWidths.set(pad, Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
   }
@@ -209,11 +216,11 @@ private class BouncingSlave {
     this.master = master;
     this.xpos = xpos;
     this.ypos = ypos;
-    this.xspeed = random(1,4);
-    this.yspeed = random(1,4);
-    this.circleColor = (int)random(50,120);
-    this.xdirection = (int) pow(-1,(int) random(1,3));
-    this.ydirection = (int) pow(-1,(int) random(1,3));
+    this.xspeed = random(1, 4);
+    this.yspeed = random(1, 4);
+    this.circleColor = (int)random(50, 120);
+    this.xdirection = (int) pow(-1, (int) random(1, 3));
+    this.ydirection = (int) pow(-1, (int) random(1, 3));
   }
   public void update() {
     // Update the position of the shape
@@ -233,7 +240,7 @@ private class BouncingSlave {
       this.rad *= 0.98;
     }
     // Draw the shape
-    stroke(color(this.circleColor,255,255));
+    stroke(color(this.circleColor, 255, 255));
     ellipse(this.xpos, this.ypos, this.rad, this.rad);
   }
   public void grow() {
