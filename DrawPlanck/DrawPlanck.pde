@@ -6,16 +6,14 @@ import java.util.Arrays;
 //Look at console to see available midi inputs and set
 //the index of your midi device here
 //TODO:  use gui to select midi input device
-int midiDevice  = 0;
-
-MidiBus myBus;
+final int midiDevice  = 0;
 
 //ordering here dictates correspondence to pads according to the following:
 // BOTTOM_RIGHT // BOTTOM_LEFT // TOP_LEFT // TOP_RIGHT
-Integer[] notes = {85, 84, 80, 82}; 
+final Integer[] notes = {85, 84, 80, 82}; 
 
 //midi controller specific
-final int MAX_VELOCITY = 128;
+final int MAX_VELOCITY = 100;
 
 //Drawing config
 final int NUM_PADS = notes.length;
@@ -23,9 +21,8 @@ final float SHRINK_FACTOR = 0.95;
 final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 20;
 final float rotationSpeed = 0.0005;
-final int pressesForSlave = 4;
-final int maxSlaves = 10;
-float rotation = 0;
+final int pressesForSlave = 2;
+final int maxSlaves = 20;
 
 //Shape stuff
 PShape planche; //bg images shape
@@ -35,8 +32,14 @@ ArrayList<BouncingSlave> slaves;
 ArrayList<Integer> newWidths; //list of circle sizes updated by callback
 ArrayList<Boolean> padWasPressed; //flags indicating a pad was pressed, also updated by callback
 ArrayList<Integer> pressCounter; 
+MidiBus myBus;
+float rotation = 0;
+
+
 void setup() {
-  size(800, 600, P2D);
+  //size(800, 600, P2D);
+  fullScreen(P2D);
+
   //setup midi
   MidiBus.list(); 
   myBus = new MidiBus(this, midiDevice, 1); 
@@ -48,43 +51,45 @@ void setup() {
   pg = createGraphics(width, height);
   pg.beginDraw();
   pg.background(25);
-  //pg.shape(planche);
   pg.endDraw();
-  background(pg);
 
-  //initialize variables set by midi callback
+  //global state
   newWidths = new ArrayList<Integer>();
   padWasPressed = new ArrayList<Boolean>();
-  pressCounter = new ArrayList<Integer>();
-
+  pressCounter = new ArrayList<Integer>();  
   for ( int pad = 0; pad < NUM_PADS; pad++) {
     newWidths.add((int)(MIN_CIRCLE_WIDTH));
     padWasPressed.add(false);
     pressCounter.add(0);
   }
+  slaves = new ArrayList<BouncingSlave>();
 
   //Initialize circles that will be representing sensors on the planck
   stroke(0, 255, 0);
   sensorCircles = new ArrayList<PShape>();
   for (int pad = 0; pad < NUM_PADS; pad++) {
+    //go to polygon vertex to place circle
     pushMatrix();
     PVector vertex = planche.getVertex(pad);
     translate(vertex.x, vertex.y);
     sensorCircles.add(createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH));
     popMatrix();
   }
-  slaves = new ArrayList<BouncingSlave>();
+
+  //easier to scale
   colorMode(HSB, 255);
 }
 
 void draw() {
+  //Redraw bg to erase previous frame
+  background(pg);
+
+  //continually rotate sensor circles
   pushMatrix();
   translate(width/2, height/2);
   rotation += TWO_PI * rotationSpeed;
   rotate(rotation);
   translate(-width/2, -height/2);
-  //Redraw bg to erase previous frame
-  background(pg);
 
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
@@ -103,20 +108,20 @@ void draw() {
       }
       //increment own presscounter
       pressCounter.set(pad, pressCounter.get(pad) + 1);
-      
+
+      //reset pressed flag
+      padWasPressed.set(pad, false);
+
       //scale sensor circles
       circle.resetMatrix();
       circle.scale(newWidths.get(pad) / MIN_CIRCLE_WIDTH);
-      
-      //reset pressed flag
-      padWasPressed.set(pad, false);
-      
+
       //create slave
       if (pressCounter.get(pad) >= pressesForSlave && slaves.size() < maxSlaves) {
         slaves.add(new BouncingSlave(pad, (int)screenX(0, 0), (int)screenY(0, 0)));
         pressCounter.set(pad, 0);
       }
-      
+
       //Grow slaves
       for (BouncingSlave slave : slaves) {
         if (slave.master == pad) {
@@ -127,21 +132,21 @@ void draw() {
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
       circle.scale(SHRINK_FACTOR);
     }
-    
+    //scale color
+    int newColor = Math.round(map(constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
+    circle.setStroke(color(newColor, 100, 200));    
+
     //push circle outwards    
     pushMatrix();
     rotate(TWO_PI * (0.125 + (pad*0.25)));
     translate(circle.getWidth() - MIN_CIRCLE_WIDTH, 0);
-    
-    //scale color
-    int newColor = Math.round(map(constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 255));
-    circle.setStroke(color(newColor, 100, 200));
+
     shape(circle);
     popMatrix();
     popMatrix();
   }
   popMatrix();
-  
+
   //maintain slave movement
   for (BouncingSlave slave : slaves) {
     slave.update();
@@ -180,6 +185,7 @@ int noteToPad (int note) {
   return Arrays.asList(notes).indexOf(note);
 }
 
+//based on https://processing.org/examples/bounce.html
 private class BouncingSlave {
   private int master;
   private int rad = MIN_CIRCLE_WIDTH;        // Width of the shape
