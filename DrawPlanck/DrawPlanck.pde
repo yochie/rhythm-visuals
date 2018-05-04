@@ -22,10 +22,10 @@ final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 40;
 final int MAX_SLAVE_CIRCLE_WIDTH = MAX_CIRCLE_WIDTH/2;
 final int MIN_SLAVE_CIRCLE_WIDTH = MIN_CIRCLE_WIDTH/3;
-final float LOGO_SCALING = 0.1;
+final float LOGO_SCALING = 0.05;
 final float rotationSpeed = 0.0005;
 final int pressesForSlave = 2;
-final int maxSlaves = 100;
+final int maxSlaves = 20;
 
 //Shape stuff
 PShape planche; //bg images shape
@@ -54,12 +54,12 @@ void setup() {
   planche = polygon(100, NUM_PADS, 45);
   pg = createGraphics(width, height);
   PImage logo;
-  logo = loadImage("Logo_violon_de_jos_vecto.png");
+  logo = loadImage("bitmap.png");
   println();
   pg.beginDraw();
   pg.background(25);
-  int newWidth = (int)logo.width * LOGO_SCALING;
-  int newHeight = (int) logo.height * LOGO_SCALING;
+  int newWidth = (int)(logo.width * LOGO_SCALING);
+  int newHeight = (int) (logo.height * LOGO_SCALING);
   pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   pg.endDraw();
 
@@ -136,7 +136,6 @@ void draw() {
       for (BouncingSlave slave : slaves) {
         if (slave.master == pad) {
           slave.grow();
-          println("growing");
         }
       }
     } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
@@ -181,7 +180,7 @@ PShape polygon(float radius, int npoints, int angledOffset) {
 }
 
 //Called by MidiBus library whenever a new midi message is received
-void midiMessage(MidiMessage message) { 
+void midiMessage(MidiMessage message) {
   int note = (int)(message.getMessage()[1] & 0xFF) ;
   int vel = (int)(message.getMessage()[2] & 0xFF);
   println("note: " + note + " vel: "+ vel);
