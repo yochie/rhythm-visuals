@@ -6,29 +6,31 @@ import java.util.Arrays;
 //Look at console to see available midi inputs and set
 //the index of your midi device here
 //TODO:  use gui to select midi input device
-final int midiDevice  = 0;
+final int MIDI_DEVICE = 0;
 
 //ordering here dictates correspondence to pads according to the following:
 // BOTTOM_RIGHT // BOTTOM_LEFT // TOP_LEFT // TOP_RIGHT
-final Integer[] notes = {85, 84, 80, 82}; 
+final Integer[] NOTES = {85, 84, 80, 82}; 
 
 //midi controller specific
 final int MAX_VELOCITY = 100;
 
-//Drawing config
-final int NUM_PADS = notes.length;
+//planck config
+final int NUM_PADS = NOTES.length;
+
+//circles config
 final float SHRINK_FACTOR = 0.95;
 final int MAX_CIRCLE_WIDTH = 200;
 final int MIN_CIRCLE_WIDTH = 40;
 final int MAX_SLAVE_CIRCLE_WIDTH = MAX_CIRCLE_WIDTH/2;
 final int MIN_SLAVE_CIRCLE_WIDTH = MIN_CIRCLE_WIDTH/3;
 final float LOGO_SCALING = 0.05;
-final float rotationSpeed = 0.0005;
-final int pressesForSlave = 2;
-final int maxSlaves = 20;
+final float ROTATION_SPEED = 0.0005;
+final int PRESSES_FOR_SLAVE = 2;
+final int MAX_SLAVES = 20;
 final float SLAVE_SHRINK_FACTOR = 0.9;
 
-//Shape stuff
+//Shape globals
 PShape planche; //bg images shape
 PGraphics pg; //bg images graphic
 ArrayList<PShape> sensorCircles; //list of circles that represent sensors
@@ -47,7 +49,7 @@ void setup() {
 
   //setup midi
   MidiBus.list(); 
-  myBus = new MidiBus(this, midiDevice, 1); 
+  myBus = new MidiBus(this, MIDI_DEVICE, 1); 
 
   //Create background shape (PShape) and static image (PGraphic)
   noFill();
@@ -98,7 +100,7 @@ void draw() {
   //continually rotate sensor circles
   pushMatrix();
   translate(width/2, height/2);
-  rotation += TWO_PI * rotationSpeed;
+  rotation += TWO_PI * ROTATION_SPEED;
   rotate(rotation);
   translate(-width/2, -height/2);
 
@@ -128,7 +130,7 @@ void draw() {
       circle.scale(newWidths.get(pad) / MIN_CIRCLE_WIDTH);
 
       //create slave
-      if (pressCounter.get(pad) >= pressesForSlave && slaves.size() < maxSlaves) {
+      if (pressCounter.get(pad) >= PRESSES_FOR_SLAVE && slaves.size() < MAX_SLAVES) {
         slaves.add(new BouncingSlave(pad, (int)screenX(0, 0), (int)screenY(0, 0)));
         pressCounter.set(pad, 0);
       }
@@ -196,7 +198,7 @@ void midiMessage(MidiMessage message) {
 }
 
 int noteToPad (int note) {
-  return Arrays.asList(notes).indexOf(note);
+  return Arrays.asList(NOTES).indexOf(note);
 }
 
 //based on https://processing.org/examples/bounce.html
