@@ -11,7 +11,8 @@ final float ROTATION_SPEED = 0.0005;
 final int PRESSES_FOR_SLAVE = 2;
 final int MAX_SLAVES = 20;
 final float SLAVE_SHRINK_FACTOR = 0.9;
-//midi controller specific
+
+//midi controller specific, usually 255 but our Planck caps earlier
 final int MAX_VELOCITY = 100;
 
 public class CircleMode implements Mode {
@@ -22,23 +23,29 @@ public class CircleMode implements Mode {
   private ArrayList<Integer> newWidths; //list of circle sizes updated by callback
   private float rotation = 0;
   
+  //TODO: override default configs with content here
   private Properties configProps; 
   
   public CircleMode(Properties configProps){
+    //TODO: override default configs with content here
     this.configProps = configProps;
   }
   
   public void setup(){
-    System.out.println("You want circles");
-    planche = polygon(100, NUM_PADS, 45);
+    System.out.println("MODE: Circle");
     
+    stroke(0, 255, 0);
+    
+    //init vars used to update sensor circle width
     newWidths = new ArrayList<Integer>();
     for ( int pad = 0; pad < NUM_PADS; pad++) {
       newWidths.add((int)(MIN_CIRCLE_WIDTH));
     }
-      
-    //Initialize circles that will be representing sensors on the planck
-    stroke(0, 255, 0);
+    
+    //frame to position sensor circles
+    planche = polygon(100, NUM_PADS, 45);
+    
+    //Initialize circles that will be representing sensors on the planck            
     sensorCircles = new ArrayList<PShape>();
     for (int pad = 0; pad < NUM_PADS; pad++) {
       //go to polygon vertex to place circle
@@ -49,14 +56,12 @@ public class CircleMode implements Mode {
       popMatrix();
     }
     
-    slaves = new ArrayList<BouncingSlave>();
-    println("circle setup complete");
+    slaves = new ArrayList<BouncingSlave>();    
   }
   
-  public void draw(){
-    //Redraw circles, setting new widths when a sensor was pressed and
-    //reducing their size otherwise
-    
+  //Redraw circles, setting new widths when a sensor was pressed and
+  //reducing their size otherwise
+  public void draw(){    
     //continually rotate sensor circles
     pushMatrix();
     translate(width/2, height/2);
@@ -79,7 +84,7 @@ public class CircleMode implements Mode {
           slaves.add(new BouncingSlave(pad, (int)screenX(0, 0), (int)screenY(0, 0)));          
         }
   
-        //Grow slaves
+        //grow slaves
         for (BouncingSlave slave : slaves) {
           if (slave.master == pad) {
             slave.grow();
