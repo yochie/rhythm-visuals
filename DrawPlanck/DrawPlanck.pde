@@ -12,14 +12,13 @@ import java.io.FileNotFoundException;
 //TODO:  use gui to select midi input device
 final int MIDI_DEVICE = 0;
 
-//pad config based on firmware settings
+//ordering here is arbitrary and simply establishes an index number for the named pads
 final String[] PAD_ORDER = {"BOTTOM_RIGHT","BOTTOM_LEFT","TOP_LEFT", "TOP_RIGHT"}; 
-//ordering here dictates correspondence to pads index in array
-final int NUM_PADS = PAD_ORDER.length;
-Map PAD_NOTES = new HashMap();
 
+final int NUM_PADS = PAD_ORDER.length;
 final int PRESSES_FOR_MODE_SWITCH = 3;
 
+Map PAD_NOTES = new HashMap();
 PGraphics pg; //bg images graphic
 ArrayList<Boolean> padWasPressed; //flags indicating a pad was pressed, also updated by callback
 ArrayList<Integer> pressCounter; 
@@ -34,6 +33,7 @@ void setup() {
   //fullScreen(P2D);
   frameRate(100);
   
+  //pad config based on firmware settings
   PAD_NOTES.put(85, "BOTTOM_RIGHT");
   PAD_NOTES.put(84, "BOTTOM_LEFT");
   PAD_NOTES.put(80, "TOP_LEFT");
