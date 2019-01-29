@@ -125,7 +125,7 @@ void midiMessage(MidiMessage message) {
   int vel = (int)(message.getMessage()[2] & 0xFF);
   println("note: " + note + " vel: "+ vel);
 
-  int pad = noteToPad(note);
+  int pad = noteToPadIndex(note);
   if (pad >= 0 && (vel > 0)) {
     padWasPressed.set(pad, true);
 
@@ -133,6 +133,6 @@ void midiMessage(MidiMessage message) {
   }
 }
 
-int noteToPad (int note) {
+int noteToPadIndex (int note) {
   return Arrays.asList(PAD_ORDER).indexOf(PAD_NOTES.get(note));
 }
