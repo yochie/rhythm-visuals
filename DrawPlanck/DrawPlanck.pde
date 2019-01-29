@@ -31,7 +31,7 @@ MidiBus myBus;
 void setup() {
   size(800, 600, P2D);
   //fullScreen(P2D);
-  frameRate(100);
+  frameRate(60);
   
   //pad config based on firmware settings
   PAD_NOTES.put(85, "BOTTOM_RIGHT");
@@ -88,9 +88,8 @@ void setup() {
 void draw() {
   //Redraw bg to erase previous frame
   background(pg);
-  currentMode.draw();
-
   for (int pad = 0; pad < NUM_PADS; pad++) {
+    
     if (padWasPressed.get(pad)) {
       //reset pressCounter on other pads
       for (int otherpad = 0; otherpad<NUM_PADS; otherpad++) {
@@ -110,12 +109,18 @@ void draw() {
         }        
         currentMode = modeList[currentModeIndex];
         pressCounter.set(pad, 0);
-        currentMode.setup();        
-      }
-
-      //reset pressed flag
-      padWasPressed.set(pad, false);
+        currentMode.setup();
+        //reset pressed flag before drawing new mode
+        padWasPressed.set(pad, false);
+      }      
     }
+  }
+  
+  currentMode.draw();
+  
+  //reset pressed flag
+  for (int pad = 0; pad < NUM_PADS; pad++) {
+    padWasPressed.set(pad, false);
   }
 }
 
@@ -128,7 +133,6 @@ void midiMessage(MidiMessage message) {
   int pad = noteToPadIndex(note);
   if (pad >= 0 && (vel > 0)) {
     padWasPressed.set(pad, true);
-
     currentMode.handleMidi(pad, note, vel);
   }
 }
