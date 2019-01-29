@@ -26,6 +26,7 @@ final float LOGO_SCALING = 0.05;
 final float rotationSpeed = 0.0005;
 final int pressesForSlave = 2;
 final int maxSlaves = 20;
+final float SLAVE_SHRINK_FACTOR = 0.9;
 
 //Shape stuff
 PShape planche; //bg images shape
@@ -236,7 +237,7 @@ private class BouncingSlave {
     }
 
     if (this.rad > MIN_SLAVE_CIRCLE_WIDTH) {
-      this.rad *= 0.98;
+      this.rad *= SLAVE_SHRINK_FACTOR;
     }
     // Draw the shape
     stroke(color(this.circleColor, 255, 255));
