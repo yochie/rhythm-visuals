@@ -1,30 +1,61 @@
 import themidibus.*;
 import javax.sound.midi.MidiMessage; 
 import java.util.Arrays; 
-import java.util.Map;
+import java.util.List;
+import java.util.Iterator; 
 import java.util.Properties;
 import java.io.FileInputStream; 
 import java.io.FileNotFoundException;
 
-//Midi config
+////////DEFAULT CONFIG////////
+
 //Look at console to see available midi inputs and set
 //the index of your midi device here
 //TODO:  use gui to select midi input device
-final int MIDI_DEVICE = 0;
+//final int MIDI_DEVICE = 0;
+
+//final int PRESSES_FOR_MODE_SWITCH = 3;
+
+//final int BOTTOM_RIGHT_NOTE=85
+//final int BOTTOM_LEFT_NOTE=84
+//final int TOP_LEFT_NOTE=80
+//final int TOP_RIGHT_NOTE=82
+
+//list of other pad notes
+final ArrayList<Integer> AUX_PAD_NOTES = new ArrayList<Integer>(); 
+
+////////CONSTANTS////////
+
+//list of Mode implementing instances to switch between
+final Mode[] MODES = new Mode[] {new CircleMode()};
 
 //ordering here is arbitrary and simply establishes an index number for the named pads
-final String[] PAD_ORDER = {"BOTTOM_RIGHT","BOTTOM_LEFT","TOP_LEFT", "TOP_RIGHT"}; 
+final String[] NAMED_PADS = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
 
-final int NUM_PADS = PAD_ORDER.length;
-final int PRESSES_FOR_MODE_SWITCH = 3;
+//sum of named and aux pads
+//calculated from config, so not technically a constant, but shouldn't change once set
+int NUM_PADS;
 
-Map PAD_NOTES = new HashMap();
-PGraphics pg; //bg images graphic
-ArrayList<Boolean> padWasPressed; //flags indicating a pad was pressed, also updated by callback
-ArrayList<Integer> pressCounter; 
-int currentModeIndex = 0;
-Mode[] modeList;
+////////GLOBALS/////////
+
 Mode currentMode;
+int currentModeIndex = 0;
+
+//static pad data and helper methods
+ArrayList<Pad> pads = new ArrayList<Pad>();
+
+//flags indicating a pad was pressed, set by midi callback and unset after each draw()
+ArrayList<Boolean> padWasPressed;
+
+//number of consecutive presses for each pad
+//pressing any pad resets the count on all the others
+//switching mode resets the count on all pads
+ArrayList<Integer> pressCounter; 
+
+//background image
+PGraphics pg;
+
+Properties configProps;
 
 MidiBus myBus;
 
@@ -32,26 +63,42 @@ void setup() {
   size(800, 600, P2D);
   //fullScreen(P2D);
   frameRate(60);
-  
-  //pad config based on firmware settings
-  PAD_NOTES.put(85, "BOTTOM_RIGHT");
-  PAD_NOTES.put(84, "BOTTOM_LEFT");
-  PAD_NOTES.put(80, "TOP_LEFT");
-  PAD_NOTES.put(82, "TOP_RIGHT");
 
-  Properties configProps = new Properties();
+  //read config file
+  configProps = new Properties();
   InputStream is = null;
   try {
     is = createInput("config.properties");
     configProps.load(is);
-     
-  } catch (IOException ex) {
+  } 
+  catch (IOException ex) {
     println("Error reading config file.");
   }
   
+  //get aux notes from config
+  List<String> string_aux_pad_notes = Arrays.asList(configProps.getProperty("AUX_PAD_NOTES").split("\\s*,\\s*"));
+  Iterator<String> iter = string_aux_pad_notes.iterator();
+  while (iter.hasNext()){
+    AUX_PAD_NOTES.add(Integer.parseInt(iter.next()));
+  }
+
+  NUM_PADS = NAMED_PADS.length + AUX_PAD_NOTES.size();
+
+  //Print pad notes for convenience and create pad list
+  for(int i = 0; i < NAMED_PADS.length; i++){
+    int note = Integer.parseInt(configProps.getProperty(NAMED_PADS[i]));
+    println(NAMED_PADS[i] + " : " + note);
+    pads.add(new Pad(NAMED_PADS[i], note, false));
+  }
+  for(int i = 0; i < AUX_PAD_NOTES.size(); i++){
+    int note = AUX_PAD_NOTES.get(i);
+    println("AUX_" + i + " : " + note);
+    pads.add(new Pad(NAMED_PADS[i], note, true));
+  }
+
   //setup midi
   MidiBus.list(); 
-  myBus = new MidiBus(this, MIDI_DEVICE, 1); 
+  myBus = new MidiBus(this, Integer.parseInt(configProps.getProperty("MIDI_DEVICE")), 1); 
 
   //Create background static image (PGraphic)
   noFill();
@@ -67,18 +114,17 @@ void setup() {
   pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   pg.endDraw();
 
-  //global state
+  //global state init
   padWasPressed = new ArrayList<Boolean>();
   pressCounter = new ArrayList<Integer>();  
   for ( int pad = 0; pad < NUM_PADS; pad++) {
     padWasPressed.add(false);
     pressCounter.add(0);
   }
-  
+
   //Create modes and initialize currentMode
   currentModeIndex = 0;
-  modeList = new Mode[] {new CircleMode(configProps)};
-  currentMode = modeList[currentModeIndex];
+  currentMode = MODES[currentModeIndex];
   currentMode.setup();
 
   //easier to scale
@@ -88,39 +134,39 @@ void setup() {
 void draw() {
   //Redraw bg to erase previous frame
   background(pg);
-  for (int pad = 0; pad < NUM_PADS; pad++) {
-    
-    if (padWasPressed.get(pad)) {
+  for (int padIndex = 0; padIndex < NUM_PADS; padIndex++) {
+    Pad pad = pads.get(padIndex);
+    if (padWasPressed.get(padIndex)) {
       //reset pressCounter on other pads
       for (int otherpad = 0; otherpad<NUM_PADS; otherpad++) {
-        if (otherpad != pad) {
+        if (otherpad != padIndex) {
           pressCounter.set(otherpad, 0);
         }
       }
-      
+
       //increment own presscounter
-      pressCounter.set(pad, pressCounter.get(pad) + 1);
+      pressCounter.set(padIndex, pressCounter.get(padIndex) + 1);
 
       //MODE SWITCH
-      if (pressCounter.get(pad) >= PRESSES_FOR_MODE_SWITCH && pad == Arrays.asList(PAD_ORDER).indexOf("TOP_LEFT")){
+      if (pad.name == "TOP_LEFT_NOTE" && pressCounter.get(padIndex) >= Integer.parseInt(configProps.getProperty("PRESSES_FOR_MODE_SWITCH"))) {
         currentModeIndex++;
-        if (currentModeIndex >= modeList.length){          
+        if (currentModeIndex >= MODES.length) {          
           currentModeIndex = 0;
         }        
-        currentMode = modeList[currentModeIndex];
-        pressCounter.set(pad, 0);
+        currentMode = MODES[currentModeIndex];
+        pressCounter.set(padIndex, 0);
         currentMode.setup();
         //reset pressed flag before drawing new mode
-        padWasPressed.set(pad, false);
-      }      
+        padWasPressed.set(padIndex, false);
+      }
     }
   }
-  
+
   currentMode.draw();
-  
+
   //reset pressed flag
-  for (int pad = 0; pad < NUM_PADS; pad++) {
-    padWasPressed.set(pad, false);
+  for (int padIndex = 0; padIndex < NUM_PADS; padIndex++) {
+    padWasPressed.set(padIndex, false);
   }
 }
 
@@ -130,13 +176,9 @@ void midiMessage(MidiMessage message) {
   int vel = (int)(message.getMessage()[2] & 0xFF);
   println("note: " + note + " vel: "+ vel);
 
-  int pad = noteToPadIndex(note);
-  if (pad >= 0 && (vel > 0)) {
-    padWasPressed.set(pad, true);
-    currentMode.handleMidi(pad, note, vel);
+  int padIndex = Pad.noteToPad(note);
+  if (padIndex >= 0 && (vel > 0)) {
+    padWasPressed.set(padIndex, true);
+    currentMode.handleMidi(pads.get(padIndex), note, vel);
   }
-}
-
-int noteToPadIndex (int note) {
-  return Arrays.asList(PAD_ORDER).indexOf(PAD_NOTES.get(note));
 }

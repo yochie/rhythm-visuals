@@ -26,9 +26,10 @@ public class CircleMode implements Mode {
   //TODO: override default configs with content here
   private Properties configProps; 
   
-  public CircleMode(Properties configProps){
+  public CircleMode(){
     //TODO: override default configs with content here
     this.configProps = configProps;
+    println(configProps);
   }
   
   public void setup(){
@@ -116,9 +117,9 @@ public class CircleMode implements Mode {
   }
 }
   
-  public void handleMidi(int pad, int note, int vel){
+  public void handleMidi(Pad pad, int note, int vel){
     //TODO: move math to main loop, set newVelocity instead
-    newWidths.set(pad, Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
+    newWidths.set(pad.index, Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
   }
   
   //copied from https://processing.org/examples/regularpolygon.html 
