@@ -7,23 +7,6 @@ import java.util.Properties;
 import java.io.FileInputStream; 
 import java.io.FileNotFoundException;
 
-////////DEFAULT CONFIG////////
-
-//Look at console to see available midi inputs and set
-//the index of your midi device here
-//TODO:  use gui to select midi input device
-//final int MIDI_DEVICE = 0;
-
-//final int PRESSES_FOR_MODE_SWITCH = 3;
-
-//final int BOTTOM_RIGHT_NOTE=85
-//final int BOTTOM_LEFT_NOTE=84
-//final int TOP_LEFT_NOTE=80
-//final int TOP_RIGHT_NOTE=82
-
-//list of other pad notes
-final ArrayList<Integer> AUX_PAD_NOTES = new ArrayList<Integer>(); 
-
 ////////CONSTANTS////////
 
 //list of Mode implementing instances to switch between
@@ -31,6 +14,11 @@ final Mode[] MODES = new Mode[] {new CircleMode()};
 
 //ordering here is arbitrary and simply establishes an index number for the named pads
 final String[] NAMED_PADS = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
+
+////////FROM CONFIG////////
+
+//list of other pad notes read in from config
+final ArrayList<Integer> AUX_PAD_NOTES = new ArrayList<Integer>(); 
 
 //sum of named and aux pads
 //calculated from config, so not technically a constant, but shouldn't change once set
@@ -81,10 +69,8 @@ void setup() {
   while (iter.hasNext()){
     AUX_PAD_NOTES.add(Integer.parseInt(iter.next()));
   }
-
-  NUM_PADS = NAMED_PADS.length + AUX_PAD_NOTES.size();
-
-  //Print pad notes for convenience and create pad list
+ 
+  //create pad list
   for(int i = 0; i < NAMED_PADS.length; i++){
     int note = Integer.parseInt(configProps.getProperty(NAMED_PADS[i]));
     println(NAMED_PADS[i] + " : " + note);
@@ -95,7 +81,9 @@ void setup() {
     println("AUX_" + i + " : " + note);
     pads.add(new Pad(NAMED_PADS[i], note, true));
   }
-
+  
+  NUM_PADS = pads.size(); 
+  
   //setup midi
   MidiBus.list(); 
   myBus = new MidiBus(this, Integer.parseInt(configProps.getProperty("MIDI_DEVICE")), 1); 
@@ -134,6 +122,8 @@ void setup() {
 void draw() {
   //Redraw bg to erase previous frame
   background(pg);
+  
+  //Increment presses and check for mode switch
   for (int padIndex = 0; padIndex < NUM_PADS; padIndex++) {
     Pad pad = pads.get(padIndex);
     if (padWasPressed.get(padIndex)) {
@@ -147,7 +137,7 @@ void draw() {
       //increment own presscounter
       pressCounter.set(padIndex, pressCounter.get(padIndex) + 1);
 
-      //MODE SWITCH
+      //switch modes
       if (pad.name == "TOP_LEFT_NOTE" && pressCounter.get(padIndex) >= Integer.parseInt(configProps.getProperty("PRESSES_FOR_MODE_SWITCH"))) {
         currentModeIndex++;
         if (currentModeIndex >= MODES.length) {          
