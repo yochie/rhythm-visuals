@@ -20,11 +20,11 @@ public abstract class Mode {
   
   //sets loadedConfig from config file and defaults
   protected void loadConfigFrom(String configFileName){
-    loadedConfig = new Properties(defaultConfig);
+    this.loadedConfig = new Properties(defaultConfig);
     InputStream is = null;
     try {
       is = createInput(configFileName);
-      loadedConfig.load(is);
+      this.loadedConfig.load(is);
     } 
     catch (IOException ex) {
       println("Error reading config file.");
@@ -34,9 +34,10 @@ public abstract class Mode {
   protected int getIntProp(String propName){
     int toReturn = -1;
     try {
-      toReturn = Integer.parseInt(loadedConfig.getProperty(propName));
+      toReturn = Integer.parseInt(this.loadedConfig.getProperty(propName));
     } catch (NumberFormatException e) {
-       println("Config var is not of expected type.");
+       println("WARNING: Config var " + propName + " is not of expected type (integer). Falling back to default config for this parameter.");
+       toReturn = Integer.parseInt(this.defaultConfig.getProperty(propName));
     }
     return toReturn;
   }
@@ -44,9 +45,10 @@ public abstract class Mode {
   protected float getFloatProp(String propName){
    float toReturn = -1;
     try {
-      toReturn = Float.parseFloat(loadedConfig.getProperty(propName));
+      toReturn = Float.parseFloat(this.loadedConfig.getProperty(propName));
     } catch (NumberFormatException e) {
-       println("Config var is not of expected type.");
+       println("WARNING: Config var " + propName + " is not of expected type (float). Falling back to default config for this parameter.");
+       toReturn = Float.parseFloat(this.defaultConfig.getProperty(propName));
     }
     return toReturn;
   }

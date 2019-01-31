@@ -14,13 +14,17 @@ public class CircleMode extends Mode {
     this.defaultConfig.setProperty("MIN_CIRCLE_WIDTH", "40");
     this.defaultConfig.setProperty("MAX_SLAVE_CIRCLE_WIDTH", "100");
     this.defaultConfig.setProperty("MIN_SLAVE_CIRCLE_WIDTH", "66");
-    this.defaultConfig.setProperty("LOGO_SCALING", "0.05");
     this.defaultConfig.setProperty("ROTATION_SPEED", "0.0005");
     this.defaultConfig.setProperty("PRESSES_FOR_SLAVE", "2");
     this.defaultConfig.setProperty("MAX_SLAVES", "20");
     this.defaultConfig.setProperty("SLAVE_SHRINK_FACTOR", "0.9");
     //midi controller specific, usually 255 but our Planck caps earlier
     this.defaultConfig.setProperty("MAX_VELOCITY", "100");
+    this.defaultConfig.setProperty("SENSOR_THICKNESS", "5");
+    this.defaultConfig.setProperty("SLAVE_THICKNESS", "1");
+    this.defaultConfig.setProperty("SENSOR_COLOR_RANGE_MIN", "0");
+    this.defaultConfig.setProperty("SENSOR_COLOR_RANGE_MAX", "200");
+
     
     //sets loaded config
     loadConfigFrom("circle_config.properties");
@@ -38,7 +42,7 @@ public class CircleMode extends Mode {
     //init vars used to update sensor circle width
     newWidths = new ArrayList<Integer>();
     for ( int pad = 0; pad < NUM_PADS; pad++) {
-      newWidths.add((int)(this.getIntProp("MIN_CIRCLE_WIDTH")));
+      newWidths.add(this.getIntProp("MIN_CIRCLE_WIDTH"));
     }
     
     //frame to position sensor circles
@@ -51,7 +55,7 @@ public class CircleMode extends Mode {
       pushMatrix();
       PVector vertex = planche.getVertex(pad);
       translate(vertex.x, vertex.y);
-      sensorCircles.add(createShape(ELLIPSE, 0, 0, getIntProp("MIN_CIRCLE_WIDTH"), getIntProp("MIN_CIRCLE_WIDTH")));
+      sensorCircles.add(createShape(ELLIPSE, 0, 0, this.getIntProp("MIN_CIRCLE_WIDTH"), this.getIntProp("MIN_CIRCLE_WIDTH")));
       popMatrix();
     }
     
@@ -60,11 +64,13 @@ public class CircleMode extends Mode {
   
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
+  @Override
   public void draw(){    
+
     //continually rotate sensor circles
     pushMatrix();
     translate(width/2, height/2);
-    rotation += TWO_PI * getFloatProp("ROTATION_SPEED");
+    rotation += TWO_PI * this.getFloatProp("ROTATION_SPEED");
     rotate(rotation);
     translate(-width/2, -height/2);
     for (int pad = 0; pad < NUM_PADS; pad++) {
@@ -76,41 +82,46 @@ public class CircleMode extends Mode {
       if (padWasPressed.get(pad)) {
         //scale sensor circles
         circle.resetMatrix();
-        circle.scale(newWidths.get(pad) / getIntProp("MIN_CIRCLE_WIDTH"));
-  
+        circle.scale((float) newWidths.get(pad) / (float) this.getIntProp("MIN_CIRCLE_WIDTH")); //<>//
+        
         //create slave
-        if (pressCounter.get(pad) % getIntProp("PRESSES_FOR_SLAVE") == 0 && slaves.size() < getIntProp("MAX_SLAVES")) {
-          slaves.add(new BouncingSlave(
-            pad,
-            (int)screenX(0, 0),
-            (int)screenY(0, 0),
-            getIntProp("MIN_SLAVE_CIRCLE_WIDTH"),
-            getIntProp("MAX_SLAVE_CIRCLE_WIDTH"),
-            getFloatProp("SLAVE_SHRINK_FACTOR"))
+        if (pressCounter.get(pad) % this.getIntProp("PRESSES_FOR_SLAVE") == 0 && slaves.size() < this.getIntProp("MAX_SLAVES")) {
+          slaves.add(new BouncingSlave(pad,
+                                        (int)screenX(0, 0),
+                                        (int)screenY(0, 0),
+                                        this.getIntProp("MIN_SLAVE_CIRCLE_WIDTH"),
+                                        this.getIntProp("MAX_SLAVE_CIRCLE_WIDTH"),
+                                        this.getFloatProp("SLAVE_SHRINK_FACTOR"),
+                                        this.getIntProp("SLAVE_THICKNESS"))
           );          
         }
-  
+
         //grow slaves
         for (BouncingSlave slave : slaves) {
           if (slave.master == pad) {
             slave.grow();
           }
         }
-      } else if (circle.getWidth() > getIntProp("MIN_CIRCLE_WIDTH")) {
-        circle.scale(Float.parseFloat(loadedConfig.getProperty("SHRINK_FACTOR")));
+      } else if (circle.getWidth() * this.getFloatProp("SHRINK_FACTOR") >= this.getIntProp("MIN_CIRCLE_WIDTH")) {
+        circle.scale(this.getFloatProp("SHRINK_FACTOR"));        
       }
       //scale color
-      float constrainedWidth = constrain(circle.getWidth(), getIntProp("MIN_CIRCLE_WIDTH"), getIntProp("MAX_CIRCLE_WIDTH"));
-      int newColor = Math.round(map(constrainedWidth, getIntProp("MIN_CIRCLE_WIDTH"), getIntProp("MAX_CIRCLE_WIDTH"), 0, 200));
+      float constrainedWidth = constrain((float) circle.getWidth(),(float) this.getIntProp("MIN_CIRCLE_WIDTH"), (float) this.getIntProp("MAX_CIRCLE_WIDTH"));
+      int newColor = Math.round(map(constrainedWidth, (float) this.getIntProp("MIN_CIRCLE_WIDTH"), (float) this.getIntProp("MAX_CIRCLE_WIDTH"), (float) this.getIntProp("SENSOR_COLOR_RANGE_MIN") , (float) this.getIntProp("SENSOR_COLOR_RANGE_MAX")));
       circle.setStroke(color(newColor, 255, 255));  
-      circle.setStrokeWeight(5);
+      circle.setStrokeWeight(this.getIntProp("SENSOR_THICKNESS"));
   
       //push circle outwards    
       pushMatrix();
       rotate(TWO_PI * (0.125 + (pad*0.25)));
-      translate(circle.getWidth() - getIntProp("MIN_CIRCLE_WIDTH"), 0);
-  
-      shape(circle);
+      translate(circle.getWidth() - this.getIntProp("MIN_CIRCLE_WIDTH"), 0);
+      
+      //TODO: Figure out why shapes are disappearing and replace ellipse
+      //shape(circle);
+      stroke(newColor, 255, 255);
+      strokeWeight(this.getIntProp("SENSOR_THICKNESS"));
+      ellipse(0, 0, circle.getWidth(), circle.getWidth());
+
       popMatrix();
       popMatrix();
     }
@@ -124,7 +135,7 @@ public class CircleMode extends Mode {
   
   public void handleMidi(Pad pad, int note, int vel){
     //TODO: move math to main loop, set newVelocity instead
-    newWidths.set(pad.index, Math.round(map(constrain(vel, 0, getIntProp("MAX_VELOCITY")), 0, getIntProp("MAX_VELOCITY"), 0, getIntProp("MAX_CIRCLE_WIDTH"))));
+    newWidths.set(pad.index, Math.round(map(constrain(vel, 0, this.getIntProp("MAX_VELOCITY")), 0, this.getIntProp("MAX_VELOCITY"), this.getIntProp("MIN_CIRCLE_WIDTH"), this.getIntProp("MAX_CIRCLE_WIDTH"))));
   }
   
   //copied from https://processing.org/examples/regularpolygon.html 
@@ -151,6 +162,8 @@ private class BouncingSlave {
   private int minrad;
   private int maxrad;
   private float shrinkfactor;
+  private float slavethickness;
+
   private int rad;        // Width of the shape
   private float xpos, ypos;    // Starting position of shape    
 
@@ -161,12 +174,13 @@ private class BouncingSlave {
   private int ydirection = 1;  // Top to Bottom
   private int circleColor = 0;
 
-  public BouncingSlave(int master, int xpos, int ypos, int minrad, int maxrad, float shrinkfactor) {
+  public BouncingSlave(int master, int xpos, int ypos, int minrad, int maxrad, float shrinkfactor, int slavethickness) {
     this.master = master;
     this.rad = minrad;
     this.minrad = minrad;
     this.maxrad = maxrad;  
     this.shrinkfactor = shrinkfactor;
+    this.slavethickness = slavethickness;
     this.xpos = xpos;
     this.ypos = ypos;
     this.xspeed = random(1, 4);
@@ -175,6 +189,7 @@ private class BouncingSlave {
     this.xdirection = (int) pow(-1, (int) random(1, 3));
     this.ydirection = (int) pow(-1, (int) random(1, 3));
   }
+  
   public void update() {
     // Update the position of the shape
     this.xpos = this.xpos + ( this.xspeed * this.xdirection );
@@ -189,14 +204,16 @@ private class BouncingSlave {
       this.ydirection *= -1;
     }
 
-    if (this.rad > minrad) {
-      this.rad *= shrinkfactor;
+    if (this.rad * this.shrinkfactor > this.minrad) {
+      this.rad *= this.shrinkfactor;    
     }
+    
     // Draw the shape
     stroke(color(this.circleColor, 255, 255));
+    strokeWeight(slavethickness);
     ellipse(this.xpos, this.ypos, this.rad, this.rad);
   }
   public void grow() {
-    this.rad = maxrad;
+    this.rad = this.maxrad;
   }
 }
