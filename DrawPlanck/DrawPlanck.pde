@@ -188,7 +188,7 @@ void loadConfigFrom(String configFileName) {
 }
 
 int getIntProp(String propName) {
-  int toReturn = -1;
+  int toReturn;
   if (loadedConfig.containsKey(propName)) {
     try {
       toReturn = Integer.parseInt(loadedConfig.getProperty(propName));
@@ -205,13 +205,18 @@ int getIntProp(String propName) {
 }
 
 float getFloatProp(String propName) {
-  float toReturn = -1;
-  try {
-    toReturn = Float.parseFloat(loadedConfig.getProperty(propName));
-  } 
-  catch (NumberFormatException e) {
-    println("WARNING: Config var" + propName + " is not of expected type (float). Falling back to default config for this parameter.");
-    toReturn = Float.parseFloat(defaultConfig.getProperty(propName));
+  float toReturn;
+  if (loadedConfig.containsKey(propName)) {
+    try {
+      toReturn = Float.parseFloat(loadedConfig.getProperty(propName));
+    } 
+    catch (NumberFormatException e) {
+      println("WARNING: Config var" + propName + " is not of expected type (float). Falling back to default config for this parameter.");
+      toReturn = Float.parseFloat(defaultConfig.getProperty(propName));
+    }
+  } else {
+    println("Error: Couldn't find requested config var : " + propName);
+    throw(new IllegalArgumentException());
   }
   return toReturn;
 }

@@ -35,7 +35,6 @@ public class CircleMode extends Mode {
     
   }
   
-  @Override
   public void setup(){
     System.out.println("MODE: Circle");
     
@@ -66,7 +65,6 @@ public class CircleMode extends Mode {
   
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
-  @Override
   public void draw(){    
 
     //continually rotate sensor circles
