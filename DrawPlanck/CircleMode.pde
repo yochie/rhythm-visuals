@@ -106,8 +106,13 @@ public class CircleMode extends Mode {
         circle.scale(this.getFloatProp("SHRINK_FACTOR"));        
       }
       //scale color
-      float constrainedWidth = constrain((float) circle.getWidth(),(float) this.getIntProp("MIN_CIRCLE_WIDTH"), (float) this.getIntProp("MAX_CIRCLE_WIDTH"));
-      int newColor = Math.round(map(constrainedWidth, (float) this.getIntProp("MIN_CIRCLE_WIDTH"), (float) this.getIntProp("MAX_CIRCLE_WIDTH"), (float) this.getIntProp("SENSOR_COLOR_RANGE_MIN") , (float) this.getIntProp("SENSOR_COLOR_RANGE_MAX")));
+      float constrainedWidth = constrain((float) circle.getWidth(), this.getFloatProp("MIN_CIRCLE_WIDTH"), this.getFloatProp("MAX_CIRCLE_WIDTH"));
+      int newColor = Math.round(map(constrainedWidth, 
+                                    this.getFloatProp("MIN_CIRCLE_WIDTH"),
+                                    this.getFloatProp("MAX_CIRCLE_WIDTH"),
+                                    this.getFloatProp("SENSOR_COLOR_RANGE_MIN"),
+                                    this.getFloatProp("SENSOR_COLOR_RANGE_MAX")));
+                                   
       circle.setStroke(color(newColor, 255, 255));  
       circle.setStrokeWeight(this.getIntProp("SENSOR_THICKNESS"));
   
@@ -153,7 +158,6 @@ public class CircleMode extends Mode {
     return s;
   }
 }
-  
   
   
 //based on https://processing.org/examples/bounce.html
