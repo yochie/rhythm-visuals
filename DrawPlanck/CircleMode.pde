@@ -1,11 +1,13 @@
 import java.util.Properties;
 
 public class CircleMode extends Mode {
-  //Shape globals
-  private PShape planche; //bg images shape
-  private ArrayList<PShape> sensorCircles; //list of circles that represent sensors
+  //bg images shape
+  private PShape planche; 
+  //list of circles that represent sensors
+  private ArrayList<PShape> sensorCircles; 
   private ArrayList<BouncingSlave> slaves;
-  private ArrayList<Integer> newWidths; //list of circle sizes updated by callback
+  //list of circle sizes updated by callback
+  private ArrayList<Integer> newWidths; 
   private float rotation = 0;
   
   public CircleMode(){
