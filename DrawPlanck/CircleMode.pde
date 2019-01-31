@@ -1,21 +1,6 @@
 import java.util.Properties;
 
-//circles config
-final float SHRINK_FACTOR = 0.95;
-final int MAX_CIRCLE_WIDTH = 200;
-final int MIN_CIRCLE_WIDTH = 40;
-final int MAX_SLAVE_CIRCLE_WIDTH = MAX_CIRCLE_WIDTH/2;
-final int MIN_SLAVE_CIRCLE_WIDTH = MIN_CIRCLE_WIDTH/3;
-final float LOGO_SCALING = 0.05;
-final float ROTATION_SPEED = 0.0005;
-final int PRESSES_FOR_SLAVE = 2;
-final int MAX_SLAVES = 20;
-final float SLAVE_SHRINK_FACTOR = 0.9;
-
-//midi controller specific, usually 255 but our Planck caps earlier
-final int MAX_VELOCITY = 100;
-
-public class CircleMode implements Mode {
+public class CircleMode extends Mode {
   //Shape globals
   private PShape planche; //bg images shape
   private ArrayList<PShape> sensorCircles; //list of circles that represent sensors
@@ -23,15 +8,26 @@ public class CircleMode implements Mode {
   private ArrayList<Integer> newWidths; //list of circle sizes updated by callback
   private float rotation = 0;
   
-  //TODO: override default configs with content here
-  private Properties configProps; 
-  
   public CircleMode(){
-    //TODO: override default configs with content here
-    this.configProps = configProps;
+    this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
+    this.defaultConfig.setProperty("MAX_CIRCLE_WIDTH", "200");
+    this.defaultConfig.setProperty("MIN_CIRCLE_WIDTH", "40");
+    this.defaultConfig.setProperty("MAX_SLAVE_CIRCLE_WIDTH", "100");
+    this.defaultConfig.setProperty("MIN_SLAVE_CIRCLE_WIDTH", "66");
+    this.defaultConfig.setProperty("LOGO_SCALING", "0.05");
+    this.defaultConfig.setProperty("ROTATION_SPEED", "0.0005");
+    this.defaultConfig.setProperty("PRESSES_FOR_SLAVE", "2");
+    this.defaultConfig.setProperty("MAX_SLAVES", "20");
+    this.defaultConfig.setProperty("SLAVE_SHRINK_FACTOR", "0.9");
+    //midi controller specific, usually 255 but our Planck caps earlier
+    this.defaultConfig.setProperty("MAX_VELOCITY", "100");
+    
+    //sets loaded config
+    loadConfigFrom("circle_config.properties");
     println(configProps);
   }
   
+  @Override
   public void setup(){
     System.out.println("MODE: Circle");
     
@@ -40,7 +36,7 @@ public class CircleMode implements Mode {
     //init vars used to update sensor circle width
     newWidths = new ArrayList<Integer>();
     for ( int pad = 0; pad < NUM_PADS; pad++) {
-      newWidths.add((int)(MIN_CIRCLE_WIDTH));
+      newWidths.add((int)(this.getIntProp("MIN_CIRCLE_WIDTH")));
     }
     
     //frame to position sensor circles
@@ -53,7 +49,7 @@ public class CircleMode implements Mode {
       pushMatrix();
       PVector vertex = planche.getVertex(pad);
       translate(vertex.x, vertex.y);
-      sensorCircles.add(createShape(ELLIPSE, 0, 0, MIN_CIRCLE_WIDTH, MIN_CIRCLE_WIDTH));
+      sensorCircles.add(createShape(ELLIPSE, 0, 0, getIntProp("MIN_CIRCLE_WIDTH"), getIntProp("MIN_CIRCLE_WIDTH")));
       popMatrix();
     }
     
@@ -66,7 +62,7 @@ public class CircleMode implements Mode {
     //continually rotate sensor circles
     pushMatrix();
     translate(width/2, height/2);
-    rotation += TWO_PI * ROTATION_SPEED;
+    rotation += TWO_PI * getFloatProp("ROTATION_SPEED");
     rotate(rotation);
     translate(-width/2, -height/2);
     for (int pad = 0; pad < NUM_PADS; pad++) {
@@ -78,11 +74,18 @@ public class CircleMode implements Mode {
       if (padWasPressed.get(pad)) {
         //scale sensor circles
         circle.resetMatrix();
-        circle.scale(newWidths.get(pad) / MIN_CIRCLE_WIDTH);
+        circle.scale(newWidths.get(pad) / getIntProp("MIN_CIRCLE_WIDTH"));
   
         //create slave
-        if (pressCounter.get(pad) % PRESSES_FOR_SLAVE == 0 && slaves.size() < MAX_SLAVES) {
-          slaves.add(new BouncingSlave(pad, (int)screenX(0, 0), (int)screenY(0, 0)));          
+        if (pressCounter.get(pad) % getIntProp("PRESSES_FOR_SLAVE") == 0 && slaves.size() < getIntProp("MAX_SLAVES")) {
+          slaves.add(new BouncingSlave(
+            pad,
+            (int)screenX(0, 0),
+            (int)screenY(0, 0),
+            getIntProp("MIN_SLAVE_CIRCLE_WIDTH"),
+            getIntProp("MAX_SLAVE_CIRCLE_WIDTH"),
+            getFloatProp("SLAVE_SHRINK_FACTOR"))
+          );          
         }
   
         //grow slaves
@@ -91,19 +94,19 @@ public class CircleMode implements Mode {
             slave.grow();
           }
         }
-      } else if (circle.getWidth() > MIN_CIRCLE_WIDTH) {
-        circle.scale(SHRINK_FACTOR);
+      } else if (circle.getWidth() > getIntProp("MIN_CIRCLE_WIDTH")) {
+        circle.scale(Float.parseFloat(loadedConfig.getProperty("SHRINK_FACTOR")));
       }
       //scale color
-      float constrainedWidth = constrain(circle.getWidth(), MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH);
-      int newColor = Math.round(map(constrainedWidth, MIN_CIRCLE_WIDTH, MAX_CIRCLE_WIDTH, 0, 200));
+      float constrainedWidth = constrain(circle.getWidth(), getIntProp("MIN_CIRCLE_WIDTH"), getIntProp("MAX_CIRCLE_WIDTH"));
+      int newColor = Math.round(map(constrainedWidth, getIntProp("MIN_CIRCLE_WIDTH"), getIntProp("MAX_CIRCLE_WIDTH"), 0, 200));
       circle.setStroke(color(newColor, 255, 255));  
       circle.setStrokeWeight(5);
   
       //push circle outwards    
       pushMatrix();
       rotate(TWO_PI * (0.125 + (pad*0.25)));
-      translate(circle.getWidth() - MIN_CIRCLE_WIDTH, 0);
+      translate(circle.getWidth() - getIntProp("MIN_CIRCLE_WIDTH"), 0);
   
       shape(circle);
       popMatrix();
@@ -119,7 +122,7 @@ public class CircleMode implements Mode {
   
   public void handleMidi(Pad pad, int note, int vel){
     //TODO: move math to main loop, set newVelocity instead
-    newWidths.set(pad.index, Math.round(map(constrain(vel, 0, MAX_VELOCITY), 0, MAX_VELOCITY, 0, MAX_CIRCLE_WIDTH)));
+    newWidths.set(pad.index, Math.round(map(constrain(vel, 0, getIntProp("MAX_VELOCITY")), 0, getIntProp("MAX_VELOCITY"), 0, getIntProp("MAX_CIRCLE_WIDTH"))));
   }
   
   //copied from https://processing.org/examples/regularpolygon.html 
@@ -143,7 +146,10 @@ public class CircleMode implements Mode {
 //based on https://processing.org/examples/bounce.html
 private class BouncingSlave {
   private int master;
-  private int rad = MIN_SLAVE_CIRCLE_WIDTH;        // Width of the shape
+  private int minrad;
+  private int maxrad;
+  private float shrinkfactor;
+  private int rad;        // Width of the shape
   private float xpos, ypos;    // Starting position of shape    
 
   private float xspeed;  // Speed of the shape
@@ -153,8 +159,12 @@ private class BouncingSlave {
   private int ydirection = 1;  // Top to Bottom
   private int circleColor = 0;
 
-  public BouncingSlave(int master, int xpos, int ypos) {
+  public BouncingSlave(int master, int xpos, int ypos, int minrad, int maxrad, float shrinkfactor) {
     this.master = master;
+    this.rad = minrad;
+    this.minrad = minrad;
+    this.maxrad = maxrad;  
+    this.shrinkfactor = shrinkfactor;
     this.xpos = xpos;
     this.ypos = ypos;
     this.xspeed = random(1, 4);
@@ -177,14 +187,14 @@ private class BouncingSlave {
       this.ydirection *= -1;
     }
 
-    if (this.rad > MIN_SLAVE_CIRCLE_WIDTH) {
-      this.rad *= SLAVE_SHRINK_FACTOR;
+    if (this.rad > minrad) {
+      this.rad *= shrinkfactor;
     }
     // Draw the shape
     stroke(color(this.circleColor, 255, 255));
     ellipse(this.xpos, this.ypos, this.rad, this.rad);
   }
   public void grow() {
-    this.rad = MAX_SLAVE_CIRCLE_WIDTH;
+    this.rad = maxrad;
   }
 }
