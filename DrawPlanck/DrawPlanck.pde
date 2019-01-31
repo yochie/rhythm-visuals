@@ -4,15 +4,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Iterator; 
 import java.util.Properties;
-import java.io.FileInputStream; 
-import java.io.FileNotFoundException;
+import java.io.InputStream; 
+import java.io.IOException;
 
 ////////CONSTANTS////////
 
 //list of Mode implementing instances to switch between
-final Mode[] MODES = new Mode[] {new CircleMode()};
+final Mode[] MODES = new Mode[1];
 
-//ordering here is arbitrary and simply establishes an index number for the named pads
+//list of config parameters that can have a note assigned 
 final String[] NAMED_PADS = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
 
 ////////FROM CONFIG////////
@@ -51,7 +51,7 @@ void setup() {
   size(800, 600, P2D);
   //fullScreen(P2D);
   frameRate(60);
-
+    
   //read config file
   configProps = new Properties();
   InputStream is = null;
@@ -97,8 +97,8 @@ void setup() {
   println();
   pg.beginDraw();
   pg.background(25);
-  int newWidth = (int)(logo.width * LOGO_SCALING);
-  int newHeight = (int) (logo.height * LOGO_SCALING);
+  int newWidth = (int)(logo.width * Float.parseFloat(configProps.getProperty("LOGO_SCALING")));
+  int newHeight = (int) (logo.height * Float.parseFloat(configProps.getProperty("LOGO_SCALING")));
   pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   pg.endDraw();
 
@@ -111,6 +111,7 @@ void setup() {
   }
 
   //Create modes and initialize currentMode
+  MODES[0] = new CircleMode();
   currentModeIndex = 0;
   currentMode = MODES[currentModeIndex];
   currentMode.setup();
