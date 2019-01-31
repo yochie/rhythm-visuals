@@ -1,4 +1,4 @@
-import java.util.Properties;
+import java.util.Properties; //<>//
 
 public class CircleMode extends Mode {
   //bg images shape
@@ -9,8 +9,8 @@ public class CircleMode extends Mode {
   //list of circle sizes updated by callback
   private ArrayList<Integer> newWidths; 
   private float rotation = 0;
-  
-  public CircleMode(){
+
+  public CircleMode() {
     this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
     this.defaultConfig.setProperty("MAX_CIRCLE_WIDTH", "200");
     this.defaultConfig.setProperty("MIN_CIRCLE_WIDTH", "40");
@@ -27,28 +27,26 @@ public class CircleMode extends Mode {
     this.defaultConfig.setProperty("SENSOR_COLOR_RANGE_MIN", "0");
     this.defaultConfig.setProperty("SENSOR_COLOR_RANGE_MAX", "200");
 
-    
     //sets loaded config
     loadConfigFrom("circle_config.properties");
     println("Circle config: ");
     println(loadedConfig);
-    
   }
-  
-  public void setup(){
+
+  public void setup() {
     System.out.println("MODE: Circle");
-    
+
     stroke(0, 255, 0);
-    
+
     //init vars used to update sensor circle width
     newWidths = new ArrayList<Integer>();
     for ( int pad = 0; pad < NUM_PADS; pad++) {
       newWidths.add(this.getIntProp("MIN_CIRCLE_WIDTH"));
     }
-    
+
     //frame to position sensor circles
     planche = polygon(100, NUM_PADS, 45);
-    
+
     //Initialize circles that will be representing sensors on the planck            
     sensorCircles = new ArrayList<PShape>();
     for (int pad = 0; pad < NUM_PADS; pad++) {
@@ -59,13 +57,13 @@ public class CircleMode extends Mode {
       sensorCircles.add(createShape(ELLIPSE, 0, 0, this.getIntProp("MIN_CIRCLE_WIDTH"), this.getIntProp("MIN_CIRCLE_WIDTH")));
       popMatrix();
     }
-    
-    slaves = new ArrayList<BouncingSlave>();    
+
+    slaves = new ArrayList<BouncingSlave>();
   }
-  
+
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
-  public void draw(){    
+  public void draw() {    
 
     //continually rotate sensor circles
     pushMatrix();
@@ -78,22 +76,22 @@ public class CircleMode extends Mode {
       PVector vertex = planche.getVertex(pad);
       translate(vertex.x, vertex.y);
       PShape circle = sensorCircles.get(pad);
-  
+
       if (padWasPressed.get(pad)) {
         //scale sensor circles
         circle.resetMatrix();
-        circle.scale((float) newWidths.get(pad) / (float) this.getIntProp("MIN_CIRCLE_WIDTH")); //<>//
-        
+        circle.scale((float) newWidths.get(pad) / (float) this.getIntProp("MIN_CIRCLE_WIDTH"));
+
         //create slave
         if (pressCounter.get(pad) % this.getIntProp("PRESSES_FOR_SLAVE") == 0 && slaves.size() < this.getIntProp("MAX_SLAVES")) {
-          slaves.add(new BouncingSlave(pad,
-                                        (int)screenX(0, 0),
-                                        (int)screenY(0, 0),
-                                        this.getIntProp("MIN_SLAVE_CIRCLE_WIDTH"),
-                                        this.getIntProp("MAX_SLAVE_CIRCLE_WIDTH"),
-                                        this.getFloatProp("SLAVE_SHRINK_FACTOR"),
-                                        this.getIntProp("SLAVE_THICKNESS"))
-          );          
+          slaves.add(new BouncingSlave(pad, 
+            (int)screenX(0, 0), 
+            (int)screenY(0, 0), 
+            this.getIntProp("MIN_SLAVE_CIRCLE_WIDTH"), 
+            this.getIntProp("MAX_SLAVE_CIRCLE_WIDTH"), 
+            this.getFloatProp("SLAVE_SHRINK_FACTOR"), 
+            this.getIntProp("SLAVE_THICKNESS"))
+            );
         }
 
         //grow slaves
@@ -103,24 +101,24 @@ public class CircleMode extends Mode {
           }
         }
       } else if (circle.getWidth() * this.getFloatProp("SHRINK_FACTOR") >= this.getIntProp("MIN_CIRCLE_WIDTH")) {
-        circle.scale(this.getFloatProp("SHRINK_FACTOR"));        
+        circle.scale(this.getFloatProp("SHRINK_FACTOR"));
       }
       //scale color
       float constrainedWidth = constrain((float) circle.getWidth(), this.getFloatProp("MIN_CIRCLE_WIDTH"), this.getFloatProp("MAX_CIRCLE_WIDTH"));
       int newColor = Math.round(map(constrainedWidth, 
-                                    this.getFloatProp("MIN_CIRCLE_WIDTH"),
-                                    this.getFloatProp("MAX_CIRCLE_WIDTH"),
-                                    this.getFloatProp("SENSOR_COLOR_RANGE_MIN"),
-                                    this.getFloatProp("SENSOR_COLOR_RANGE_MAX")));
-                                   
+        this.getFloatProp("MIN_CIRCLE_WIDTH"), 
+        this.getFloatProp("MAX_CIRCLE_WIDTH"), 
+        this.getFloatProp("SENSOR_COLOR_RANGE_MIN"), 
+        this.getFloatProp("SENSOR_COLOR_RANGE_MAX")));
+
       circle.setStroke(color(newColor, 255, 255));  
       circle.setStrokeWeight(this.getIntProp("SENSOR_THICKNESS"));
-  
+
       //push circle outwards    
       pushMatrix();
-      rotate(TWO_PI * (0.125 + (pad*0.25)));
+      rotate((TWO_PI/NUM_PADS) * (pad + 0.5));
       translate(circle.getWidth() - this.getIntProp("MIN_CIRCLE_WIDTH"), 0);
-      
+
       //TODO: Figure out why shapes are disappearing and replace ellipse
       //shape(circle);
       stroke(newColor, 255, 255);
@@ -130,19 +128,19 @@ public class CircleMode extends Mode {
       popMatrix();
       popMatrix();
     }
-  popMatrix();
+    popMatrix();
 
-  //maintain slave movement
-  for (BouncingSlave slave : slaves) {
-    slave.update();
+    //maintain slave movement
+    for (BouncingSlave slave : slaves) {
+      slave.update();
+    }
   }
-}
-  
-  public void handleMidi(Pad pad, int note, int vel){
+
+  public void handleMidi(Pad pad, int note, int vel) {
     //TODO: move math to main loop, set newVelocity instead
     newWidths.set(pad.index, Math.round(map(constrain(vel, 0, this.getIntProp("MAX_VELOCITY")), 0, this.getIntProp("MAX_VELOCITY"), this.getIntProp("MIN_CIRCLE_WIDTH"), this.getIntProp("MAX_CIRCLE_WIDTH"))));
   }
-  
+
   //copied from https://processing.org/examples/regularpolygon.html 
   //and modified for angledOffset and centering
   PShape polygon(float radius, int npoints, int angledOffset) {
@@ -158,8 +156,8 @@ public class CircleMode extends Mode {
     return s;
   }
 }
-  
-  
+
+
 //based on https://processing.org/examples/bounce.html
 private class BouncingSlave {
   private int master;
@@ -193,7 +191,7 @@ private class BouncingSlave {
     this.xdirection = (int) pow(-1, (int) random(1, 3));
     this.ydirection = (int) pow(-1, (int) random(1, 3));
   }
-  
+
   public void update() {
     // Update the position of the shape
     this.xpos = this.xpos + ( this.xspeed * this.xdirection );
@@ -209,9 +207,9 @@ private class BouncingSlave {
     }
 
     if (this.rad * this.shrinkfactor > this.minrad) {
-      this.rad *= this.shrinkfactor;    
+      this.rad *= this.shrinkfactor;
     }
-    
+
     // Draw the shape
     stroke(color(this.circleColor, 255, 255));
     strokeWeight(slavethickness);
