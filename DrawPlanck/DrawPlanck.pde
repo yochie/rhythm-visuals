@@ -69,7 +69,10 @@ void setup() {
   while (iter.hasNext()){
     AUX_PAD_NOTES.add(Integer.parseInt(iter.next()));
   }
- 
+  println("Global config: ");  
+  println(configProps);
+  println();
+  
   //create pad list
   for(int i = 0; i < NAMED_PADS.length; i++){
     int note = Integer.parseInt(configProps.getProperty(NAMED_PADS[i]));

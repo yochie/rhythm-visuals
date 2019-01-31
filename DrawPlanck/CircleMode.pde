@@ -24,7 +24,9 @@ public class CircleMode extends Mode {
     
     //sets loaded config
     loadConfigFrom("circle_config.properties");
-    println(configProps);
+    println("Circle config: ");
+    println(loadedConfig);
+    
   }
   
   @Override
