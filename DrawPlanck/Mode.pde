@@ -11,7 +11,7 @@ import java.lang.NumberFormatException;
 //Once mode is created, it need to be manually added to MODES list in main script (DrawPlanck.pde)
 public abstract class Mode { 
 
-  //Each implementing class should fill this with its default config vars before calling loadConfig() in constructor
+  //Each implementing class should fill this with its default config vars before calling loadConfigFrom() in constructor
   //Properties are stored as strings
   //e.g. this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
   protected Properties defaultConfig = new Properties();
