@@ -28,7 +28,10 @@ final ArrayList<Pad> pads = new ArrayList<Pad>();
 //sum of named and auxiliary pads
 int numPads;
 
-//should fill this with default config using setProperty(string_key, string_value) before calling loadGlobalConfigFrom()
+//Should fill this with its default config vars before calling loadGlobalConfigFrom() in constructor
+//Properties are stored as strings
+//e.g. this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
+//TODO: refactor config loading so that modes and main script can use same code (e.g. ConfigLoader class)
 final Properties defaultConfig = new Properties();
 
 //filled by loadConfig()
