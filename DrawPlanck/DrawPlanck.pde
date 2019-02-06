@@ -14,7 +14,7 @@ import java.lang.IllegalArgumentException;
 ////////CONSTANT GLOBALS (don't change after setup) ////////
 
 //list of Mode implementing instances to switch between
-final Mode[] modes = new Mode[1];
+final ArrayList<Mode> modes = new ArrayList<Mode>();
 
 //list of named config parameters that can have a note assigned
 final String[] namedPads = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
@@ -126,11 +126,10 @@ void setup() {
   }
 
   //Create modes and initialize currentMode
-  modes[0] = new CircleMode();
-  //modes[1] = new SquareMode();
+  modes.add(new CircleMode());
 
   currentModeIndex = 0;
-  currentMode = modes[currentModeIndex];
+  currentMode = modes.get(currentModeIndex);
   currentMode.setup();
 
   //easier to scale
@@ -158,10 +157,10 @@ void draw() {
       //switch modes
       if (pad.name == "TOP_LEFT_NOTE" && pressCounter.get(padIndex) >= getIntProp("PRESSES_FOR_MODE_SWITCH")) {
         currentModeIndex++;
-        if (currentModeIndex >= modes.length) {          
+        if (currentModeIndex >= modes.size()) {          
           currentModeIndex = 0;
         }        
-        currentMode = modes[currentModeIndex];
+        currentMode = modes.get(currentModeIndex);
         pressCounter.set(padIndex, 0);
         currentMode.setup();
         //reset pressed flag before drawing new mode
