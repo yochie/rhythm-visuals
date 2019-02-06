@@ -138,7 +138,11 @@ public class CircleMode extends Mode {
 
   public void handleMidi(Pad pad, int note, int vel) {
     //TODO: move math to main loop, set newVelocity instead
-    newWidths.set(pad.index, Math.round(map(constrain(vel, 0, this.getIntProp("MAX_VELOCITY")), 0, this.getIntProp("MAX_VELOCITY"), this.getIntProp("MIN_CIRCLE_WIDTH"), this.getIntProp("MAX_CIRCLE_WIDTH"))));
+    newWidths.set(pad.index, Math.round(map(constrain(vel, 60, this.getIntProp("MAX_VELOCITY")),
+                                            0,
+                                            this.getIntProp("MAX_VELOCITY"),
+                                            this.getIntProp("MIN_CIRCLE_WIDTH"),
+                                            this.getIntProp("MAX_CIRCLE_WIDTH"))));
   }
 
   //copied from https://processing.org/examples/regularpolygon.html 
