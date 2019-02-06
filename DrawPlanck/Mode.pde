@@ -7,7 +7,8 @@ import java.lang.NumberFormatException;
 
 
 //Class to be extended by each new mode
-//Provides methods for loading config from file, initiating mode, drawing mode and handling midi signals 
+//Provides methods for loading config from file, initiating mode, drawing mode and handling midi signals
+//Once mode is created, it need to be manually added to MODES list in main script (DrawPlanck.pde)
 public abstract class Mode { 
 
   //Each implementing class should fill this with its default config vars before calling loadConfig() in constructor
