@@ -5,17 +5,28 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.lang.NumberFormatException; 
 
-public abstract class Mode {
 
-  //Each implementing class should fill this with its default config vars
+//Class to be extended by each new mode
+//Provides methods for loading config from file, initiating mode, drawing mode and handling midi signals 
+public abstract class Mode { 
+
+  //Each implementing class should fill this with its default config vars before calling loadConfig() in constructor
   protected Properties defaultConfig = new Properties();
 
   //filled by loadConfig()
   protected Properties loadedConfig;
 
+  //runs upon switching to mode
   public abstract void setup();
+  
+  //runs every frame while this mode is active
   public abstract void draw();
 
+  //called for every midi signal recieved
+  //Try to keep short and simple to lighten the load on callback
+  //and perform more complex computations in draw() 
+  //assumes note signal for parsing bytes
+  //TODO: pass raw bytes along in case assumption was wrong
   public abstract void handleMidi(Pad pad, int note, int vel);
 
   //sets loadedConfig from config file and defaults
@@ -31,6 +42,8 @@ public abstract class Mode {
     }
   }
 
+  //returns int from config string property
+  //throws IllegalArgumentException when error parsing string as int
   protected int getIntProp(String propName) {
     int toReturn;
     if (loadedConfig.containsKey(propName)) {
@@ -48,6 +61,8 @@ public abstract class Mode {
     return toReturn;
   }
 
+  //returns float from config string property
+  //throws IllegalArgumentException when error parsing string as float
   protected float getFloatProp(String propName) {
     float toReturn;
     if (loadedConfig.containsKey(propName)) {
