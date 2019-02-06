@@ -229,13 +229,45 @@ float getFloatProp(String propName) {
 
 //Called by MidiBus library whenever a new midi message is received
 void midiMessage(MidiMessage message) {
-  int note = (int)(message.getMessage()[1] & 0xFF) ;
-  int vel = (int)(message.getMessage()[2] & 0xFF);
-  println("note: " + note + " vel: "+ vel);
+  byte messageType = message.getMessage()[0];
+  int channel = -1;
+  int note = -1;
+  int vel = -1;
+  int controllerNumber = -1;
+  int controllerVal = -1;
+  int padIndex = -1;
+  Pad pad = null;
 
-  int padIndex = Pad.noteToPad(note);
+  //check if note one, note off or control change message
+  if ((messageType & 0xF0) == 0x80 || (messageType & 0xF0) == 0x90 || (messageType & 0xF0) == 0xB0) {
+    channel = (int) (messageType & 0x0F);
+
+    //note messages
+    if ((messageType & 0xF0) == 0x80 || (messageType & 0xF0) == 0x90) {
+      note = (int)(message.getMessage()[1] & 0xFF);
+      vel = (int)(message.getMessage()[2] & 0xFF);
+      padIndex = Pad.noteToPad(note);
+      
+      if (padIndex > 0){
+        pad = pads.get(padIndex);
+      }
+      
+      println("channel: " + channel + " note: " + note + " vel: "+ vel + " pad: " + padIndex);
+    }
+
+    //cc messages
+    if ((messageType & 0xF0) == 0xB0) {
+      controllerNumber = (int)(message.getMessage()[1] & 0xFF);
+      controllerVal = (int)(message.getMessage()[2] & 0xFF);
+      println("channel: " + channel + " controller: " + controllerNumber + " val: "+ controllerVal);
+    }
+  }
+
+  //register pad press
+  //used for mode switch and can be used within modes to check for pad presses
   if (padIndex >= 0 && (vel > 0)) {
     padWasPressed.set(padIndex, true);
-    currentMode.handleMidi(pads.get(padIndex), note, vel);
   }
+
+  currentMode.handleMidi(message.getMessage(), messageType, channel, note, vel, controllerNumber, controllerVal, pad);
 }

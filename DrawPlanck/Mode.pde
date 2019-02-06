@@ -30,7 +30,7 @@ public abstract class Mode {
   //and perform more complex computations in draw() 
   //assumes note signal for parsing bytes
   //TODO: pass raw bytes along in case assumption was wrong
-  public abstract void handleMidi(Pad pad, int note, int vel);
+  public abstract void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad);
 
   //sets loadedConfig from config file and defaults
   protected void loadConfigFrom(String configFileName) {

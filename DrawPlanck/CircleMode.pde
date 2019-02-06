@@ -135,14 +135,17 @@ public class CircleMode extends Mode {
       slave.update();
     }
   }
-
-  public void handleMidi(Pad pad, int note, int vel) {
-    //TODO: move math to main loop, set newVelocity instead
-    newWidths.set(pad.index, Math.round(map(constrain(vel, 60, this.getIntProp("MAX_VELOCITY")),
+  
+  //TODO: move math to main loop, set newVelocity instead
+  public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad){    
+    //filter out unassigned notes and note_off messages
+    if (pad != null && vel >= 0){
+      newWidths.set(pad.index, Math.round(map(constrain(vel, 60, this.getIntProp("MAX_VELOCITY")),
                                             0,
                                             this.getIntProp("MAX_VELOCITY"),
                                             this.getIntProp("MIN_CIRCLE_WIDTH"),
                                             this.getIntProp("MAX_CIRCLE_WIDTH"))));
+    }
   }
 
   //copied from https://processing.org/examples/regularpolygon.html 
