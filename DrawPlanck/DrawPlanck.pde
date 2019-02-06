@@ -31,7 +31,7 @@ int NUM_PADS;
 final Properties defaultConfig = new Properties();
 
 //filled by loadConfig()
-Properties loadedConfig;
+Properties globalLoadedConfig;
 
 MidiBus myBus;
 
@@ -54,7 +54,7 @@ ArrayList<Integer> pressCounter;
 void setup() {
   size(800, 600, P2D);
   //fullScreen(P2D);
-  frameRate(100);
+  frameRate(30);
 
   defaultConfig.setProperty("LOGO_SCALING", "0.05");
   defaultConfig.setProperty("MIDI_DEVICE", "0");
@@ -69,7 +69,7 @@ void setup() {
   loadConfigFrom("config.properties");
 
   //parse auxiliary notes list from config
-  List<String> string_aux_pad_notes = Arrays.asList(loadedConfig.getProperty("AUX_PAD_NOTES").split("\\s*,\\s*"));
+  List<String> string_aux_pad_notes = Arrays.asList(globalLoadedConfig.getProperty("AUX_PAD_NOTES").split("\\s*,\\s*"));
   Iterator<String> iter = string_aux_pad_notes.iterator();
   while (iter.hasNext()) {
     String next = iter.next();
@@ -81,7 +81,7 @@ void setup() {
     }
   }
   println("Global config: ");  
-  println(loadedConfig);
+  println(globalLoadedConfig);
   println();
 
   //create pad list
@@ -126,6 +126,8 @@ void setup() {
 
   //Create modes and initialize currentMode
   MODES[0] = new CircleMode();
+  //MODES[1] = new SquareMode();
+
   currentModeIndex = 0;
   currentMode = MODES[currentModeIndex];
   currentMode.setup();
@@ -176,11 +178,11 @@ void draw() {
 }
 
 void loadConfigFrom(String configFileName) {
-  loadedConfig = new Properties(defaultConfig);
+  globalLoadedConfig = new Properties(defaultConfig);
   InputStream is = null;
   try {
     is = createInput(configFileName);
-    this.loadedConfig.load(is);
+    globalLoadedConfig.load(is);
   } 
   catch (IOException ex) {
     println("Error reading config file.");
@@ -189,9 +191,9 @@ void loadConfigFrom(String configFileName) {
 
 int getIntProp(String propName) {
   int toReturn;
-  if (loadedConfig.containsKey(propName)) {
+  if (globalLoadedConfig.containsKey(propName)) {
     try {
-      toReturn = Integer.parseInt(loadedConfig.getProperty(propName));
+      toReturn = Integer.parseInt(globalLoadedConfig.getProperty(propName));
     } 
     catch (NumberFormatException e) {
       println("WARNING: Config var" + propName + " is not of expected type (integer). Falling back to default config for this parameter.");
@@ -206,9 +208,9 @@ int getIntProp(String propName) {
 
 float getFloatProp(String propName) {
   float toReturn;
-  if (loadedConfig.containsKey(propName)) {
+  if (globalLoadedConfig.containsKey(propName)) {
     try {
-      toReturn = Float.parseFloat(loadedConfig.getProperty(propName));
+      toReturn = Float.parseFloat(globalLoadedConfig.getProperty(propName));
     } 
     catch (NumberFormatException e) {
       println("WARNING: Config var" + propName + " is not of expected type (float). Falling back to default config for this parameter.");
