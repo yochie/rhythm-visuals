@@ -28,7 +28,7 @@ final ArrayList<Pad> pads = new ArrayList<Pad>();
 //sum of named and auxiliary pads
 int numPads;
 
-//should fill this with default config using setProperty(string_key, string_value) before calling loadConfig()
+//should fill this with default config using setProperty(string_key, string_value) before calling loadGlobalConfigFrom()
 final Properties defaultConfig = new Properties();
 
 //filled by loadConfig()
@@ -67,7 +67,7 @@ void setup() {
   defaultConfig.setProperty("AUX_PAD_NOTES", "");
 
   //read config file
-  loadConfigFrom("config.properties");
+  loadGlobalConfigFrom("config.properties");
 
   //parse auxiliary notes list from config
   List<String> string_aux_pad_notes = Arrays.asList(globalLoadedConfig.getProperty("AUX_PAD_NOTES").split("\\s*,\\s*"));
@@ -177,7 +177,7 @@ void draw() {
   }
 }
 
-void loadConfigFrom(String configFileName) {
+void loadGlobalConfigFrom(String configFileName) {
   globalLoadedConfig = new Properties(defaultConfig);
   InputStream is = null;
   try {
