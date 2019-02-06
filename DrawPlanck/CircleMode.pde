@@ -40,16 +40,16 @@ public class CircleMode extends Mode {
 
     //init vars used to update sensor circle width
     newWidths = new ArrayList<Integer>();
-    for ( int pad = 0; pad < NUM_PADS; pad++) {
+    for ( int pad = 0; pad < numPads; pad++) {
       newWidths.add(this.getIntProp("MIN_CIRCLE_WIDTH"));
     }
 
     //frame to position sensor circles
-    planche = polygon(100, NUM_PADS, 45);
+    planche = polygon(100, numPads, 45);
 
     //Initialize circles that will be representing sensors on the planck            
     sensorCircles = new ArrayList<PShape>();
-    for (int pad = 0; pad < NUM_PADS; pad++) {
+    for (int pad = 0; pad < numPads; pad++) {
       //go to polygon vertex to place circle
       pushMatrix();
       PVector vertex = planche.getVertex(pad);
@@ -71,7 +71,7 @@ public class CircleMode extends Mode {
     rotation += TWO_PI * this.getFloatProp("ROTATION_SPEED");
     rotate(rotation);
     translate(-width/2, -height/2);
-    for (int pad = 0; pad < NUM_PADS; pad++) {
+    for (int pad = 0; pad < numPads; pad++) {
       pushMatrix();
       PVector vertex = planche.getVertex(pad);
       translate(vertex.x, vertex.y);
@@ -116,7 +116,7 @@ public class CircleMode extends Mode {
 
       //push circle outwards    
       pushMatrix();
-      rotate((TWO_PI/NUM_PADS) * (pad + 0.5));
+      rotate((TWO_PI/numPads) * (pad + 0.5));
       translate(circle.getWidth() - this.getIntProp("MIN_CIRCLE_WIDTH"), 0);
 
       //TODO: Figure out why shapes are disappearing and replace ellipse

@@ -8,24 +8,25 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
 
-
+//Main script for this app
+//Handles initial midi signal parsing, background drawing and mode switching
 
 ////////CONSTANT GLOBALS (don't change after setup) ////////
 
 //list of Mode implementing instances to switch between
-final Mode[] MODES = new Mode[1];
+final Mode[] modes = new Mode[1];
 
 //list of named config parameters that can have a note assigned
-final String[] NAMED_PADS = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
+final String[] namedPads = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
 
 //list of other pad notes read in from config
-final ArrayList<Integer> AUX_PAD_NOTES = new ArrayList<Integer>(); 
+final ArrayList<Integer> auxPadNotes = new ArrayList<Integer>(); 
 
 //static (non-changing) pad data and helper methods
 final ArrayList<Pad> pads = new ArrayList<Pad>();
 
 //sum of named and auxiliary pads
-int NUM_PADS;
+int numPads;
 
 //should fill this with default config using setProperty(string_key, string_value) before calling loadConfig()
 final Properties defaultConfig = new Properties();
@@ -74,7 +75,7 @@ void setup() {
   while (iter.hasNext()) {
     String next = iter.next();
     try {      
-      AUX_PAD_NOTES.add(Integer.parseInt(next));
+      auxPadNotes.add(Integer.parseInt(next));
     } 
     catch (NumberFormatException e) {
       println("Warning: Config var AUX_PAD_NOTES is either empty or not of expected type (int). Ignoring its value: " + next);
@@ -85,18 +86,18 @@ void setup() {
   println();
 
   //create pad list
-  for (int i = 0; i < NAMED_PADS.length; i++) {
-    int note = getIntProp(NAMED_PADS[i]);
-    println(NAMED_PADS[i] + " : " + note);
-    pads.add(new Pad(NAMED_PADS[i], note, false));
+  for (int i = 0; i < namedPads.length; i++) {
+    int note = getIntProp(namedPads[i]);
+    println(namedPads[i] + " : " + note);
+    pads.add(new Pad(namedPads[i], note, false));
   }
-  for (int i = 0; i < AUX_PAD_NOTES.size(); i++) {
-    int note = AUX_PAD_NOTES.get(i);
+  for (int i = 0; i < auxPadNotes.size(); i++) {
+    int note = auxPadNotes.get(i);
     println("AUX_" + i + " : " + note);
-    pads.add(new Pad(NAMED_PADS[i], note, true));
+    pads.add(new Pad(namedPads[i], note, true));
   }
 
-  NUM_PADS = pads.size(); 
+  numPads = pads.size(); 
 
   //setup midi
   MidiBus.list(); 
@@ -119,17 +120,17 @@ void setup() {
   //global state init
   padWasPressed = new ArrayList<Boolean>();
   pressCounter = new ArrayList<Integer>();  
-  for ( int padIndex = 0; padIndex < NUM_PADS; padIndex++) {
+  for ( int padIndex = 0; padIndex < numPads; padIndex++) {
     padWasPressed.add(false);
     pressCounter.add(0);
   }
 
   //Create modes and initialize currentMode
-  MODES[0] = new CircleMode();
-  //MODES[1] = new SquareMode();
+  modes[0] = new CircleMode();
+  //modes[1] = new SquareMode();
 
   currentModeIndex = 0;
-  currentMode = MODES[currentModeIndex];
+  currentMode = modes[currentModeIndex];
   currentMode.setup();
 
   //easier to scale
@@ -141,11 +142,11 @@ void draw() {
   background(pg);
 
   //Increment presses and check for mode switch
-  for (int padIndex = 0; padIndex < NUM_PADS; padIndex++) {
+  for (int padIndex = 0; padIndex < numPads; padIndex++) {
     Pad pad = pads.get(padIndex);
     if (padWasPressed.get(padIndex)) {
       //reset pressCounter on other pads
-      for (int otherpad = 0; otherpad<NUM_PADS; otherpad++) {
+      for (int otherpad = 0; otherpad<numPads; otherpad++) {
         if (otherpad != padIndex) {
           pressCounter.set(otherpad, 0);
         }
@@ -157,10 +158,10 @@ void draw() {
       //switch modes
       if (pad.name == "TOP_LEFT_NOTE" && pressCounter.get(padIndex) >= getIntProp("PRESSES_FOR_MODE_SWITCH")) {
         currentModeIndex++;
-        if (currentModeIndex >= MODES.length) {          
+        if (currentModeIndex >= modes.length) {          
           currentModeIndex = 0;
         }        
-        currentMode = MODES[currentModeIndex];
+        currentMode = modes[currentModeIndex];
         pressCounter.set(padIndex, 0);
         currentMode.setup();
         //reset pressed flag before drawing new mode
@@ -172,7 +173,7 @@ void draw() {
   currentMode.draw();
 
   //reset pressed flag
-  for (int padIndex = 0; padIndex < NUM_PADS; padIndex++) {
+  for (int padIndex = 0; padIndex < numPads; padIndex++) {
     padWasPressed.set(padIndex, false);
   }
 }
