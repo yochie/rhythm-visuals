@@ -46,7 +46,8 @@ public abstract class Mode {
   }
 
   //returns int from config string property
-  //throws IllegalArgumentException when error parsing string as int
+  //returns default value if error parsing, and prints warning to console
+  //throws IllegalArgumentException when property not found
   protected int getIntProp(String propName) {
     int toReturn;
     if (loadedConfig.containsKey(propName)) {
@@ -65,7 +66,8 @@ public abstract class Mode {
   }
 
   //returns float from config string property
-  //throws IllegalArgumentException when error parsing string as float
+  //returns default value if error parsing, and prints warning to console
+  //throws IllegalArgumentException when property not found
   protected float getFloatProp(String propName) {
     float toReturn;
     if (loadedConfig.containsKey(propName)) {
