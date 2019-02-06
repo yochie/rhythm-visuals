@@ -12,6 +12,8 @@ import java.lang.NumberFormatException;
 public abstract class Mode { 
 
   //Each implementing class should fill this with its default config vars before calling loadConfig() in constructor
+  //Properties are stored as strings
+  //e.g. this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
   protected Properties defaultConfig = new Properties();
 
   //filled by loadConfig()
