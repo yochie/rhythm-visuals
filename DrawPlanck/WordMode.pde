@@ -22,22 +22,28 @@ public class WordMode extends Mode { //<>//
 
   public void setup() {
     System.out.println("MODE: Word");
-    stroke(0, 255, 0);    
   }
 
   public void draw() {
-    if (this.pressCount % this.getIntProp("PRESSES_FOR_WORD_SWITCH") == 0){      
+    if (this.pressCount == this.getIntProp("PRESSES_FOR_WORD_SWITCH")){    
+      pressCount = 0;
       //cycle index
       if (++wordIndex >= words.size()){
         this.wordIndex = 0;
       }
     }
-    text(this.words.get(wordIndex), 100, 100);
+    
+    fill(150);    
+    textSize(64);
+    textAlign(CENTER);
+    text(this.words.get(wordIndex), width/2, height/2 - 50);
+    noFill();    
+
   }
   
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad){    
     //filter out unassigned notes and note_off messages
-    if (pad != null && vel >= 0){
+    if (pad != null && vel > 0){
       this.pressCount++;
     }
   }
