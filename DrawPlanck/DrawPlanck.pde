@@ -130,7 +130,8 @@ void setup() {
 
   //Create modes and initialize currentMode
   modes.add(new CircleMode());
-
+  modes.add(new SuperluminalMode());
+  
   currentModeIndex = 0;
   currentMode = modes.get(currentModeIndex);
   currentMode.setup();
