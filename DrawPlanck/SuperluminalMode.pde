@@ -15,14 +15,11 @@ public class SuperluminalMode extends Mode {
     this.defaultConfig.setProperty("STARS3_SPEED", "0.95");
     this.defaultConfig.setProperty("STARS4_SPEED", "0.95");
     
-    //TODO (play with doppler effect?)
+    //TODO (play with doppler effect? Use config or random?)
     this.defaultConfig.setProperty("STARS1_COLOR", "30");
     this.defaultConfig.setProperty("STARS2_COLOR", "150");
     this.defaultConfig.setProperty("STARS3_COLOR", "200");
     this.defaultConfig.setProperty("STARS4_COLOR", "80");
-   
-    this.defaultConfig.setProperty("PRESSES_FOR_STARS", "2"); // TODO remove
-    this.defaultConfig.setProperty("MAX_STARS", "20"); // TODO remove
 
     //midi controller specific, usually 255 but our Planck caps earlier
     this.defaultConfig.setProperty("MAX_VELOCITY", "100");
@@ -47,44 +44,45 @@ public class SuperluminalMode extends Mode {
 
       if (padWasPressed.get(pad)) {
 
-        //create star
-        if (pressCounter.get(pad) % this.getIntProp("PRESSES_FOR_STARS") == 0 && stars.size() < this.getIntProp("MAX_STARS")) {
-            int starGrowFactor = 0; // TODO check how to init vars without vals in processing :)
-            int starSpeed = 20;
-            switch(pad) {
-              case 1: 
-                println("pad1");
-                starGrowFactor = this.getIntProp("STARS1_GROW_FACTOR");
-                starSpeed = this.getIntProp("STARS1_SPEED");
-                break;
-              case 2: 
-                println("pad2");
-                starGrowFactor = this.getIntProp("STARS2_GROW_FACTOR");
-                starSpeed = this.getIntProp("STARS2_SPEED");
-                break;
-              case 3: 
-                println("pad3");
-                starGrowFactor = this.getIntProp("STARS3_GROW_FACTOR");
-                starSpeed = this.getIntProp("STARS3_SPEED");
-                break;
-              case 4: 
-                println("pad4");
-                starGrowFactor = this.getIntProp("STARS4_GROW_FACTOR");
-                starSpeed = this.getIntProp("STARS4_SPEED");
-                break;
-              default:
-                println("Pad is not assigned - Index: " + pad);
-                break;
-            }
-            // TODO: check how to set dynamic vars with processing - could replace switch if possible
-            
-            stars.add(new Star(pad,
-            width/2,
-            height/2,
-            starGrowFactor,
-            starSpeed,
-            this.getIntProp("STAR_THICKNESS"))
-            );
+        //create stars
+        int starNumber = 20;
+        int starGrowFactor = 0; // TODO check how to init vars without vals in processing :)
+        int starSpeed = 20;
+        switch(pad) {
+          case 1:
+            starNumber = this.getIntProp("STARS1_NUMBER");
+            starGrowFactor = this.getIntProp("STARS1_GROW_FACTOR");
+            starSpeed = this.getIntProp("STARS1_SPEED");
+            break;
+          case 2:
+            starNumber = this.getIntProp("STARS2_NUMBER");
+            starGrowFactor = this.getIntProp("STARS2_GROW_FACTOR");
+            starSpeed = this.getIntProp("STARS2_SPEED");
+            break;
+          case 3:
+            starNumber = this.getIntProp("STARS3_NUMBER");
+            starGrowFactor = this.getIntProp("STARS3_GROW_FACTOR");
+            starSpeed = this.getIntProp("STARS3_SPEED");
+            break;
+          case 4:
+            starNumber = this.getIntProp("STARS4_NUMBER");
+            starGrowFactor = this.getIntProp("STARS4_GROW_FACTOR");
+            starSpeed = this.getIntProp("STARS4_SPEED");
+            break;
+          default:
+            println("Pad is not assigned - Index: " + pad);
+            break;
+        }
+        // TODO: check how to set dynamic vars with processing - could replace switch if possible
+
+        for (int i = 0; i < starNumber; i++) {
+          stars.add(new Star(pad,
+          width/2,
+          height/2,
+          starGrowFactor,
+          starSpeed,
+          this.getIntProp("STAR_THICKNESS"))
+          );
         }
 
       }
@@ -137,8 +135,8 @@ private class Star {
     this.ypos = ypos;
     this.xspeed = speed;
     this.yspeed = speed;
-    // TODO make color change
-    this.circleColor = (int)random(50, 120);
+    // TODO make color change - use config or random?
+    this.circleColor = (int)random(140, 190);
     // TODO make all directions available randomly
     this.xdirection = (int) pow(-1, (int) random(1, 3));
     this.ydirection = (int) pow(-1, (int) random(1, 3));
@@ -146,10 +144,11 @@ private class Star {
 
   public void update() {
     
-    // Update the position and size of the shape
+    // Update the position, size and color of the shape
     this.xpos = this.xpos + ( this.xspeed * this.xdirection );
     this.ypos = this.ypos + ( this.yspeed * this.ydirection );
     this.rad = this.rad + this.growfactor;
+    this.circleColor = this.circleColor + 3;
       
     // Check if the star is still visible
     if (this.xpos > width+this.rad/2 || this.xpos < -this.rad/2) {
