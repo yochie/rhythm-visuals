@@ -27,9 +27,8 @@ public abstract class Mode {
 
   //called for every midi signal recieved
   //Try to keep short and simple to lighten the load on callback
-  //and perform more complex computations in draw() 
-  //assumes note signal for parsing bytes
-  //TODO: pass raw bytes along in case assumption was wrong
+  //and perform more complex computations in draw()
+  //Any unused/not applicable argument will have value -1
   public abstract void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad);
 
   //sets loadedConfig from config file and defaults
