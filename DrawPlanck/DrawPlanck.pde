@@ -77,7 +77,7 @@ void setup() {
   Iterator<String> iter = string_aux_pad_notes.iterator();
   while (iter.hasNext()) {
     String next = iter.next();
-    try {      
+    try {
       auxPadNotes.add(Integer.parseInt(next));
     } 
     catch (NumberFormatException e) {
@@ -131,6 +131,8 @@ void setup() {
   //Create modes and initialize currentMode
   modes.add(new CircleMode());
   modes.add(new SuperluminalMode());
+  modes.add(new WordMode());
+
   
   currentModeIndex = 0;
   currentMode = modes.get(currentModeIndex);
