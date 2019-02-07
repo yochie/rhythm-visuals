@@ -1,6 +1,19 @@
-public class SuperluminalMode extends Mode { //<>//
+/* //<>//
+------------ SUPERLUMINAL MODE ------------
+Creates 4 stars types depending on pressed pad
+Triggers: bottom-left pad to turn background stars flow on / off
+Available config:
+  - bg stars: on/off, number of presses to trigger on/off, number and speed of stars
+  - pad stars: number, speed and grow factor
+  - all: stars stroke thickness
+-------------------------------------------
+*/
+
+public class SuperluminalMode extends Mode {
 
   private ArrayList<Star> stars;
+  //TODO - workaround for not being able to set config prop from draw loop
+  private boolean bgFlow = true;
 
   public SuperluminalMode() {
 
@@ -39,6 +52,7 @@ public class SuperluminalMode extends Mode { //<>//
     System.out.println("MODE: Supraluminal");
     stroke(0, 255, 0);
     stars = new ArrayList<Star>();
+    if(this.getIntProp("BG_STARS") == 0) { bgFlow = false; }
   }
 
   //Create stars when a sensor was pressed and keep them moving
@@ -49,7 +63,7 @@ public class SuperluminalMode extends Mode { //<>//
     int starSpeed;
 
     //create constant stars flow in background if config ON
-    if(this.getIntProp("BG_STARS") == 1) {
+    if(bgFlow) {
         for (int i = 0; i < this.getIntProp("BG_STARS_NUMBER"); i++) {
           stars.add(new Star(
             0, //do not grow
@@ -59,13 +73,13 @@ public class SuperluminalMode extends Mode { //<>//
         }
     }
 
-    for (int pad = 0; pad < numPads; pad++) {
+    for (int padIdx = 0; padIdx < numPads; padIdx++) {
 
       //create stars
-      if (padWasPressed.get(pad)) {
+      if (padWasPressed.get(padIdx)) {
 
         //set stars params depending on pad
-        switch(pad) {
+        switch(padIdx) {
           case 1:
             starNumber = this.getIntProp("STARS1_NUMBER");
             starGrowFactor = this.getFloatProp("STARS1_GROW_FACTOR");
@@ -90,7 +104,7 @@ public class SuperluminalMode extends Mode { //<>//
             starNumber = this.getIntProp("STARS1_NUMBER");
             starGrowFactor = this.getFloatProp("STARS1_GROW_FACTOR");
             starSpeed = this.getIntProp("STARS1_SPEED");
-            println("Pad " + pad + " is not assigned - Falling to star1 config");
+            println("Pad " + padIdx + " is not assigned - Falling to star1 config");
             break;
         }
         // TODO: check how to set dynamic vars with processing - could replace switch if possible
@@ -101,6 +115,24 @@ public class SuperluminalMode extends Mode { //<>//
             starSpeed,
             this.getIntProp("STAR_THICKNESS"))
           );
+        }
+
+        //Trigger stars bg flow on/off
+        Pad pad = pads.get(padIdx);
+        if (pad.name == "BOTTOM_LEFT_NOTE" && pressCounter.get(padIdx) >= this.getIntProp("BG_STARS_TRIGGER_PRESSES")) {
+            if(bgFlow) {
+              println("Background stars OFF");
+              bgFlow = false;
+              //TODO check why this doesn't work - workaround with var bgFlow
+              //this.defaultConfig.setProperty("BG_STARS", "0");
+            } else {
+              println("Background stars ON");
+              bgFlow = true;
+              //TODO check why this doesn't work - workaround with var bgFlow
+              //this.defaultConfig.setProperty("BG_STARS", "1");
+            }
+            //reset pad presses counter
+            pressCounter.set(padIdx, 0);
         }
 
       }
@@ -116,7 +148,7 @@ public class SuperluminalMode extends Mode { //<>//
         stars.remove(i);
       }
     }
-    printArray(stars);
+    //printArray(stars);
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
