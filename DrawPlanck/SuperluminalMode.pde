@@ -40,14 +40,16 @@ public class SuperluminalMode extends Mode {
   //Create stars when a sensor was pressed and keep them moving
   public void draw() {
 
+    int starNumber;
+    int starGrowFactor;
+    int starSpeed;
+
     for (int pad = 0; pad < numPads; pad++) {
 
+      //create stars
       if (padWasPressed.get(pad)) {
 
-        //create stars
-        int starNumber = 20;
-        int starGrowFactor = 0; // TODO check how to init vars without vals in processing :)
-        int starSpeed = 20;
+        //set stars params depending on pad
         switch(pad) {
           case 1:
             starNumber = this.getIntProp("STARS1_NUMBER");
@@ -70,18 +72,19 @@ public class SuperluminalMode extends Mode {
             starSpeed = this.getIntProp("STARS4_SPEED");
             break;
           default:
-            println("Pad is not assigned - Index: " + pad);
+            starNumber = this.getIntProp("STARS1_NUMBER");
+            starGrowFactor = this.getIntProp("STARS1_GROW_FACTOR");
+            starSpeed = this.getIntProp("STARS1_SPEED");
+            println("Pad " + pad + " is not assigned - Falling to star1 config");
             break;
         }
         // TODO: check how to set dynamic vars with processing - could replace switch if possible
 
         for (int i = 0; i < starNumber; i++) {
-          stars.add(new Star(pad,
-          width/2,
-          height/2,
-          starGrowFactor,
-          starSpeed,
-          this.getIntProp("STAR_THICKNESS"))
+          stars.add(new Star(
+            starGrowFactor,
+            starSpeed,
+            this.getIntProp("STAR_THICKNESS"))
           );
         }
 
@@ -93,75 +96,82 @@ public class SuperluminalMode extends Mode {
     for (int i = 0; i < stars.size(); i++) {
       Star star = stars.get(i);
       star.update();
-      //remove out of screen stars
+      //remove out of screen stars - TODO => debug & FIX: biggest stars not removed / removed after a very long time
       if(!star.visible) {
         stars.remove(i);
       }
     }
-  //printArray(stars);
+    printArray(stars);
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
     // Do something on MIDI msg received
+    // TODO: affect velocity changes to stars number
   }
 
 }
 
 //based on https://processing.org/examples/bounce.html
+//and https://processing.org/examples/accelerationwithvectors.html
 private class Star {
 
   private boolean visible = true;
 
-  private int master;
+  // Always start at center
+  private PVector location = new PVector(width/2,height/2);
+  private PVector velocity;
+  private PVector acceleration;
+  private PVector destination;
+  private float topspeed;
+
   private int growfactor;
   private float starThickness;
-
-  private int rad;           // Width of the shape
-  private float xpos, ypos;  // Starting position of shape    
-
-  private float xspeed;  // Speed of the shape
-  private float yspeed;  // Speed of the shape
-
-  private int xdirection = 1;  // Left or Right
-  private int ydirection = 1;  // Top to Bottom
+  private int rad;
   private int circleColor = 0;
 
-  public Star(int master, int xpos, int ypos, int starGrowFactor, int speed, int starThickness) {
-    this.master = master;
+  public Star(int starGrowFactor, int speed, int starThickness) {
+
+    this.velocity = new PVector(0,0);
+    this.topspeed = speed;
+    float destX = random(width);
+    float destY = height*random(0,1);
+    this.destination = new PVector(destX,destY);
+    //this.destination = PVector.random2D();
+    this.acceleration = PVector.sub(this.destination,this.location);
+
     this.rad = 1;
     this.growfactor = starGrowFactor;
     this.starThickness = starThickness;
-    this.xpos = xpos;
-    this.ypos = ypos;
-    this.xspeed = speed;
-    this.yspeed = speed;
     // TODO make color change - use config or random?
     this.circleColor = (int)random(140, 190);
-    // TODO make all directions available randomly
-    this.xdirection = (int) pow(-1, (int) random(1, 3));
-    this.ydirection = (int) pow(-1, (int) random(1, 3));
   }
 
   public void update() {
+
+    // Velocity changes according to acceleration
+    this.velocity.add(this.acceleration);
+    // Limit the velocity by topspeed
+    this.velocity.limit(this.topspeed);
+    // Location changes by velocity
+    this.location.add(this.velocity);
     
-    // Update the position, size and color of the shape
-    this.xpos = this.xpos + ( this.xspeed * this.xdirection );
-    this.ypos = this.ypos + ( this.yspeed * this.ydirection );
+    // Update size and color of the star
     this.rad = this.rad + this.growfactor;
     this.circleColor = this.circleColor + 3;
       
     // Check if the star is still visible
-    if (this.xpos > width+this.rad/2 || this.xpos < -this.rad/2) {
+    if (this.location.x > width+this.rad/2 || this.location.x < -this.rad/2) {
       this.visible = false;
     }
-    if (ypos > height+this.rad/2 || ypos < -this.rad/2) {
+    if (this.location.y > height+this.rad/2 || this.location.y < -this.rad/2) {
       this.visible = false;
     }
 
     // Draw the shape
     stroke(color(this.circleColor, 255, 255));
-    strokeWeight(starThickness);
-    ellipse(this.xpos, this.ypos, this.rad, this.rad);
+    strokeWeight(this.starThickness);
+    //fill(25);
+    ellipse(this.location.x,this.location.y,this.rad, this.rad);
   }
  
 }
