@@ -33,7 +33,7 @@ public abstract class Mode {
 
   //sets loadedConfig from config file and defaults
   protected void loadConfigFrom(String configFileName) {
-    this.loadedConfig = new Properties(defaultConfig);
+    this.loadedConfig = new Properties(this.defaultConfig);
     InputStream is = null;
     try {
       is = createInput(configFileName);
@@ -49,7 +49,7 @@ public abstract class Mode {
   //throws IllegalArgumentException when property not found
   protected int getIntProp(String propName) {
     int toReturn;
-    if (loadedConfig.containsKey(propName)) {
+    if (this.loadedConfig.getProperty(propName) != null) {
       try {
         toReturn = Integer.parseInt(this.loadedConfig.getProperty(propName));
       } 
@@ -69,7 +69,7 @@ public abstract class Mode {
   //throws IllegalArgumentException when property not found
   protected float getFloatProp(String propName) {
     float toReturn;
-    if (loadedConfig.containsKey(propName)) {
+    if (this.loadedConfig.getProperty(propName) != null) {
       try {
         toReturn = Float.parseFloat(this.loadedConfig.getProperty(propName));
       } 
