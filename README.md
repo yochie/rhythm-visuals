@@ -34,9 +34,9 @@ devices will be printed to console on startup (need to make this into a GUI).
 
 The script is divided into seperate modes, each with their own config and .pde file. The modes currently implemented are:
 
-* Circle (see [DrawPlanck/Circle.md](Circle.md))
-* SuperLiminal (see [DrawPlanck/SuperLiminal.md](SuperLiminal.md))
-* Word (see [DrawPlanck/Word.md](Word.md))
+* Circle (see [Circle.md](DrawPlanck/Circle.md))
+* SuperLiminal (see [SuperLiminal.md](DrawPlanck/SuperLiminal.md))
+* Word (see [Word.md](DrawPlanck/Word.md))
 
 ### Arduino serial plotter
 
