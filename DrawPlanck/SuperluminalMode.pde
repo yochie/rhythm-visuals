@@ -40,9 +40,8 @@ public class SuperluminalMode extends Mode {
     stars = new ArrayList<Star>();
   }
 
-  //Redraw circles, setting new widths when a sensor was pressed and
-  //reducing their size otherwise
-  public void draw() {    
+  //Create stars when a sensor was pressed and keep them moving
+  public void draw() {
 
     for (int pad = 0; pad < numPads; pad++) {
 
@@ -50,27 +49,27 @@ public class SuperluminalMode extends Mode {
 
         //create star
         if (pressCounter.get(pad) % this.getIntProp("PRESSES_FOR_STARS") == 0 && stars.size() < this.getIntProp("MAX_STARS")) {
-            int StarGrowFactor = 0; // TODO check how to init vars without vals in processing :)
+            int starGrowFactor = 0; // TODO check how to init vars without vals in processing :)
             int starSpeed = 20;
             switch(pad) {
               case 1: 
                 println("pad1");
-                StarGrowFactor = this.getIntProp("STARS1_GROW_FACTOR");
+                starGrowFactor = this.getIntProp("STARS1_GROW_FACTOR");
                 starSpeed = this.getIntProp("STARS1_SPEED");
                 break;
               case 2: 
                 println("pad2");
-                StarGrowFactor = this.getIntProp("STARS2_GROW_FACTOR");
+                starGrowFactor = this.getIntProp("STARS2_GROW_FACTOR");
                 starSpeed = this.getIntProp("STARS2_SPEED");
                 break;
               case 3: 
                 println("pad3");
-                StarGrowFactor = this.getIntProp("STARS3_GROW_FACTOR");
+                starGrowFactor = this.getIntProp("STARS3_GROW_FACTOR");
                 starSpeed = this.getIntProp("STARS3_SPEED");
                 break;
               case 4: 
                 println("pad4");
-                StarGrowFactor = this.getIntProp("STARS4_GROW_FACTOR");
+                starGrowFactor = this.getIntProp("STARS4_GROW_FACTOR");
                 starSpeed = this.getIntProp("STARS4_SPEED");
                 break;
               default:
@@ -82,7 +81,7 @@ public class SuperluminalMode extends Mode {
             stars.add(new Star(pad,
             width/2,
             height/2,
-            StarGrowFactor,
+            starGrowFactor,
             starSpeed,
             this.getIntProp("STAR_THICKNESS"))
             );
@@ -98,7 +97,7 @@ public class SuperluminalMode extends Mode {
     }
   }
 
-  public void handleMidi(Pad pad, int note, int vel) {
+  public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
     // Do something on MIDI msg received
   }
 
@@ -120,17 +119,18 @@ private class Star {
   private int ydirection = 1;  // Top to Bottom
   private int circleColor = 0;
 
-  public Star(int master, int xpos, int ypos, int StarGrowFactor, int speed, int starThickness) {
+  public Star(int master, int xpos, int ypos, int starGrowFactor, int speed, int starThickness) {
     this.master = master;
     this.rad = 1;
-    this.growfactor = StarGrowFactor;  
+    this.growfactor = starGrowFactor;
     this.starThickness = starThickness;
     this.xpos = xpos;
     this.ypos = ypos;
     this.xspeed = speed;
     this.yspeed = speed;
+    // TODO make color change
     this.circleColor = (int)random(50, 120);
-    // Make all directions available randomly
+    // TODO make all directions available randomly
     this.xdirection = (int) pow(-1, (int) random(1, 3));
     this.ydirection = (int) pow(-1, (int) random(1, 3));
   }
