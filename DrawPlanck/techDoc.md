@@ -17,7 +17,7 @@ je pense qu'on peut simplifier au max l'utilisation de git, et on evoluera si ne
 - pas besoin de branche de dev a mon avis
 
 ## Process
-###Steps
+### Steps
 1. pull (no conflicts assuming clean working dir)
 2. boss boss
 3. commit -a (les fichiers de config sont ignorés à cause de "git update-index --assume-unchanged ...")
