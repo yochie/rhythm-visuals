@@ -41,7 +41,7 @@ public class SuperluminalMode extends Mode {
   public void draw() {
 
     int starNumber;
-    int starGrowFactor;
+    float starGrowFactor;
     int starSpeed;
 
     for (int pad = 0; pad < numPads; pad++) {
@@ -53,27 +53,27 @@ public class SuperluminalMode extends Mode {
         switch(pad) {
           case 1:
             starNumber = this.getIntProp("STARS1_NUMBER");
-            starGrowFactor = this.getIntProp("STARS1_GROW_FACTOR");
+            starGrowFactor = this.getFloatProp("STARS1_GROW_FACTOR");
             starSpeed = this.getIntProp("STARS1_SPEED");
             break;
           case 2:
             starNumber = this.getIntProp("STARS2_NUMBER");
-            starGrowFactor = this.getIntProp("STARS2_GROW_FACTOR");
+            starGrowFactor = this.getFloatProp("STARS2_GROW_FACTOR");
             starSpeed = this.getIntProp("STARS2_SPEED");
             break;
           case 3:
             starNumber = this.getIntProp("STARS3_NUMBER");
-            starGrowFactor = this.getIntProp("STARS3_GROW_FACTOR");
+            starGrowFactor = this.getFloatProp("STARS3_GROW_FACTOR");
             starSpeed = this.getIntProp("STARS3_SPEED");
             break;
           case 4:
             starNumber = this.getIntProp("STARS4_NUMBER");
-            starGrowFactor = this.getIntProp("STARS4_GROW_FACTOR");
+            starGrowFactor = this.getFloatProp("STARS4_GROW_FACTOR");
             starSpeed = this.getIntProp("STARS4_SPEED");
             break;
           default:
             starNumber = this.getIntProp("STARS1_NUMBER");
-            starGrowFactor = this.getIntProp("STARS1_GROW_FACTOR");
+            starGrowFactor = this.getFloatProp("STARS1_GROW_FACTOR");
             starSpeed = this.getIntProp("STARS1_SPEED");
             println("Pad " + pad + " is not assigned - Falling to star1 config");
             break;
@@ -124,12 +124,12 @@ private class Star {
   private PVector destination;
   private float topspeed;
 
-  private int growfactor;
+  private float growfactor;
   private float starThickness;
-  private int rad;
+  private float rad;
   private int circleColor = 0;
 
-  public Star(int starGrowFactor, int speed, int starThickness) {
+  public Star(float starGrowFactor, int speed, int starThickness) {
 
     this.velocity = new PVector(0,0);
     this.topspeed = speed;
