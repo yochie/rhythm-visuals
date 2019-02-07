@@ -33,9 +33,12 @@ public class WordMode extends Mode { //<>//
       }
     }
     
-    stroke(0, 255, 0);    
-    textSize(32);
-    text(this.words.get(wordIndex), 100, 100);
+    fill(150);    
+    textSize(64);
+    textAlign(CENTER);
+    text(this.words.get(wordIndex), width/2, height/2 - 50);
+    noFill();    
+
   }
   
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad){    
