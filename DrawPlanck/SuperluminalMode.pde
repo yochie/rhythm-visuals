@@ -1,6 +1,4 @@
-import java.util.Properties; //<>//
-
-public class SuperluminalMode extends Mode {
+public class SuperluminalMode extends Mode { //<>//
 
   private ArrayList<Star> stars;
 
