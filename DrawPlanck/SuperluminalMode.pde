@@ -92,9 +92,15 @@ public class SuperluminalMode extends Mode {
     }
 
     //maintain stars movement
-    for (Star star : stars) {
+    for (int i = 0; i < stars.size(); i++) {
+      Star star = stars.get(i);
       star.update();
+      //remove out of screen stars
+      if(!star.visible) {
+        stars.remove(i);
+      }
     }
+  //printArray(stars);
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
@@ -105,6 +111,9 @@ public class SuperluminalMode extends Mode {
 
 //based on https://processing.org/examples/bounce.html
 private class Star {
+
+  private boolean visible = true;
+
   private int master;
   private int growfactor;
   private float starThickness;
@@ -142,15 +151,12 @@ private class Star {
     this.ypos = this.ypos + ( this.yspeed * this.ydirection );
     this.rad = this.rad + this.growfactor;
       
-    // Test to see if the shape exceeds the boundaries of the screen
-    // If it does, remove from array TODO
-    if (this.xpos > width-this.rad || this.xpos < this.rad) {
-      //this.xdirection *= -1;
-      //println("OUT X");
+    // Check if the star is still visible
+    if (this.xpos > width+this.rad/2 || this.xpos < -this.rad/2) {
+      this.visible = false;
     }
-    if (ypos > height-rad || ypos < rad) {
-      //this.ydirection *= -1;
-      //println("OUT Y");
+    if (ypos > height+this.rad/2 || ypos < -this.rad/2) {
+      this.visible = false;
     }
 
     // Draw the shape
