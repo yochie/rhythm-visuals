@@ -30,6 +30,14 @@ the java MidiBus library. You can then run the the script from processing. You m
 midiDevice variable at the top of the file to the index of the port your device uses. A list of available
 devices will be printed to console on startup (need to make this into a GUI).
 
+#### Modes
+
+The script is divided into seperate modes, each with their own config and .pde file. The modes currently implemented are:
+
+* Circle (see [DrawPlanck/Circle.md](Circle.md))
+* SuperLiminal (see [DrawPlanck/SuperLiminal.md](SuperLiminal.md))
+* Word (see [DrawPlanck/Word.md](Word.md))
+
 ### Arduino serial plotter
 
 To facilitate parameter adjustments and debugging, the Read_resistance.ino script has a debug config switch that can be used in conjunction with the arduino IDE serial plotter (ctrl + shift + L) to visualize the baselines, thresholds and current sensor readings for each sensor.
