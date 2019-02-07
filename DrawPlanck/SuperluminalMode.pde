@@ -5,6 +5,12 @@ public class SuperluminalMode extends Mode {
   private ArrayList<Star> stars;
 
   public SuperluminalMode() {
+
+    // TODO check how to set a bool prop
+    this.defaultConfig.setProperty("BG_STARS", "1");
+    this.defaultConfig.setProperty("BG_STARS_NUMBER", "4");
+    this.defaultConfig.setProperty("BG_STARS_SPEED", "30");
+
     this.defaultConfig.setProperty("STARS1_WIDTH", "10");
     this.defaultConfig.setProperty("STARS2_WIDTH", "25");
     this.defaultConfig.setProperty("STARS3_WIDTH", "40");
@@ -43,6 +49,17 @@ public class SuperluminalMode extends Mode {
     int starNumber;
     float starGrowFactor;
     int starSpeed;
+
+    //create constant stars flow in background if config ON
+    if(this.getIntProp("BG_STARS") == 1) {
+        for (int i = 0; i < this.getIntProp("BG_STARS_NUMBER"); i++) {
+          stars.add(new Star(
+            0, //do not grow
+            this.getIntProp("BG_STARS_SPEED"),
+            this.getIntProp("STAR_THICKNESS")
+          ));
+        }
+    }
 
     for (int pad = 0; pad < numPads; pad++) {
 
