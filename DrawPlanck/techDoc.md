@@ -22,7 +22,7 @@ je pense qu'on peut simplifier au max l'utilisation de git, et on evoluera si ne
 2. boss boss
 3. commit -a (les fichiers de config sont ignorés à cause de "git update-index --assume-unchanged ...")
 4. push 
-4.1 if push fails because not up to date: pull, handle merge if not automatic, push again
+5. if push fails because not up to date: pull, handle merge if not automatic, push again
 
 ### Collaboration methods
 #### Shared repository model
