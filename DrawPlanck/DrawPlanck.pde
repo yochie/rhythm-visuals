@@ -251,7 +251,7 @@ void midiMessage(MidiMessage message) {
       vel = (int)(message.getMessage()[2] & 0xFF);
       padIndex = Pad.noteToPad(note);
       
-      if (padIndex > 0){
+      if (padIndex >= 0){
         pad = pads.get(padIndex);
       }
       
