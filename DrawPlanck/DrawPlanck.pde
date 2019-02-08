@@ -63,10 +63,10 @@ void setup() {
   defaultConfig.setProperty("LOGO_SCALING", "0.05");
   defaultConfig.setProperty("MIDI_DEVICE", "0");
   defaultConfig.setProperty("PRESSES_FOR_MODE_SWITCH", "3");
-  defaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "85");
+  defaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "80");
   defaultConfig.setProperty("BOTTOM_LEFT_NOTE", "84");
-  defaultConfig.setProperty("TOP_LEFT_NOTE", "80");
-  defaultConfig.setProperty("TOP_RIGHT_NOTE", "82");
+  defaultConfig.setProperty("TOP_LEFT_NOTE", "82");
+  defaultConfig.setProperty("TOP_RIGHT_NOTE", "85");
   defaultConfig.setProperty("AUX_PAD_NOTES", "");
 
   //read config file
