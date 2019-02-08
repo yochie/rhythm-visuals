@@ -132,8 +132,8 @@ void setup() {
   modes.add(new CircleMode());
   modes.add(new SuperluminalMode());
   modes.add(new WordMode());
+  modes.add(new FlockMode());
 
-  
   currentModeIndex = 0;
   currentMode = modes.get(currentModeIndex);
   currentMode.setup();
