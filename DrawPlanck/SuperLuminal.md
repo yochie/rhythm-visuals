@@ -3,7 +3,7 @@ SuperLuminal mode
 Creates stars of different types depending on pressed pad, with an optional flow of stars in background. Star types have different speeds and sizes (based on grow factors), and their quantity vary depending on configuration and MIDI velocity.
 
 ## Triggers
-- Stars backgroud flow: bottom-left-note (see [main config](DrawPlanck/config.properties)) if pressed a configurable number of times consecutively
+- Stars backgroud flow: bottom-left-note (see [main config](config.properties)) if pressed a configurable number of times consecutively
 
 ## Config
 - Stars stroke thickness
