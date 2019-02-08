@@ -79,36 +79,17 @@ public class SuperluminalMode extends Mode {
       if (padWasPressed.get(padIdx)) {
 
         //set stars params depending on pad
-        switch(padIdx) {
-          case 1:
-            starNumber = this.getIntProp("STARS1_NUMBER");
-            starGrowFactor = this.getFloatProp("STARS1_GROW_FACTOR");
-            starSpeed = this.getIntProp("STARS1_SPEED");
-            break;
-          case 2:
-            starNumber = this.getIntProp("STARS2_NUMBER");
-            starGrowFactor = this.getFloatProp("STARS2_GROW_FACTOR");
-            starSpeed = this.getIntProp("STARS2_SPEED");
-            break;
-          case 3:
-            starNumber = this.getIntProp("STARS3_NUMBER");
-            starGrowFactor = this.getFloatProp("STARS3_GROW_FACTOR");
-            starSpeed = this.getIntProp("STARS3_SPEED");
-            break;
-          case 4:
-            starNumber = this.getIntProp("STARS4_NUMBER");
-            starGrowFactor = this.getFloatProp("STARS4_GROW_FACTOR");
-            starSpeed = this.getIntProp("STARS4_SPEED");
-            break;
-          default:
-            starNumber = this.getIntProp("STARS1_NUMBER");
-            starGrowFactor = this.getFloatProp("STARS1_GROW_FACTOR");
-            starSpeed = this.getIntProp("STARS1_SPEED");
-            println("Pad " + padIdx + " is not assigned - Falling to star1 config");
-            break;
+        int starIdx = padIdx + 1;
+        //default
+        if(starIdx <= 0 || starIdx > 4) {
+          starIdx = 1;
+          println("Pad " + starIdx + " is not assigned - Falling to star1 config");
         }
-        // TODO: check how to set dynamic vars with processing - could replace switch if possible
+        starNumber = this.getIntProp("STARS"+starIdx+"_NUMBER");
+        starGrowFactor = this.getFloatProp("STARS"+starIdx+"_GROW_FACTOR");
+        starSpeed = this.getIntProp("STARS"+starIdx+"_SPEED");
 
+        //create as much stars as configured for this pad
         for (int i = 0; i < starNumber; i++) {
           stars.add(new Star(
             starGrowFactor,
