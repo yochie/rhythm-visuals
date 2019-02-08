@@ -2,22 +2,25 @@ public class FlockMode extends Mode {
 
   private Flock flock;
 
-  private int newXTarget = 0;
-  private int newYTarget = 0;
-  
+  private int newXOffset = 0;
+  private int newYOffset = 0;
+  private int currentX = width/2;
+  private int currentY = height/2;
+
   public FlockMode() {
     //set defaults used by loadConfigFrom
     this.defaultConfig.setProperty("MAX_FLOCK_SIZE", "10");
-    this.defaultConfig.setProperty("UP","TOP_RIGHT_NOTE");
-    this.defaultConfig.setProperty("DOWN","TOP_LEFT_NOTE");
-    this.defaultConfig.setProperty("LEFT", "BOTTOM_LEFT_NOTE");
-    this.defaultConfig.setProperty("RIGHT", "BOTTOM_RIGHT_NOTE");
+    this.defaultConfig.setProperty("TOP_RIGHT_NOTE", "UP");
+    this.defaultConfig.setProperty("TOP_LEFT_NOTE", "DOWN");
+    this.defaultConfig.setProperty("BOTTOM_LEFT_NOTE", "LEFT");
+    this.defaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "RIGHT");
+    this.defaultConfig.setProperty("MOVE_SPEED", "25");
+
 
     //sets loaded config
     loadConfigFrom("flock_config.properties");
     println("Flock config: ");
     println(this.loadedConfig);
-    
   }
   public void setup() {
     flock = new Flock();
@@ -28,10 +31,41 @@ public class FlockMode extends Mode {
   }
 
   public void draw() {
-    flock.run();
+    int xTarget = constrain(currentX + newXOffset, 0, width);
+    int yTarget = constrain(currentY + newYOffset, 0, height);
+
+    flock.run(xTarget, yTarget);
+
+    //update cursor
+    currentX = xTarget;
+    currentY = yTarget;
+
+    //reset midi input offsets
+    newXOffset = 0;
+    newYOffset = 0;
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
+
+    if (pad != null && this.loadedConfig.getProperty(pad.name) != null ) {
+      switch (this.loadedConfig.getProperty(pad.name)) {
+      case "UP" :
+        this.newYOffset += this.getIntProp("MOVE_SPEED");
+        break;
+
+      case "DOWN" :
+        this.newYOffset -= this.getIntProp("MOVE_SPEED");
+        break;
+
+      case "LEFT" :
+        this.newXOffset -= this.getIntProp("MOVE_SPEED");
+        break;
+
+      case "RIGHT" :
+        this.newXOffset += this.getIntProp("MOVE_SPEED");
+        break;
+      }
+    }
   }
 }
 
@@ -44,9 +78,9 @@ private class Flock {
     boids = new ArrayList<Boid>(); // Initialize the ArrayList
   }
 
-  void run() {
+  void run(int xTarget, int yTarget) {
     for (Boid b : boids) {
-      b.run(boids);  // Passing the entire list of boids to each boid individually
+      b.run(boids, xTarget, yTarget);  // Passing the entire list of boids to each boid individually
     }
   }
 
@@ -83,8 +117,8 @@ private class Boid {
     maxforce = 0.03;
   }
 
-  void run(ArrayList<Boid> boids) {
-    flock(boids);
+  void run(ArrayList<Boid> boids, int xTarget, int yTarget) {
+    flock(boids, xTarget, yTarget);
     update();
     borders();
     render();
@@ -96,18 +130,21 @@ private class Boid {
   }
 
   // We accumulate a new acceleration each time based on three rules
-  void flock(ArrayList<Boid> boids) {
+  void flock(ArrayList<Boid> boids, int xTarget, int yTarget) {
     PVector sep = separate(boids);   // Separation
     PVector ali = align(boids);      // Alignment
     PVector coh = cohesion(boids);   // Cohesion
+    PVector gid = seek(new PVector(xTarget, yTarget)); //Guide
     // Arbitrarily weight these forces
     sep.mult(1.5);
     ali.mult(1.0);
     coh.mult(1.0);
+    gid.mult(2.0);
     // Add the force vectors to acceleration
     applyForce(sep);
     applyForce(ali);
     applyForce(coh);
+    applyForce(gid);
   }
 
   // Method to update position
