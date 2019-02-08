@@ -4,7 +4,7 @@ Creates 4 stars types depending on pressed pad
 Triggers: bottom-left pad to turn background stars flow on / off
 Available config:
   - bg stars: on/off, number of presses to trigger on/off, number and speed of stars
-  - pad stars: number, speed and grow factor
+  - pad stars: number (affected by velocity - configurable factor), speed and grow factor
   - all: stars stroke thickness
 -------------------------------------------
 */
@@ -14,6 +14,7 @@ public class SuperluminalMode extends Mode {
   private ArrayList<Star> stars;
   //TODO - workaround for not being able to set config prop from draw loop
   private boolean bgFlow = true;
+  private int padVelocity = 1;
 
   public SuperluminalMode() {
 
@@ -21,16 +22,11 @@ public class SuperluminalMode extends Mode {
     this.defaultConfig.setProperty("BG_STARS", "1");
     this.defaultConfig.setProperty("BG_STARS_NUMBER", "4");
     this.defaultConfig.setProperty("BG_STARS_SPEED", "30");
-
-    this.defaultConfig.setProperty("STARS1_WIDTH", "10");
-    this.defaultConfig.setProperty("STARS2_WIDTH", "25");
-    this.defaultConfig.setProperty("STARS3_WIDTH", "40");
-    this.defaultConfig.setProperty("STARS4_WIDTH", "60");
     
-    this.defaultConfig.setProperty("STARS1_SPEED", "0.95");
-    this.defaultConfig.setProperty("STARS2_SPEED", "0.95");
-    this.defaultConfig.setProperty("STARS3_SPEED", "0.95");
-    this.defaultConfig.setProperty("STARS4_SPEED", "0.95");
+    this.defaultConfig.setProperty("STARS1_SPEED", "20");
+    this.defaultConfig.setProperty("STARS2_SPEED", "15");
+    this.defaultConfig.setProperty("STARS3_SPEED", "10");
+    this.defaultConfig.setProperty("STARS4_SPEED", "5");
     
     //TODO (play with doppler effect? Use config or random?)
     this.defaultConfig.setProperty("STARS1_COLOR", "30");
@@ -40,6 +36,7 @@ public class SuperluminalMode extends Mode {
 
     //midi controller specific, usually 255 but our Planck caps earlier
     this.defaultConfig.setProperty("MAX_VELOCITY", "100");
+    this.defaultConfig.setProperty("VELOCITY_FACTOR", "0.09");
     this.defaultConfig.setProperty("STAR_THICKNESS", "1");
 
     //sets loaded config
@@ -85,11 +82,13 @@ public class SuperluminalMode extends Mode {
           starIdx = 1;
           println("Pad " + starIdx + " is not assigned - Falling to star1 config");
         }
-        starNumber = this.getIntProp("STARS"+starIdx+"_NUMBER");
+        starNumber = this.getIntProp("STARS"+starIdx+"_NUMBER"); // TODO check: not set at init - how is it working?
         starGrowFactor = this.getFloatProp("STARS"+starIdx+"_GROW_FACTOR");
         starSpeed = this.getIntProp("STARS"+starIdx+"_SPEED");
 
         //create as much stars as configured for this pad
+        //related to pad velocity
+        starNumber *= padVelocity*this.getFloatProp("VELOCITY_FACTOR");
         for (int i = 0; i < starNumber; i++) {
           stars.add(new Star(
             starGrowFactor,
@@ -134,7 +133,8 @@ public class SuperluminalMode extends Mode {
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
     // Do something on MIDI msg received
-    // TODO: affect velocity changes to stars number
+    // Keep track of pad velocity to affect stars number
+    padVelocity = vel;
   }
 
 }
