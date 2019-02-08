@@ -86,7 +86,7 @@ public abstract class Mode {
 
   //returns config string property
   //throws IllegalArgumentException when property not found
-  protected float getStringProp(String propName) {
+  protected String getStringProp(String propName) {
     if (this.loadedConfig.getProperty(propName) == null) {
       println("Error: Couldn't find requested config var : " + propName);
       throw(new IllegalArgumentException());
