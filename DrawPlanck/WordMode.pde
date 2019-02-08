@@ -21,6 +21,8 @@ public class WordMode extends Mode { //<>//
 
     //parse words list from config
     this.words = Arrays.asList(this.loadedConfig.getProperty("WORDS").split("\\s*,\\s*"));
+    println("Available fonts: ");
+    println(PFont.list());
   }
 
   public void setup() {
