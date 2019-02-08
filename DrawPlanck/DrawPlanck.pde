@@ -32,7 +32,7 @@ int numPads;
 //Properties are stored as strings
 //e.g. this.globalDefaultConfig.setProperty("SHRINK_FACTOR", "0.95");
 //TODO: refactor config loading so that modes and main script can use same code (e.g. ConfigLoader class)
-//TODO: change to arg in loadGlobalConfigFrom() instead of global to avoid conflicts
+//TODO: change to arg in loadGlobalConfigFrom() instead of global to avoid conflicts (and globals in general...)
 final Properties globalDefaultConfig = new Properties();
 
 //filled by loadConfig()
