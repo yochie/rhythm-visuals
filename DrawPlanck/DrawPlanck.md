@@ -6,7 +6,8 @@ Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Al
 - MIDI connection and message parsing (calls handleMidi on the appropriate mode object for each recieve message)
 - Pad configuration (select notes for "named" pad and auxiliary/unnamed pads)
 - Background drawing (at every frame)
-- Maintaining the padWasPressed list that stores booleans ordered by pad index indicating if each pad was pressed since last draw() execution
+- Maintaining the global padWasPressed list that stores booleans ordered by pad index indicating if each pad was pressed since last draw() execution
+- Maintaining the global pressCounter list that stores ints ordered by pad index indicating consecutive presses of a single pad (pressing any pad resets count on all others)
 
 ## Triggers
 - Tapping consecutively for a configured number of times on the TOP_LEFT_NOTE pad.
