@@ -1,4 +1,4 @@
-public class WordMode extends Mode { //<>//
+public class WordMode extends Mode {
 
   private List<String> words = new ArrayList<String>();
 

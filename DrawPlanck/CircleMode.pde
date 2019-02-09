@@ -1,4 +1,4 @@
-public class CircleMode extends Mode { //<>//
+public class CircleMode extends Mode {
   //bg images shape
   private PShape planche; 
   //list of circles that represent sensors

@@ -1,4 +1,4 @@
-public class SuperluminalMode extends Mode { //<>//
+public class SuperluminalMode extends Mode {
 
   private ArrayList<Star> stars;
   //TODO - workaround for not being able to set config prop from draw loop
