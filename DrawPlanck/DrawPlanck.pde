@@ -11,18 +11,18 @@ import java.lang.IllegalArgumentException;
 //Main script for this app
 //Handles initial midi signal parsing, background drawing and mode switching
 
-////////CONSTANT GLOBALS (don't change after setup) ////////
+////////CONSTANT GLOBALS (shouldn't change after setup) ////////
 
 //list of Mode implementing instances to switch between
+//Need to manually add instances to list here when adding a new mode
 final ArrayList<Mode> modes = new ArrayList<Mode>();
 
 //list of named config parameters that can have a note assigned
+//used to know which config vars are pad notes without hardcoding names throughout the code
+//if you want to add a 
 final String[] namedPads = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
 
-//list of other pad notes read in from config
-final ArrayList<Integer> auxPadNotes = new ArrayList<Integer>(); 
-
-//static (non-changing) pad data and helper methods
+//static (non-changing) pad data (including name, index, note, whether its auxiliary or named) and helper methods
 final ArrayList<Pad> pads = new ArrayList<Pad>();
 
 //sum of named and auxiliary pads
@@ -72,8 +72,9 @@ void setup() {
 
   //read config file
   loadGlobalConfigFrom("config.properties");
-
+  
   //parse auxiliary notes list from config
+  ArrayList<Integer> auxPadNotes = new ArrayList<Integer>(); 
   List<String> string_aux_pad_notes = Arrays.asList(globalLoadedConfig.getProperty("AUX_PAD_NOTES").split("\\s*,\\s*"));
   Iterator<String> iter = string_aux_pad_notes.iterator();
   while (iter.hasNext()) {
