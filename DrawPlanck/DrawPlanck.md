@@ -1,4 +1,4 @@
-Global config
+Global script
 ======
 
 Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Also handles the following general tasks:
