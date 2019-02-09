@@ -25,7 +25,7 @@ Circles in center represent each assigned pad note. Whenever a note is recieved,
 - SLAVE_SHRINK_FACTOR
 
 ### Midi controller
-MAX_VELOCITY
+- MAX_VELOCITY
 
 ## TODO
 - Associate color to each sensor circle and pass it along (with some variations) to the slave
