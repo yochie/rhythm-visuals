@@ -10,7 +10,7 @@ Random word is presented at random position near center of screen. Double tappin
 ### Word bank
 - WORDS : Comma seperated list of words to present on screen.
 
-###Triggers
+### Triggers
 - PRESSES_FOR_WORD_SWITCH : Number of consecutive presses on configured pad to reroll display word
 - SWITCH_PAD_NAME : Name of the named Pad object (ie non auxiliary pad) that will trigger the word change. See namedPads in main script (DrawPlanck).
 
