@@ -38,7 +38,7 @@ The script is divided into separate modes, each with their own config and .pde f
 * [Circle](DrawPlanck/Circle.md)
 * [Word](DrawPlanck/Word.md)
 * [SuperLuminal](DrawPlanck/SuperLuminal.md)
-* [Flock](DrawPlanck/FlockMode.md)
+* [Flock](DrawPlanck/Flock.md)
 
 ### Arduino serial plotter
 
