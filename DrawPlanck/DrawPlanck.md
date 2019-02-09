@@ -9,25 +9,24 @@ Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Al
 - Maintaining the padWasPressed list that stores booleans ordered by pad index indicating if each pad was pressed since last draw() execution
 
 ## Triggers
-- Tapping consecutively for a configured number of times on the TOP_LEFT_NOTE pad
+- Tapping consecutively for a configured number of times on the TOP_LEFT_NOTE pad.
 
 ## Config
 ### Midi
-MIDI_DEVICE=0
+MIDI_DEVICE : Index of midi device to use. See console for list.
 
 ### Background
-LOGO_SCALING=0.05
+LOGO_SCALING : Multiplier for logo size.
 
-### Modes
-PRESSES_FOR_MODE_SWITCH=3
-
+### Mode switching
+PRESSES_FOR_MODE_SWITCH : Number of consecutive presses on TOP_LEFT_NOTE pad to trigger mode switch
 
 ### Pads
-BOTTOM_RIGHT_NOTE=80
-BOTTOM_LEFT_NOTE=84
-TOP_LEFT_NOTE=82
-TOP_RIGHT_NOTE=85
-AUX_PAD_NOTES=70,75
+BOTTOM_RIGHT_NOTE : MIDI note number associated to this named pad.
+BOTTOM_LEFT_NOTE : MIDI note number associated to this named pad.
+TOP_LEFT_NOTE : MIDI note number associated to this named pad.
+TOP_RIGHT_NOTE : MIDI note number associated to this named pad.
+AUX_PAD_NOTES : Comma seperated list of MIDI note numbers that will be created as unnamed auxiliary pads.
 
 ## TODO
 - Lots of stuff, see comments in file...
