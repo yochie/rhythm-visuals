@@ -21,4 +21,5 @@ FONT_HUE : HSB hue value between 0 and 255
 ALPHA_REDUCTION : Muliplier for alpha value at each frame. Used to time the disappearing of word.
 
 ## TODO
-- Associate color to each sensor circle and pass it along (with some variations) to the slave
+- String encoding to allow special characters is currently bugged.
+- Swirl on word appearance...
