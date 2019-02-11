@@ -137,10 +137,12 @@ void setup() {
   }
 
   //Create modes and initialize currentMode
-  modes.add(new CircleMode());
-  modes.add(new SuperluminalMode());
-  modes.add(new WordMode());
-  modes.add(new FlockMode());
+  //modes.add(new CircleMode());
+  //modes.add(new SuperluminalMode());
+  //modes.add(new WordMode());
+  //modes.add(new FlockMode());
+  modes.add(new KeyboardMode());
+
 
   currentModeIndex = 0;
   currentMode = modes.get(currentModeIndex);
