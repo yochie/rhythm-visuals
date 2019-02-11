@@ -10,8 +10,8 @@ public class KeyboardMode extends Mode {
     this.defaultConfig.setProperty("SCROLL_NOTE", "80");
 
     //sets loaded config
-    loadConfigFrom("flock_config.properties");
-    println("Flock config: ");
+    loadConfigFrom("keyboard_config.properties");
+    println("Keyboard config: ");
     println(this.loadedConfig);
   }
 
