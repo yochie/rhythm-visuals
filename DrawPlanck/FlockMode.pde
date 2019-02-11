@@ -212,7 +212,7 @@ private class WallManager {
   }
 }
 
-
+//Code copied from https://processing.org/examples/flocking.html
 // The Flock (a list of Boid objects)
 private class Flock {
   ArrayList<Boid> boids; // An ArrayList for all the boids
@@ -232,7 +232,7 @@ private class Flock {
   }
 }
 
-
+//Code copied and modified from https://processing.org/examples/flocking.html
 // The Boid class
 
 private class Boid {
