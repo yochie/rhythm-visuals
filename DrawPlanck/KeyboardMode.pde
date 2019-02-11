@@ -3,7 +3,7 @@ import java.awt.Robot;
 import java.io.IOException;
 
 public class KeyboardMode extends Mode {
-  Robot robot;
+  private Robot robot;
 
   public KeyboardMode() {
     //set defaults used by loadConfigFrom
