@@ -30,6 +30,13 @@ the java MidiBus library. You can then run the the script from processing. You m
 midiDevice variable at the top of the file to the index of the port your device uses. A list of available
 devices will be printed to console on startup (need to make this into a GUI).
 
+#### Developpers
+
+If developping in a Windows environment without a physical midi controller, you might want to use the following:
+
+- VMPK (http://vmpk.sourceforge.net/) to simulate the planck
+- loopMIDI (https://www.tobias-erichsen.de/software/loopmidi.html) to generate a virtual MIDI port to allow communication between VMPK and DrawPlanck.
+
 #### Modes
 
 The script is divided into separate modes, each with their own config and .pde file. The main (global) script and the modes currently implemented are documented in the following locations:
