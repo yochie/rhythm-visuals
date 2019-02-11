@@ -31,8 +31,11 @@ public class FlockMode extends Mode {
   }
 
   public void draw() {
-    int xTarget = constrain(currentX + newXOffset, 0, width);
-    int yTarget = constrain(currentY + newYOffset, 0, height);
+    int xTarget = constrain(currentX + newXOffset, 100, width - 100);
+    int yTarget = constrain(currentY + newYOffset, 100, height -100);
+    
+    stroke(0, 255, 255);
+    ellipse(xTarget, yTarget, 10, 10);
 
     flock.run(xTarget, yTarget);
 

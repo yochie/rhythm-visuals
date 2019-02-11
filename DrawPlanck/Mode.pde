@@ -21,7 +21,7 @@ public abstract class Mode {
 
   //runs upon switching to mode
   public abstract void setup();
-  
+
   //runs every frame while this mode is active
   public abstract void draw();
 
@@ -82,5 +82,15 @@ public abstract class Mode {
       throw(new IllegalArgumentException());
     }
     return toReturn;
+  }
+
+  //returns config string property
+  //throws IllegalArgumentException when property not found
+  protected String getStringProp(String propName) {
+    if (this.loadedConfig.getProperty(propName) == null) {
+      println("Error: Couldn't find requested config var : " + propName);
+      throw(new IllegalArgumentException());
+    }
+    return this.loadedConfig.getProperty(propName);
   }
 }

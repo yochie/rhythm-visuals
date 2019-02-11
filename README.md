@@ -32,12 +32,13 @@ devices will be printed to console on startup (need to make this into a GUI).
 
 #### Modes
 
-The script is divided into separate modes, each with their own config and .pde file. The modes currently implemented are:
+The script is divided into separate modes, each with their own config and .pde file. The main (global) script and the modes currently implemented are documented in the following locations:
 
-* Circle (see [Circle.md](DrawPlanck/Circle.md))
-* SuperLuminal (see [SuperLuminal.md](DrawPlanck/SuperLuminal.md))
-* Word (see [Word.md](DrawPlanck/Word.md))
-* Flock (see [Flock.md](DrawPlanck/Flock.md))
+* [Main](DrawPlanck/DrawPlanck.md)
+* [Circle](DrawPlanck/Circle.md)
+* [Word](DrawPlanck/Word.md)
+* [SuperLuminal](DrawPlanck/SuperLuminal.md)
+* [Flock](DrawPlanck/Flock.md)
 
 ### Arduino serial plotter
 

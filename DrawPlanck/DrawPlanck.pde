@@ -11,28 +11,29 @@ import java.lang.IllegalArgumentException;
 //Main script for this app
 //Handles initial midi signal parsing, background drawing and mode switching
 
-////////CONSTANT GLOBALS (don't change after setup) ////////
+////////CONSTANT GLOBALS (shouldn't change after setup) ////////
 
 //list of Mode implementing instances to switch between
+//Need to manually add instances to list here when adding a new mode
 final ArrayList<Mode> modes = new ArrayList<Mode>();
 
 //list of named config parameters that can have a note assigned
+//used to know which config vars are pad notes without hardcoding names throughout the code
+//if you want to add a 
 final String[] namedPads = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
 
-//list of other pad notes read in from config
-final ArrayList<Integer> auxPadNotes = new ArrayList<Integer>(); 
-
-//static (non-changing) pad data and helper methods
+//static (non-changing) pad data (including name, index, note, whether its auxiliary or named) and helper methods
 final ArrayList<Pad> pads = new ArrayList<Pad>();
 
 //sum of named and auxiliary pads
 int numPads;
 
-//Should fill this with its default config vars before calling loadGlobalConfigFrom() in constructor
+//Should fill this with its default config vars before calling loadGlobalConfigFrom()
 //Properties are stored as strings
-//e.g. this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
+//e.g. this.globalDefaultConfig.setProperty("SHRINK_FACTOR", "0.95");
 //TODO: refactor config loading so that modes and main script can use same code (e.g. ConfigLoader class)
-final Properties defaultConfig = new Properties();
+//TODO: change to arg in loadGlobalConfigFrom() instead of global to avoid conflicts (and globals in general...)
+final Properties globalDefaultConfig = new Properties();
 
 //filled by loadConfig()
 Properties globalLoadedConfig;
@@ -42,7 +43,7 @@ MidiBus myBus;
 //background image
 PGraphics pg;
 
-////////DYNAMIC GLOBALS (change after setup) /////////
+////////RUNTIME GLOBALS (change after setup) /////////
 
 Mode currentMode;
 int currentModeIndex = 0;
@@ -60,19 +61,20 @@ void setup() {
   //fullScreen(P2D);
   frameRate(30);
 
-  defaultConfig.setProperty("LOGO_SCALING", "0.05");
-  defaultConfig.setProperty("MIDI_DEVICE", "0");
-  defaultConfig.setProperty("PRESSES_FOR_MODE_SWITCH", "3");
-  defaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "85");
-  defaultConfig.setProperty("BOTTOM_LEFT_NOTE", "84");
-  defaultConfig.setProperty("TOP_LEFT_NOTE", "80");
-  defaultConfig.setProperty("TOP_RIGHT_NOTE", "82");
-  defaultConfig.setProperty("AUX_PAD_NOTES", "");
+  globalDefaultConfig.setProperty("LOGO_SCALING", "0.05");
+  globalDefaultConfig.setProperty("MIDI_DEVICE", "0");
+  globalDefaultConfig.setProperty("PRESSES_FOR_MODE_SWITCH", "3");
+  globalDefaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "80");
+  globalDefaultConfig.setProperty("BOTTOM_LEFT_NOTE", "84");
+  globalDefaultConfig.setProperty("TOP_LEFT_NOTE", "82");
+  globalDefaultConfig.setProperty("TOP_RIGHT_NOTE", "85");
+  globalDefaultConfig.setProperty("AUX_PAD_NOTES", "");
 
   //read config file
   loadGlobalConfigFrom("config.properties");
-
+  
   //parse auxiliary notes list from config
+  ArrayList<Integer> auxPadNotes = new ArrayList<Integer>(); 
   List<String> string_aux_pad_notes = Arrays.asList(globalLoadedConfig.getProperty("AUX_PAD_NOTES").split("\\s*,\\s*"));
   Iterator<String> iter = string_aux_pad_notes.iterator();
   while (iter.hasNext()) {
@@ -184,7 +186,7 @@ void draw() {
 }
 
 void loadGlobalConfigFrom(String configFileName) {
-  globalLoadedConfig = new Properties(defaultConfig);
+  globalLoadedConfig = new Properties(globalDefaultConfig);
   InputStream is = null;
   try {
     is = createInput(configFileName);
@@ -203,7 +205,7 @@ int getIntProp(String propName) {
     } 
     catch (NumberFormatException e) {
       println("WARNING: Config var" + propName + " is not of expected type (integer). Falling back to default config for this parameter.");
-      toReturn = Integer.parseInt(defaultConfig.getProperty(propName));
+      toReturn = Integer.parseInt(globalDefaultConfig.getProperty(propName));
     }
   } else {
     println("Error: Couldn't find requested config var : " + propName);
@@ -220,7 +222,7 @@ float getFloatProp(String propName) {
     } 
     catch (NumberFormatException e) {
       println("WARNING: Config var" + propName + " is not of expected type (float). Falling back to default config for this parameter.");
-      toReturn = Float.parseFloat(defaultConfig.getProperty(propName));
+      toReturn = Float.parseFloat(globalDefaultConfig.getProperty(propName));
     }
   } else {
     println("Error: Couldn't find requested config var : " + propName);
