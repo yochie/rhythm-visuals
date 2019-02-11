@@ -54,8 +54,13 @@ public class FlockMode extends Mode {
     int xTarget = constrain(currentX + newXOffset, 100, width - 100);
     int yTarget = constrain(currentY + newYOffset, 100, height -100);
 
-    stroke(0, 255, 255);
+    //red target
+    stroke(color(255, 255, 255));
     ellipse(xTarget, yTarget, 10, 10);
+    
+    //reset white stroke
+    stroke(color(0, 0, 255));
+
 
     this.flock.run(xTarget, yTarget);
     this.wallManager.run(this.flock);
