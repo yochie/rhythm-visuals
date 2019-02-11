@@ -1,9 +1,9 @@
 public class SuperluminalMode extends Mode {
 
   private ArrayList<Star> stars;
-  //TODO - workaround for not being able to set config prop from draw loop
   private boolean bgFlow = true;
   private int padVelocity = 1;
+  private int redRandomVal = 70;
 
   public SuperluminalMode() {
 
@@ -11,17 +11,19 @@ public class SuperluminalMode extends Mode {
     this.defaultConfig.setProperty("BG_STARS", "1");
     this.defaultConfig.setProperty("BG_STARS_NUMBER", "4");
     this.defaultConfig.setProperty("BG_STARS_SPEED", "30");
+
+    this.defaultConfig.setProperty("STARS_START_COLOR_R", "75");
+    this.defaultConfig.setProperty("STARS_START_COLOR_G", "0");
+    this.defaultConfig.setProperty("STARS_START_COLOR_B", "200");
     
+    this.defaultConfig.setProperty("STARS_END_COLOR_R", "200");
+    this.defaultConfig.setProperty("STARS_END_COLOR_G", "0");
+    this.defaultConfig.setProperty("STARS_END_COLOR_B", "0");
+
     this.defaultConfig.setProperty("STARS1_SPEED", "20");
     this.defaultConfig.setProperty("STARS2_SPEED", "15");
     this.defaultConfig.setProperty("STARS3_SPEED", "10");
     this.defaultConfig.setProperty("STARS4_SPEED", "5");
-    
-    //TODO (play with doppler effect? Use config or random?)
-    this.defaultConfig.setProperty("STARS1_COLOR", "30");
-    this.defaultConfig.setProperty("STARS2_COLOR", "150");
-    this.defaultConfig.setProperty("STARS3_COLOR", "200");
-    this.defaultConfig.setProperty("STARS4_COLOR", "80");
 
     //midi controller specific, usually 255 but our Planck caps earlier
     this.defaultConfig.setProperty("MAX_VELOCITY", "100");
@@ -39,6 +41,8 @@ public class SuperluminalMode extends Mode {
     stroke(0, 255, 0);
     stars = new ArrayList<Star>();
     if(this.getIntProp("BG_STARS") == 0) { bgFlow = false; }
+    //Override Drawplanck HSB mode
+    colorMode(RGB);
   }
 
   //Create stars when a sensor was pressed and keep them moving
@@ -51,9 +55,17 @@ public class SuperluminalMode extends Mode {
     //create constant stars flow in background if config ON
     if(bgFlow) {
         for (int i = 0; i < this.getIntProp("BG_STARS_NUMBER"); i++) {
+          //set color with smooth random
+          int randomStartRed = this.getIntProp("STARS_START_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
+          int randomEndRed = this.getIntProp("STARS_END_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
+          color startCol = color(randomStartRed,this.getIntProp("STARS_START_COLOR_G"),this.getIntProp("STARS_START_COLOR_B"));
+          color endCol = color(randomEndRed,this.getIntProp("STARS_END_COLOR_G"),this.getIntProp("STARS_END_COLOR_B"));
+          //create star
           stars.add(new Star(
             0, //do not grow
             this.getIntProp("BG_STARS_SPEED"),
+            startCol,
+            endCol,
             this.getIntProp("STAR_THICKNESS")
           ));
         }
@@ -75,6 +87,14 @@ public class SuperluminalMode extends Mode {
         starGrowFactor = this.getFloatProp("STARS"+starIdx+"_GROW_FACTOR");
         starSpeed = this.getIntProp("STARS"+starIdx+"_SPEED");
 
+        //set color with smooth random
+        int randomStartRed = this.getIntProp("STARS_START_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
+        int randomEndRed = this.getIntProp("STARS_END_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
+        println("rand start:"+randomStartRed);
+        println("rand end:"+randomEndRed);
+        color startCol = color(randomStartRed,this.getIntProp("STARS_START_COLOR_G"),this.getIntProp("STARS_START_COLOR_B"));
+        color endCol = color(randomEndRed,this.getIntProp("STARS_END_COLOR_G"),this.getIntProp("STARS_END_COLOR_B"));
+
         //create as much stars as configured for this pad
         //related to pad velocity
         starNumber *= padVelocity*this.getFloatProp("VELOCITY_FACTOR");
@@ -82,6 +102,8 @@ public class SuperluminalMode extends Mode {
           stars.add(new Star(
             starGrowFactor,
             starSpeed,
+            startCol,
+            endCol,
             this.getIntProp("STAR_THICKNESS"))
           );
         }
@@ -89,17 +111,8 @@ public class SuperluminalMode extends Mode {
         //Trigger stars bg flow on/off
         Pad pad = pads.get(padIdx);
         if (pad.name == "BOTTOM_LEFT_NOTE" && pressCounter.get(padIdx) >= this.getIntProp("BG_STARS_TRIGGER_PRESSES")) {
-            if(bgFlow) {
-              println("Background stars OFF");
-              bgFlow = false;
-              //TODO check why this doesn't work - workaround with var bgFlow
-              //this.defaultConfig.setProperty("BG_STARS", "0");
-            } else {
-              println("Background stars ON");
-              bgFlow = true;
-              //TODO check why this doesn't work - workaround with var bgFlow
-              //this.defaultConfig.setProperty("BG_STARS", "1");
-            }
+            if(bgFlow) { bgFlow = false; }
+            else { bgFlow = true; }
             //reset pad presses counter
             pressCounter.set(padIdx, 0);
         }
@@ -144,9 +157,10 @@ private class Star {
   private float growfactor;
   private float starThickness;
   private float rad;
-  private int circleColor = 0;
+  private color circleColor = color(0, 0, 0);
+  private color circleColorEnd = color(255, 255, 255);
 
-  public Star(float starGrowFactor, int speed, int starThickness) {
+  public Star(float starGrowFactor, int speed, int startColor, int endColor, int starThickness) {
 
     this.velocity = new PVector(0,0);
     this.topspeed = speed;
@@ -159,8 +173,8 @@ private class Star {
     this.rad = 1;
     this.growfactor = starGrowFactor;
     this.starThickness = starThickness;
-    // TODO make color change - use config or random?
-    this.circleColor = (int)random(140, 190);
+    this.circleColor = startColor;
+    this.circleColorEnd = endColor;
   }
 
   public void update() {
@@ -174,7 +188,7 @@ private class Star {
     
     // Update size and color of the star
     this.rad = this.rad + this.growfactor;
-    this.circleColor = this.circleColor + 3;
+    this.circleColor = lerpColor(circleColor, circleColorEnd, .05);
       
     // Check if the star is still visible
     if (this.location.x > width+this.rad/2 || this.location.x < -this.rad/2) {
@@ -185,9 +199,8 @@ private class Star {
     }
 
     // Draw the shape
-    stroke(color(this.circleColor, 255, 255));
+    stroke(this.circleColor);
     strokeWeight(this.starThickness);
-    //fill(25);
     ellipse(this.location.x,this.location.y,this.rad, this.rad);
   }
  
