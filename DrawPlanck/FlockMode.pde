@@ -111,6 +111,8 @@ private class WallManager {
 
   public WallManager(int numWalls, int scrollSpeed, int minWallHeight, int safeZone) {
     this.numWalls = numWalls;
+    
+    //subtract by one because first and last wall will always add up to one wallWidth
     this.wallWidth = width/(numWalls-1);
     this.scrollSpeed = scrollSpeed;
     this.minWallHeight = minWallHeight;
@@ -123,22 +125,20 @@ private class WallManager {
     this.bottomWalls = new ArrayList<Integer>();
     int prevTop = height/2 - safeZone;
     int prevBottom = height/2 - safeZone;
-
     for (int i = 0; i < this.numWalls; i++) {
       //Top walls
       //make sure there is continuous path
-      int maxTop = height - (prevBottom + safeZone);
-      int top = constrain((int) random(minWallHeight, maxWallHeight), minWallHeight, maxTop);
+      int maxTopForContinuity = height - (prevBottom + this.safeZone);
+      int top = (int)random(minWallHeight, min( maxWallHeight, maxTopForContinuity));
       this.topWalls.add(top);
       prevTop = top;
 
       //Bottom walls
       //make sure there is continuous path
-      int maxBottom = height - (prevTop + safeZone);
+      int maxBottomForContinuity = height - (prevTop + safeZone);
+      int maxBottomForGap = height - (top + this.safeZone);
       //make sure there is also enough space between top and bottom walls 
-      int bottom = constrain((int) random(minWallHeight, maxWallHeight), 
-        minWallHeight, 
-        min(maxBottom, height - top - this.safeZone));
+      int bottom = (int) random(this.minWallHeight, min(this.maxWallHeight, maxBottomForContinuity, maxBottomForGap));
       this.bottomWalls.add(bottom);
       prevBottom = bottom;
     }
@@ -152,27 +152,28 @@ private class WallManager {
 
   public void scroll() {
     this.xOffset -= this.scrollSpeed;
+    
+    //Create new walls
     if (this.xOffset <= 0) {
-
       //Top walls
       Collections.rotate(this.topWalls, -1);
       int prevBottom = this.bottomWalls.get(this.numWalls - 2);
       //make sure there is continuous path
-      int maxTop = height - (prevBottom + safeZone);
-      int top = constrain((int)random(minWallHeight, maxWallHeight), minWallHeight, maxTop);
+      int maxTopForContinuity = height - (prevBottom + this.safeZone);
+      int top = (int)random(minWallHeight, min( this.maxWallHeight, maxTopForContinuity));
       this.topWalls.set(this.topWalls.size() - 1, top);
 
       //Bottom walls
       Collections.rotate(this.bottomWalls, -1);
       int prevTop = this.topWalls.get(this.numWalls - 2);
       //make sure there is continuous path
-      int maxBottom = height - (prevTop + safeZone);      
+      int maxBottomForContinuity = height - (prevTop + this.safeZone);
+      int maxBottomForGap = height - (top + this.safeZone);
       //make sure there is also enough space between top and bottom walls 
-      int bottom = constrain((int)random(this.minWallHeight, this.maxWallHeight), 
-        this.minWallHeight, 
-        min(maxBottom, height - top - this.safeZone));
+      int bottom = (int) random(this.minWallHeight, min(this.maxWallHeight, maxBottomForContinuity, maxBottomForGap));
       this.bottomWalls.set(this.topWalls.size() - 1, bottom);
-
+      
+      println(top, bottom);      
       //reset offset
       this.xOffset = this.wallWidth;
     }
