@@ -1,7 +1,6 @@
 public class SuperluminalMode extends Mode {
 
   private ArrayList<Star> stars;
-  //TODO - workaround for not being able to set config prop from draw loop
   private boolean bgFlow = true;
   private int padVelocity = 1;
   private int redRandomVal = 70;
@@ -56,7 +55,7 @@ public class SuperluminalMode extends Mode {
     //create constant stars flow in background if config ON
     if(bgFlow) {
         for (int i = 0; i < this.getIntProp("BG_STARS_NUMBER"); i++) {
-          //set color
+          //set color with smooth random
           int randomStartRed = this.getIntProp("STARS_START_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
           int randomEndRed = this.getIntProp("STARS_END_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
           color startCol = color(randomStartRed,this.getIntProp("STARS_START_COLOR_G"),this.getIntProp("STARS_START_COLOR_B"));
@@ -88,7 +87,7 @@ public class SuperluminalMode extends Mode {
         starGrowFactor = this.getFloatProp("STARS"+starIdx+"_GROW_FACTOR");
         starSpeed = this.getIntProp("STARS"+starIdx+"_SPEED");
 
-        //set color
+        //set color with smooth random
         int randomStartRed = this.getIntProp("STARS_START_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
         int randomEndRed = this.getIntProp("STARS_END_COLOR_R") + (int) random(-redRandomVal,redRandomVal);
         println("rand start:"+randomStartRed);
@@ -112,17 +111,8 @@ public class SuperluminalMode extends Mode {
         //Trigger stars bg flow on/off
         Pad pad = pads.get(padIdx);
         if (pad.name == "BOTTOM_LEFT_NOTE" && pressCounter.get(padIdx) >= this.getIntProp("BG_STARS_TRIGGER_PRESSES")) {
-            if(bgFlow) {
-              println("Background stars OFF");
-              bgFlow = false;
-              //TODO check why this doesn't work - workaround with var bgFlow
-              //this.defaultConfig.setProperty("BG_STARS", "0");
-            } else {
-              println("Background stars ON");
-              bgFlow = true;
-              //TODO check why this doesn't work - workaround with var bgFlow
-              //this.defaultConfig.setProperty("BG_STARS", "1");
-            }
+            if(bgFlow) { bgFlow = false; }
+            else { bgFlow = true; }
             //reset pad presses counter
             pressCounter.set(padIdx, 0);
         }
