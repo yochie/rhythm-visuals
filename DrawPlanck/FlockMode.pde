@@ -1,11 +1,15 @@
+import java.util.Collections;
+
 public class FlockMode extends Mode {
 
   private Flock flock;
 
+  private WallManager wallManager;
+
   private int newXOffset = 0;
   private int newYOffset = 0;
-  private int currentX = width/2;
-  private int currentY = height/2;
+  private int currentX;
+  private int currentY;
 
   public FlockMode() {
     //set defaults used by loadConfigFrom
@@ -15,6 +19,12 @@ public class FlockMode extends Mode {
     this.defaultConfig.setProperty("BOTTOM_LEFT_NOTE", "LEFT");
     this.defaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "RIGHT");
     this.defaultConfig.setProperty("MOVE_SPEED", "25");
+    this.defaultConfig.setProperty("SCROLL_SPEED", "5");
+    this.defaultConfig.setProperty("PRESSES_FOR_BOID", "2");
+    this.defaultConfig.setProperty("NUM_WALLS", "8");
+    this.defaultConfig.setProperty("MIN_WALL_HEIGHT", "50");
+    this.defaultConfig.setProperty("SAFE_ZONE", "40");
+
 
 
     //sets loaded config
@@ -22,30 +32,41 @@ public class FlockMode extends Mode {
     println("Flock config: ");
     println(this.loadedConfig);
   }
+
   public void setup() {
     flock = new Flock();
     // Add an initial set of boids into the system
     for (int i = 0; i < this.getIntProp("MAX_FLOCK_SIZE"); i++) {
       flock.addBoid(new Boid(width/2, height/2));
     }
+
+    this.wallManager = new WallManager(this.getIntProp("NUM_WALLS"), this.getIntProp("SCROLL_SPEED"), this.getIntProp("MIN_WALL_HEIGHT"), this.getIntProp("SAFE_ZONE"));
+    currentX = width/2;
+    currentY = height/2;
   }
 
   public void draw() {
+    for (int padIndex = 0; padIndex < numPads; padIndex++) {
+      if (pressCounter.get(padIndex) % 2 == 0 && padWasPressed.get(padIndex) && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
+        flock.addBoid(new Boid(width/2, height/2));
+      }
+    }
     int xTarget = constrain(currentX + newXOffset, 100, width - 100);
     int yTarget = constrain(currentY + newYOffset, 100, height -100);
-    
+
     stroke(0, 255, 255);
     ellipse(xTarget, yTarget, 10, 10);
 
-    flock.run(xTarget, yTarget);
+    this.flock.run(xTarget, yTarget);
+    this.wallManager.run(this.flock);
 
     //update cursor
-    currentX = xTarget;
-    currentY = yTarget;
+    this.currentX = xTarget;
+    this.currentY = yTarget;
 
     //reset midi input offsets
-    newXOffset = 0;
-    newYOffset = 0;
+    this.newXOffset = 0;
+    this.newYOffset = 0;
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
@@ -68,6 +89,125 @@ public class FlockMode extends Mode {
         this.newXOffset += this.getIntProp("MOVE_SPEED");
         break;
       }
+    }
+  }
+}
+// The Walls (a list of Wall objects)
+private class WallManager {
+  private int numWalls;
+  private int scrollSpeed;  
+  private int minWallHeight;
+  private int maxWallHeight;
+  private int xOffset;
+  private List<Integer> topWalls;
+  private List<Integer> bottomWalls;
+  private int wallWidth;
+  private int safeZone;
+
+  public WallManager(int numWalls, int scrollSpeed, int minWallHeight, int safeZone) {
+    this.numWalls = numWalls;
+    this.wallWidth = width/(numWalls-1);
+    this.scrollSpeed = scrollSpeed;
+    this.minWallHeight = minWallHeight;
+    this.maxWallHeight = height/2;
+    this.xOffset = this.wallWidth;
+    this.safeZone = safeZone;
+
+    //initialize walls
+    this.topWalls = new ArrayList<Integer>();
+    this.bottomWalls = new ArrayList<Integer>();
+    int prevTop = height/2 - safeZone;
+    int prevBottom = height/2 - safeZone;
+
+    for (int i = 0; i < this.numWalls; i++) {
+      //Top walls
+      //make sure there is continuous path
+      int maxTop = height - (prevBottom + safeZone);
+      int top = constrain((int) random(minWallHeight, maxWallHeight), minWallHeight, maxTop);
+      this.topWalls.add(top);
+      prevTop = top;
+
+      //Bottom walls
+      //make sure there is continuous path
+      int maxBottom = height - (prevTop + safeZone);
+      //make sure there is also enough space between top and bottom walls 
+      int bottom = constrain((int) random(minWallHeight, maxWallHeight), 
+        minWallHeight, 
+        min(maxBottom, height - top - this.safeZone));
+      this.bottomWalls.add(bottom);
+      prevBottom = bottom;
+    }
+  }
+
+  public void run(Flock f) {
+    this.scroll();
+    this.collide(f);
+    this.render();
+  }
+
+  public void scroll() {
+    this.xOffset -= this.scrollSpeed;
+    if (this.xOffset <= 0) {
+
+      //Top walls
+      Collections.rotate(this.topWalls, -1);
+      int prevBottom = this.bottomWalls.get(this.numWalls - 2);
+      //make sure there is continuous path
+      int maxTop = height - (prevBottom + safeZone);
+      int top = constrain((int)random(minWallHeight, maxWallHeight), minWallHeight, maxTop);
+      this.topWalls.set(this.topWalls.size() - 1, top);
+
+      //Bottom walls
+      Collections.rotate(this.bottomWalls, -1);
+      int prevTop = this.topWalls.get(this.numWalls - 2);
+      //make sure there is continuous path
+      int maxBottom = height - (prevTop + safeZone);      
+      //make sure there is also enough space between top and bottom walls 
+      int bottom = constrain((int)random(this.minWallHeight, this.maxWallHeight), 
+        this.minWallHeight, 
+        min(maxBottom, height - top - this.safeZone));
+      this.bottomWalls.set(this.topWalls.size() - 1, bottom);
+
+      //reset offset
+      this.xOffset = this.wallWidth;
+    }
+  }
+
+  public void render() {
+
+    //first (partial) walls
+    rect(0, 0, this.xOffset, this.topWalls.get(0));
+    rect(0, height - this.bottomWalls.get(0), this.xOffset, this.bottomWalls.get(0));
+
+    //full walls
+    for (int i = 1; i < this.numWalls - 1; i++) {
+      int fromTop = this.topWalls.get(i);
+      int fromBottom = this.bottomWalls.get(i);
+
+      rect((i - 1) * this.wallWidth + xOffset, 0, this.wallWidth, fromTop);
+      rect((i - 1) * this.wallWidth + xOffset, height - fromBottom, this.wallWidth, fromBottom);
+    }
+
+    //last (partial) walls
+    int lastWidth = this.wallWidth - this.xOffset;
+    rect(width - lastWidth, 0, lastWidth, this.topWalls.get(this.numWalls - 1));
+    rect(width - lastWidth, height - this.bottomWalls.get(this.numWalls - 1), lastWidth, this.bottomWalls.get(this.numWalls - 1));
+  }
+
+  public void collide(Flock f) {
+    ArrayList<Boid> toRemove = new ArrayList<Boid>();
+    for (Boid b : f.boids) {
+      int wallIndex = (int) ((b.position.x + (this.wallWidth - this.xOffset)) / this.wallWidth);
+      if (this.topWalls.get(wallIndex) > b.position.y) {
+        //delete boid
+        toRemove.add(b);
+      } else if (this.bottomWalls.get(wallIndex) > height - b.position.y) {
+        //delete boid
+        toRemove.add(b);
+      }
+    }
+    for (Boid b : toRemove) {
+      f.boids.remove(b);
     }
   }
 }
