@@ -19,6 +19,12 @@ public class FlockMode extends Mode {
     this.defaultConfig.setProperty("BOTTOM_LEFT_NOTE", "LEFT");
     this.defaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "RIGHT");
     this.defaultConfig.setProperty("MOVE_SPEED", "25");
+    this.defaultConfig.setProperty("SCROLL_SPEED", "5");
+    this.defaultConfig.setProperty("PRESSES_FOR_BOID", "2");
+    this.defaultConfig.setProperty("NUM_WALLS", "8");
+    this.defaultConfig.setProperty("MIN_WALL_HEIGHT", "50");
+    this.defaultConfig.setProperty("SAFE_ZONE", "40");
+
 
 
     //sets loaded config
@@ -34,14 +40,14 @@ public class FlockMode extends Mode {
       flock.addBoid(new Boid(width/2, height/2));
     }
 
-    this.wallManager = new WallManager(8, 1, 50, 40);
+    this.wallManager = new WallManager(this.getIntProp("NUM_WALLS"), this.getIntProp("SCROLL_SPEED"), this.getIntProp("MIN_WALL_HEIGHT"), this.getIntProp("SAFE_ZONE"));
     currentX = width/2;
     currentY = height/2;
   }
 
   public void draw() {
-    for (int padIndex = 0; padIndex < numPads; padIndex++){
-      if (pressCounter.get(padIndex) % 2 == 0 && padWasPressed.get(padIndex)){
+    for (int padIndex = 0; padIndex < numPads; padIndex++) {
+      if (pressCounter.get(padIndex) % 2 == 0 && padWasPressed.get(padIndex) && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
         flock.addBoid(new Boid(width/2, height/2));
       }
     }
@@ -111,19 +117,20 @@ private class WallManager {
     this.topWalls = new ArrayList<Integer>();
     this.bottomWalls = new ArrayList<Integer>();
     int prevTop = height/2 - safeZone;
-    ;
     int prevBottom = height/2 - safeZone;
 
     for (int i = 0; i < this.numWalls; i++) {
+      //Top walls
       //make sure there is continuous path
       int maxTop = height - (prevBottom + safeZone);
       int top = constrain((int) random(minWallHeight, maxWallHeight), minWallHeight, maxTop);
       this.topWalls.add(top);
       prevTop = top;
 
-
+      //Bottom walls
       //make sure there is continuous path
       int maxBottom = height - (prevTop + safeZone);
+      //make sure there is also enough space between top and bottom walls 
       int bottom = constrain((int) random(minWallHeight, maxWallHeight), 
         minWallHeight, 
         min(maxBottom, height - top - this.safeZone));
@@ -141,20 +148,21 @@ private class WallManager {
   public void scroll() {
     this.xOffset -= this.scrollSpeed;
     if (this.xOffset <= 0) {
+
+      //Top walls
       Collections.rotate(this.topWalls, -1);
       int prevBottom = this.bottomWalls.get(this.numWalls - 2);
-
       //make sure there is continuous path
       int maxTop = height - (prevBottom + safeZone);
       int top = constrain((int)random(minWallHeight, maxWallHeight), minWallHeight, maxTop);
       this.topWalls.set(this.topWalls.size() - 1, top);
 
-
+      //Bottom walls
       Collections.rotate(this.bottomWalls, -1);
       int prevTop = this.topWalls.get(this.numWalls - 2);
-
       //make sure there is continuous path
-      int maxBottom = height - (prevTop + safeZone);
+      int maxBottom = height - (prevTop + safeZone);      
+      //make sure there is also enough space between top and bottom walls 
       int bottom = constrain((int)random(this.minWallHeight, this.maxWallHeight), 
         this.minWallHeight, 
         min(maxBottom, height - top - this.safeZone));
@@ -190,16 +198,14 @@ private class WallManager {
     ArrayList<Boid> toRemove = new ArrayList<Boid>();
     for (Boid b : f.boids) {
       int wallIndex = (int) ((b.position.x + (this.wallWidth - this.xOffset)) / this.wallWidth);
-      
-      if (this.topWalls.get(wallIndex) > b.position.y){
+      if (this.topWalls.get(wallIndex) > b.position.y) {
         //delete boid
         toRemove.add(b);
-      } else if (this.bottomWalls.get(wallIndex) > height - b.position.y){
+      } else if (this.bottomWalls.get(wallIndex) > height - b.position.y) {
         //delete boid
         toRemove.add(b);
       }
     }
-    
     for (Boid b : toRemove) {
       f.boids.remove(b);
     }
