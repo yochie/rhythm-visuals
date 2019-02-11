@@ -167,7 +167,12 @@ void draw() {
         currentModeIndex++;
         if (currentModeIndex >= modes.size()) {          
           currentModeIndex = 0;
-        }        
+        }
+        //reset colors
+        colorMode(HSB);
+        fill(0, 0, 255);
+        noFill();
+        stroke(0, 0, 255);
         currentMode = modes.get(currentModeIndex);
         pressCounter.set(padIndex, 0);
         currentMode.setup();
