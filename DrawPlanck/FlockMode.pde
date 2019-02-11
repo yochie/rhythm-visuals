@@ -47,7 +47,7 @@ public class FlockMode extends Mode {
 
   public void draw() {
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
-      if (pressCounter.get(padIndex) % 2 == 0 && padWasPressed.get(padIndex) && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
+      if (pressCounter.get(padIndex) % this.getIntProp("PRESSES_FOR_BOID") == 0 && padWasPressed.get(padIndex) && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
         flock.addBoid(new Boid(width/2, height/2));
       }
     }
