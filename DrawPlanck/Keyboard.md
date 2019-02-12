@@ -9,6 +9,7 @@ Sends configured keyboard and mouse events.
 ## Config
 ### Mouse
 SCROLL_NOTE : Note that will trigger single mouse scroll downwards.
+SCROLL_BACK_NOTE : Note that will trigger single mouse scroll upwards.
 
 ### Keyboard
 
