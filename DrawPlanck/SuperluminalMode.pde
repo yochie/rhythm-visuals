@@ -75,6 +75,7 @@ public class SuperluminalMode extends Mode {
 
       //create stars
       if (padWasPressed.get(padIdx)) {
+        this.resetPressed(padIdx);
 
         //set stars params depending on pad
         int starIdx = padIdx + 1;

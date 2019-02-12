@@ -2,8 +2,8 @@ public class WordMode extends Mode {
 
   private List<String> words = new ArrayList<String>();
 
-  private int pressCount = 0;
-  private int wordIndex = 0;
+  private int pressCount;
+  private int wordIndex;
   private int textX;
   private int textY;
   private PFont font;
@@ -36,9 +36,15 @@ public class WordMode extends Mode {
     this.alpha = 255;
     this.textX = (int) (width/2 + random(-75, 75));
     this.textY = (int) (height/2 + random(-75, 75));
+    
+    this.pressCount = 0;
+    this.wordIndex = (int) (random(this.words.size()));
+
   }
 
   public void draw() {
+    this.noModePressChecking();
+    
     //change word
     if (this.pressCount == this.getIntProp("PRESSES_FOR_WORD_SWITCH")) {    
       this.pressCount = 0;

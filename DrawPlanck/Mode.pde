@@ -93,4 +93,18 @@ public abstract class Mode {
     }
     return this.loadedConfig.getProperty(propName);
   }
+  
+  //resets global padWasPressed flags to false
+  //IMPORTANT: Call this ASAP after checking if pad was pressed.
+  //Any pad presses between checking flags and calling this will be ignored.
+  //If you don't need to check padWasPressed, reset alls flags at start of draw().
+  public void resetPressed (int padIndex){
+    padWasPressed.set(padIndex, false);
+  }
+  
+  public void noModePressChecking (){
+    for (int padIndex = 0; padIndex < numPads; padIndex++){
+      resetPressed(padIndex);
+    }
+  }
 }

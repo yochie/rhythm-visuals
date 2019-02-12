@@ -176,18 +176,15 @@ void draw() {
         currentMode = modes.get(currentModeIndex);
         pressCounter.set(padIndex, 0);
         currentMode.setup();
-        //reset pressed flag before drawing new mode
-        padWasPressed.set(padIndex, false);
+        //reset all pressed flags before drawing new mode
+        for (int anyPad = 0; anyPad < numPads; anyPad++) {
+          padWasPressed.set(anyPad, false);
+        }
       }
     }
   }
 
   currentMode.draw();
-
-  //reset pressed flag
-  for (int padIndex = 0; padIndex < numPads; padIndex++) {
-    padWasPressed.set(padIndex, false);
-  }
 }
 
 void loadGlobalConfigFrom(String configFileName) {
