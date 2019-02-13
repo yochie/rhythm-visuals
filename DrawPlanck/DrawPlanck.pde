@@ -56,6 +56,12 @@ ArrayList<Boolean> padWasPressed;
 //switching mode resets the count on all pads
 ArrayList<Integer> pressCounter; 
 
+
+//holds most recent time pressed switching pad
+//used to calculate press duration
+long switchingPadHeldSince = Long.MAX_VALUE;
+boolean switchingPadHeld = false;
+
 void setup() {
   size(800, 600, P2D);
   //fullScreen(P2D);
@@ -63,7 +69,7 @@ void setup() {
 
   globalDefaultConfig.setProperty("LOGO_SCALING", "0.05");
   globalDefaultConfig.setProperty("MIDI_DEVICE", "0");
-  globalDefaultConfig.setProperty("PRESSES_FOR_MODE_SWITCH", "3");
+  globalDefaultConfig.setProperty("MILLISECONDS_FOR_MODE_SWITCH", "3000");
   globalDefaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "80");
   globalDefaultConfig.setProperty("BOTTOM_LEFT_NOTE", "84");
   globalDefaultConfig.setProperty("TOP_LEFT_NOTE", "82");
@@ -72,7 +78,7 @@ void setup() {
 
   //read config file
   loadGlobalConfigFrom("config.properties");
-  
+
   //parse auxiliary notes list from config
   ArrayList<Integer> auxPadNotes = new ArrayList<Integer>(); 
   List<String> string_aux_pad_notes = Arrays.asList(globalLoadedConfig.getProperty("AUX_PAD_NOTES").split("\\s*,\\s*"));
@@ -148,7 +154,7 @@ void draw() {
   //Redraw bg to erase previous frame
   background(pg);
 
-  //Increment presses and check for mode switch
+  //Increment synchronous press counters (don't check pressCounter asynchronously)
   for (int padIndex = 0; padIndex < numPads; padIndex++) {
     Pad pad = pads.get(padIndex);
     if (padWasPressed.get(padIndex)) {
@@ -158,29 +164,29 @@ void draw() {
           pressCounter.set(otherpad, 0);
         }
       }
-
       //increment own presscounter
       pressCounter.set(padIndex, pressCounter.get(padIndex) + 1);
+    }
+  }
 
-      //switch modes
-      if (pad.name == "TOP_LEFT_NOTE" && pressCounter.get(padIndex) >= getIntProp("PRESSES_FOR_MODE_SWITCH")) {
-        currentModeIndex++;
-        if (currentModeIndex >= modes.size()) {          
-          currentModeIndex = 0;
-        }
-        //reset colors
-        colorMode(HSB);
-        fill(0, 0, 255);
-        noFill();
-        stroke(0, 0, 255);
-        currentMode = modes.get(currentModeIndex);
-        pressCounter.set(padIndex, 0);
-        currentMode.setup();
-        //reset all pressed flags before drawing new mode
-        for (int anyPad = 0; anyPad < numPads; anyPad++) {
-          padWasPressed.set(anyPad, false);
-        }
-      }
+  //switch modes
+  if (switchingPadHeld && System.currentTimeMillis() - switchingPadHeldSince >= this.getIntProp("MILLISECONDS_FOR_MODE_SWITCH")) {
+    switchingPadHeldSince = System.currentTimeMillis();
+    currentModeIndex++;
+    if (currentModeIndex >= modes.size()) {          
+      currentModeIndex = 0;
+    }
+    //reset colors
+    colorMode(HSB);
+    fill(0, 0, 255);
+    noFill();
+    stroke(0, 0, 255);
+    currentMode = modes.get(currentModeIndex);
+    currentMode.setup();
+    //reset all pressed flags before drawing new mode
+    for (int padIndex = 0; padIndex < numPads; padIndex++) {
+      padWasPressed.set(padIndex, false);
+      pressCounter.set(padIndex, 0);
     }
   }
 
@@ -245,7 +251,7 @@ void midiMessage(MidiMessage message) {
   int padIndex = -1;
   Pad pad = null;
 
-  //check if note one, note off or control change message
+  //Parse messages
   if ((messageType & 0xF0) == 0x80 || (messageType & 0xF0) == 0x90 || (messageType & 0xF0) == 0xB0) {
     channel = (int) (messageType & 0x0F);
 
@@ -254,11 +260,11 @@ void midiMessage(MidiMessage message) {
       note = (int)(message.getMessage()[1] & 0xFF);
       vel = (int)(message.getMessage()[2] & 0xFF);
       padIndex = Pad.noteToPad(note);
-      
-      if (padIndex >= 0){
+
+      if (padIndex >= 0) {
         pad = pads.get(padIndex);
       }
-      
+
       println("channel: " + channel + " note: " + note + " vel: "+ vel + " pad: " + padIndex);
     }
 
@@ -270,8 +276,18 @@ void midiMessage(MidiMessage message) {
     }
   }
 
+  //Set switching pad state
+  //used for mode switch
+  if (pad != null && pad.name == "TOP_LEFT_NOTE") {
+    if (vel > 0) {
+      switchingPadHeld = true;
+      switchingPadHeldSince = System.currentTimeMillis();
+    } else if (vel == 0) {
+      switchingPadHeld = false;
+    }
+  }
+
   //register pad press
-  //used for mode switch and can be used within modes to check for pad presses
   if (padIndex >= 0 && (vel > 0)) {
     padWasPressed.set(padIndex, true);
   }

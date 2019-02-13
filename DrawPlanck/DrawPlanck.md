@@ -10,7 +10,7 @@ Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Al
 - Maintaining the global pressCounter list that stores ints ordered by pad index indicating consecutive presses of a single pad (pressing any pad resets count on all others)
 
 ## Triggers
-- Tapping consecutively for a configured number of times on the TOP_LEFT_NOTE pad.
+- Holding pressed for a configured number of time the TOP_LEFT_NOTE pad.
 
 ## Config
 ### Midi
@@ -20,7 +20,7 @@ Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Al
 - LOGO_SCALING : Multiplier for logo size.
 
 ### Mode switching
-- PRESSES_FOR_MODE_SWITCH : Number of consecutive presses on TOP_LEFT_NOTE pad to trigger mode switch
+- MILLISECONDS_FOR_MODE_SWITCH : Number of milliseconds to hold TOP_LEFT_NOTE to trigger mode switch.
 
 ### Pads
 - BOTTOM_RIGHT_NOTE : MIDI note number associated to this named pad.
