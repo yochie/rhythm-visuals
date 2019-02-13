@@ -180,8 +180,10 @@ private class WallManager {
 
     //Create new walls
     if (this.xOffset <= 0) {
-      //Top walls
       Collections.rotate(this.topWalls, -1);
+      Collections.rotate(this.bottomWalls, -1);
+      
+      //Top walls
       int prevBottom = this.bottomWalls.get(this.numWalls - 2);
       //make sure there is continuous path
       int maxTopForContinuity = height - (prevBottom + this.safeZone);
@@ -189,7 +191,6 @@ private class WallManager {
       this.topWalls.set(this.topWalls.size() - 1, top);
 
       //Bottom walls
-      Collections.rotate(this.bottomWalls, -1);
       int prevTop = this.topWalls.get(this.numWalls - 2);
       //make sure there is continuous path
       int maxBottomForContinuity = height - (prevTop + this.safeZone);
