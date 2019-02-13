@@ -102,11 +102,11 @@ public class FlockMode extends Mode {
       if (asyncPressCounter.get(pad.index) % this.getIntProp("PRESSES_FOR_TARGET_MOVE") == 0) {
         switch (this.getStringProp(pad.name)) {
         case "UP" :
-          this.newYOffset += this.getIntProp("MOVE_SPEED");
+          this.newYOffset -= this.getIntProp("MOVE_SPEED");
           break;
 
         case "DOWN" :
-          this.newYOffset -= this.getIntProp("MOVE_SPEED");
+          this.newYOffset += this.getIntProp("MOVE_SPEED");
           break;
 
         case "LEFT" :
