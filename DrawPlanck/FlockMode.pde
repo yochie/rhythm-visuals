@@ -207,7 +207,6 @@ private class WallManager {
   }
 
   public void render() {
-
     //first (partial) walls
     rect(0, 0, this.xOffset, this.topWalls.get(0));
     rect(0, height - this.bottomWalls.get(0), this.xOffset, this.bottomWalls.get(0));
@@ -223,8 +222,8 @@ private class WallManager {
 
     //last (partial) walls
     int lastWidth = this.wallWidth - this.xOffset;
-    rect(width - lastWidth, 0, lastWidth, this.topWalls.get(this.numWalls - 1));
-    rect(width - lastWidth, height - this.bottomWalls.get(this.numWalls - 1), lastWidth, this.bottomWalls.get(this.numWalls - 1));
+    rect(width - lastWidth - 1, 0, lastWidth, this.topWalls.get(this.numWalls - 1));
+    rect(width - lastWidth - 1, height - this.bottomWalls.get(this.numWalls - 1), lastWidth, this.bottomWalls.get(this.numWalls - 1));
   }
 
   public void collide(Flock f) {

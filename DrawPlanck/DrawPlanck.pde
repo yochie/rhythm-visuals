@@ -63,8 +63,8 @@ long switchingPadHeldSince = Long.MAX_VALUE;
 boolean switchingPadHeld = false;
 
 void setup() {
-  size(800, 600, P2D);
-  //fullScreen(P2D);
+  //size(800, 600, P2D);
+  fullScreen(P2D);
   frameRate(30);
 
   globalDefaultConfig.setProperty("LOGO_SCALING", "0.05");
