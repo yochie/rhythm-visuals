@@ -25,6 +25,7 @@ public class FlockMode extends Mode {
     this.defaultConfig.setProperty("NUM_WALLS", "8");
     this.defaultConfig.setProperty("MIN_WALL_HEIGHT", "50");
     this.defaultConfig.setProperty("SAFE_ZONE", "40");
+    this.defaultConfig.setProperty("PRESSES_FOR_TARGET_MOVE", "2");
 
 
 
@@ -98,7 +99,7 @@ public class FlockMode extends Mode {
       }
       
       //Move target
-      if (asyncPressCounter.get(pad.index) % 2 == 0) {
+      if (asyncPressCounter.get(pad.index) % this.getIntProp("PRESSES_FOR_TARGET_MOVE") == 0) {
         switch (this.getStringProp(pad.name)) {
         case "UP" :
           this.newYOffset += this.getIntProp("MOVE_SPEED");

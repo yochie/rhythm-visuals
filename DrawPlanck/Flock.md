@@ -11,6 +11,7 @@ Moves flock of boids across the screen based on midi inputs. Also generates scro
 - MAX_FLOCK_SIZE : Maximum number of boids in flock.
 - PRESSES_FOR_BOID : Number of consecutive presses on any one pad to generate new boid.
 - MOVE_SPEED : Target moving speed.
+- PRESSES_FOR_TARGET_MOVE : Number of consecutive presses to move the flocks target in configured direction.
 
 ### Directions
 - TOP_RIGHT_NOTE : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
