@@ -75,9 +75,8 @@ public class FlockMode extends Mode {
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
-
-    if (pad != null && this.loadedConfig.getProperty(pad.name) != null ) {
-      switch (this.loadedConfig.getProperty(pad.name)) {
+    if (pad != null && this.getStringProp(pad.name) != null && (pressCounter.get(pad.index) % 2 == 0) && vel > 0) {
+      switch (this.getStringProp(pad.name)) {
       case "UP" :
         this.newYOffset += this.getIntProp("MOVE_SPEED");
         break;
