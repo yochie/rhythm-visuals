@@ -59,7 +59,7 @@ public class FlockMode extends Mode {
       if (padWasPressed.get(padIndex)) {
         this.resetPressed(padIndex);
         if (pressCounter.get(padIndex) % this.getIntProp("PRESSES_FOR_BOID") == 0 && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
-          flock.addBoid(new Boid(width/2, height/2));
+          flock.addBoid(new Boid(currentX, currentY));
         }
       }
     }
@@ -141,7 +141,7 @@ private class WallManager {
     this.wallWidth = width/(numWalls-1);
     this.scrollSpeed = scrollSpeed;
     this.minWallHeight = minWallHeight;
-    this.maxWallHeight = height/2;
+    this.maxWallHeight = height - minWallHeight - safeZone;
     this.xOffset = this.wallWidth;
     this.safeZone = safeZone;
 
@@ -156,7 +156,6 @@ private class WallManager {
       int maxTopForContinuity = height - (prevBottom + this.safeZone);
       int top = (int)random(minWallHeight, min( maxWallHeight, maxTopForContinuity));
       this.topWalls.add(top);
-      prevTop = top;
 
       //Bottom walls
       //make sure there is continuous path
@@ -165,6 +164,8 @@ private class WallManager {
       //make sure there is also enough space between top and bottom walls 
       int bottom = (int) random(this.minWallHeight, min(this.maxWallHeight, maxBottomForContinuity, maxBottomForGap));
       this.bottomWalls.add(bottom);
+            
+      prevTop = top;
       prevBottom = bottom;
     }
   }
@@ -314,7 +315,7 @@ private class Boid {
     sep.mult(1.5);
     ali.mult(1.0);
     coh.mult(1.0);
-    gid.mult(2.0);
+    gid.mult(3.0);
     // Add the force vectors to acceleration
     applyForce(sep);
     applyForce(ali);
