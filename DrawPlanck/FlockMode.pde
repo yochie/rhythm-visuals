@@ -43,12 +43,17 @@ public class FlockMode extends Mode {
     this.wallManager = new WallManager(this.getIntProp("NUM_WALLS"), this.getIntProp("SCROLL_SPEED"), this.getIntProp("MIN_WALL_HEIGHT"), this.getIntProp("SAFE_ZONE"));
     currentX = width/2;
     currentY = height/2;
+    
+    println("MODE: Flock");
   }
 
   public void draw() {
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
-      if (pressCounter.get(padIndex) % this.getIntProp("PRESSES_FOR_BOID") == 0 && padWasPressed.get(padIndex) && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
-        flock.addBoid(new Boid(width/2, height/2));
+      if (padWasPressed.get(padIndex)) {
+        this.resetPressed(padIndex);
+        if (pressCounter.get(padIndex) % this.getIntProp("PRESSES_FOR_BOID") == 0 && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
+          flock.addBoid(new Boid(width/2, height/2));
+        }
       }
     }
     int xTarget = constrain(currentX + newXOffset, 100, width - 100);
@@ -57,7 +62,7 @@ public class FlockMode extends Mode {
     //red target
     stroke(color(255, 255, 255));
     ellipse(xTarget, yTarget, 10, 10);
-    
+
     //reset white stroke
     stroke(color(0, 0, 255));
 
@@ -96,6 +101,7 @@ public class FlockMode extends Mode {
     }
   }
 }
+
 // The Walls (a list of Wall objects)
 private class WallManager {
   private int numWalls;
@@ -110,7 +116,7 @@ private class WallManager {
 
   public WallManager(int numWalls, int scrollSpeed, int minWallHeight, int safeZone) {
     this.numWalls = numWalls;
-    
+
     //subtract by one because first and last wall will always add up to one wallWidth
     this.wallWidth = width/(numWalls-1);
     this.scrollSpeed = scrollSpeed;
@@ -151,7 +157,7 @@ private class WallManager {
 
   public void scroll() {
     this.xOffset -= this.scrollSpeed;
-    
+
     //Create new walls
     if (this.xOffset <= 0) {
       //Top walls
@@ -171,8 +177,8 @@ private class WallManager {
       //make sure there is also enough space between top and bottom walls 
       int bottom = (int) random(this.minWallHeight, min(this.maxWallHeight, maxBottomForContinuity, maxBottomForGap));
       this.bottomWalls.set(this.topWalls.size() - 1, bottom);
-      
-      println(top, bottom);      
+
+      //println(top, bottom);      
       //reset offset
       this.xOffset = this.wallWidth;
     }

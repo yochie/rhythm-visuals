@@ -12,7 +12,7 @@ const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 /*SERIAL CONFIG*/
 
 //print readings to arduino plotter
-const boolean DEBUG = true;
+const boolean DEBUG = false;
 
 //Serial communication Hz
 const int BAUD_RATE = 115200;
@@ -34,7 +34,7 @@ const int PROGRAM = 0;
 
 /*MOTOR CONFIG*/
 
-const boolean WITH_MOTORS = true;
+const boolean WITH_MOTORS = false;
 const int NUM_MOTORS = 2;
 
 //digital pin numbers for each sensor
@@ -60,28 +60,28 @@ int TAPS_PER_PULSE = 1;
 //Normally 1023 with arduino, but the operational amplifiers
 //used in the sensor circuitry have a  maximum output voltage
 //of 2V when powered at 3.3V
-const int MAX_READING = 675;
+const int MAX_READING = 700;
 
 //MIN_THRESHOLD is used when the baseline is very stable
-const int MIN_THRESHOLD = 150;
+const int MIN_THRESHOLD = 200;
 
 //MAX_THRESHOLD is used when the baseline is very unstable
-const int MAX_THRESHOLD = 150;
+const int MAX_THRESHOLD = 200;
 
 //Used to cap baseline to ensure there is place to jump below MAX_READING
 const int MIN_JUMPING_RANGE = 80;
 
 //Time between threshold traversal and rising() signal
 //Allows for velocity measurment and ignoring very short jumps
-unsigned const long NOTE_VELOCITY_DELAY = 1 * MILLISECOND;
+unsigned const long NOTE_VELOCITY_DELAY = 2 * MILLISECOND;
 
 //Delay in microseconds after sending rising() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_ON_DELAY = 65 * MILLISECOND;
+unsigned const long NOTE_ON_DELAY = 50 * MILLISECOND;
 
 //Delay in microseconds after sending falling() signal
 //for which no more signals are sent for that sensor
-unsigned const long NOTE_OFF_DELAY = 65 * MILLISECOND;
+unsigned const long NOTE_OFF_DELAY = 50 * MILLISECOND;
 
 //Delay in microseconds between sustained() signals
 //Also the delay between rising() and sustained()

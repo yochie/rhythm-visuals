@@ -76,6 +76,8 @@ public class CircleMode extends Mode {
       PShape circle = sensorCircles.get(pad);
 
       if (padWasPressed.get(pad)) {
+        this.resetPressed(pad);
+        
         //scale sensor circles
         circle.resetMatrix();
         circle.scale((float) newWidths.get(pad) / (float) this.getIntProp("MIN_CIRCLE_WIDTH"));
