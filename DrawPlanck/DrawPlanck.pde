@@ -63,7 +63,7 @@ long switchingPadHeldSince = Long.MAX_VALUE;
 boolean switchingPadHeld = false;
 
 void setup() {
-  size(400, 300, P2D);
+  size(300, 400, P2D);
   //fullScreen(P2D);
   frameRate(30);
 

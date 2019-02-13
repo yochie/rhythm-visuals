@@ -7,8 +7,8 @@ public class KeyboardMode extends Mode {
 
   public KeyboardMode() {
     //set defaults used by loadConfigFrom
-    this.defaultConfig.setProperty("SCROLL_NOTE", "80");
-    this.defaultConfig.setProperty("SCROLL_BACK_NOTE", "80");
+    this.defaultConfig.setProperty("SCROLL_NOTE", "85");
+    this.defaultConfig.setProperty("SCROLL_BACK_NOTE", "82");
 
     //sets loaded config
     loadConfigFrom("keyboard_config.properties");
