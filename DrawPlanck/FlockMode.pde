@@ -10,6 +10,7 @@ public class FlockMode extends Mode {
   private int newYOffset = 0;
   private int currentX;
   private int currentY;
+  private ArrayList<Integer> asyncPressCounter;
 
   public FlockMode() {
     //set defaults used by loadConfigFrom
@@ -43,8 +44,13 @@ public class FlockMode extends Mode {
     this.wallManager = new WallManager(this.getIntProp("NUM_WALLS"), this.getIntProp("SCROLL_SPEED"), this.getIntProp("MIN_WALL_HEIGHT"), this.getIntProp("SAFE_ZONE"));
     currentX = width/2;
     currentY = height/2;
-    
+
     println("MODE: Flock");
+
+    asyncPressCounter = new ArrayList<Integer>();
+    for ( int padIndex = 0; padIndex < numPads; padIndex++) {
+      asyncPressCounter.add(0);
+    }
   }
 
   public void draw() {
@@ -80,23 +86,36 @@ public class FlockMode extends Mode {
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
-    if (pad != null && this.getStringProp(pad.name) != null && (pressCounter.get(pad.index) % 2 == 0) && vel > 0) {
-      switch (this.getStringProp(pad.name)) {
-      case "UP" :
-        this.newYOffset += this.getIntProp("MOVE_SPEED");
-        break;
 
-      case "DOWN" :
-        this.newYOffset -= this.getIntProp("MOVE_SPEED");
-        break;
+    if (pad != null && this.getStringProp(pad.name) != null && vel > 0) {
+      //Count consecutive presses on single pad
+      //Similar to pressCounter, but updated by callback instead of in draw()
+      this.asyncPressCounter.set(pad.index, asyncPressCounter.get(pad.index) + 1);
+      for (int otherPad = 0; otherPad < numPads; otherPad++) {
+        if (otherPad != pad.index) {
+          this.asyncPressCounter.set(otherPad, 0);
+        }
+      }
+      
+      //Move target
+      if (asyncPressCounter.get(pad.index) % 2 == 0) {
+        switch (this.getStringProp(pad.name)) {
+        case "UP" :
+          this.newYOffset += this.getIntProp("MOVE_SPEED");
+          break;
 
-      case "LEFT" :
-        this.newXOffset -= this.getIntProp("MOVE_SPEED");
-        break;
+        case "DOWN" :
+          this.newYOffset -= this.getIntProp("MOVE_SPEED");
+          break;
 
-      case "RIGHT" :
-        this.newXOffset += this.getIntProp("MOVE_SPEED");
-        break;
+        case "LEFT" :
+          this.newXOffset -= this.getIntProp("MOVE_SPEED");
+          break;
+
+        case "RIGHT" :
+          this.newXOffset += this.getIntProp("MOVE_SPEED");
+          break;
+        }
       }
     }
   }
