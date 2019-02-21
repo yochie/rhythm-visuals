@@ -17,7 +17,8 @@ Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Al
 - MIDI_DEVICE : Index of midi device to use. See console for list.
 
 ### Background
-- LOGO_SCALING : Multiplier for logo size.
+- LOGO_SCALING : Decimal multiplier for logo size.
+- WITH_BACKGROUND : 0 or 1 to activate background.
 
 ### Mode switching
 - MILLISECONDS_FOR_MODE_SWITCH : Number of milliseconds to hold TOP_LEFT_NOTE to trigger mode switch.

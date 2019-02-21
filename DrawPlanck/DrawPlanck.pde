@@ -75,6 +75,8 @@ void setup() {
   globalDefaultConfig.setProperty("TOP_LEFT_NOTE", "82");
   globalDefaultConfig.setProperty("TOP_RIGHT_NOTE", "85");
   globalDefaultConfig.setProperty("AUX_PAD_NOTES", "");
+  globalDefaultConfig.setProperty("WITH_BACKGROUND", "1");
+
 
   //read config file
   loadGlobalConfigFrom("config.properties");
@@ -126,6 +128,9 @@ void setup() {
   int newWidth = (int)(logo.width * getFloatProp("LOGO_SCALING"));
   int newHeight = (int) (logo.height * getFloatProp("LOGO_SCALING"));
   pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
+  if (getIntProp("WITH_BACKGROUND") == 0) {
+    pg.clear();
+  }
   pg.endDraw();
 
   //global state init
@@ -207,7 +212,7 @@ void loadGlobalConfigFrom(String configFileName) {
 
 int getIntProp(String propName) {
   int toReturn;
-  if (globalLoadedConfig.containsKey(propName)) {
+  if (globalLoadedConfig.getProperty(propName) != null) {
     try {
       toReturn = Integer.parseInt(globalLoadedConfig.getProperty(propName));
     } 
@@ -224,7 +229,7 @@ int getIntProp(String propName) {
 
 float getFloatProp(String propName) {
   float toReturn;
-  if (globalLoadedConfig.containsKey(propName)) {
+  if (globalLoadedConfig.getProperty(propName) != null)  {
     try {
       toReturn = Float.parseFloat(globalLoadedConfig.getProperty(propName));
     } 
@@ -238,6 +243,17 @@ float getFloatProp(String propName) {
   }
   return toReturn;
 }
+
+//returns config string property
+//throws IllegalArgumentException when property not found
+String getStringProp(String propName) {
+  if (globalLoadedConfig.getProperty(propName) == null) {
+    println("Error: Couldn't find requested config var : " + propName);
+    throw(new IllegalArgumentException());
+  }
+  return globalLoadedConfig.getProperty(propName);
+}
+
 
 
 //Called by MidiBus library whenever a new midi message is received
