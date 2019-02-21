@@ -64,7 +64,7 @@ boolean switchingPadHeld = false;
 
 void setup() {
   //size(800, 600, P2D);
-  fullScreen(P2D);
+  fullScreen(P3D);
   frameRate(30);
 
   globalDefaultConfig.setProperty("LOGO_SCALING", "0.05");

@@ -202,7 +202,12 @@ private class Star {
     // Draw the shape
     stroke(this.circleColor);
     strokeWeight(this.starThickness);
-    ellipse(this.location.x,this.location.y,this.rad, this.rad);
+    
+    //ellipse(this.location.x,this.location.y,this.rad, this.rad);
+    pushMatrix();
+    translate(this.location.x,this.location.y);    
+    box(this.rad/2);
+    popMatrix();
   }
  
 }
