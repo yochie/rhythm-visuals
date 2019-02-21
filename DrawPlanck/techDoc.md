@@ -42,3 +42,17 @@ Module
 - 1 module.md par module ,
 
 syntaxe Markdown : https://en.wikipedia.org/wiki/Markdown
+
+
+Tools
+=======
+## For audio output using software synth
+- VMPK http://vmpk.sourceforge.net/#Download - Pour envoyer des messages midi de "Program change" et de "Bank change" qui changent l'instrument. Doit output vers le synthéthiseur.
+- VirtualMIDISynth  https://coolsoft.altervista.org/download/CoolSoft_VirtualMIDISynth_2.5.4.exe -  Synthéthiseur de son à partir de MIDI.
+- un soundfount .sf2  http://midkar.com/soundfonts/index.html (gros bouton rouge en bas de page) - A loader dans VMPK (FIle -> import SoundFile) et/ou dans VirtualMIDISynth (Toolbar icon - > Configuration -> Soundfonts -> "+")
+- MIDI-OX http://www.midiox.com/ - Pour mapper la planche vers le port du synthéthiseur (VirtualMIDISynth #1). Pour ce faire dans Midi-ox: "Options" -> "MIDI Devices...". Peut-être nécessaire de mapper VMPK et/ou la planche sur un port loopMidi pour ensuite ecouter ce loopMidi depuis VMS et processing si jamais processing monopolise le port. Cela permettrait aussi (potentiellement?)d' utiliser le data mapping de midi-ox.
+
+
+###Autres notes:
+Watch out l'index du device midi dans la config de DrawPlanck va peut-etre changer aussi avec tout ces nouveaux ports.
+A tester : Mettre le channel de la planche a 10. Les synthé semblent prendre ca pour du drum. voir http://www.synthfont.com/Tutorial6.html
