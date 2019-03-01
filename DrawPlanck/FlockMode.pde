@@ -13,9 +13,16 @@ public class FlockMode extends Mode {
   private ArrayList<Integer> asyncPressCounter;
 
   //last time in milliseconds that score was incremented
-  private long lastTime; 
+  private long lastScoringTime;
+  private long lastDeath;
+  private long deathDelay;
+  private int iframes;
   private int score;
   private int highScore;
+  private int deathImmuneFrames;
+  private int lives;
+  private int maxLives;
+  private boolean alive;
 
   public FlockMode() {
     //set defaults used by loadConfigFrom
@@ -43,9 +50,9 @@ public class FlockMode extends Mode {
   public void setup() {
     flock = new Flock();
     // Add an initial set of boids into the system
-    for (int i = 0; i < this.getIntProp("MAX_FLOCK_SIZE"); i++) {
-      flock.addBoid(new Boid(width/2, height/2));
-    }
+    //for (int i = 0; i < this.getIntProp("MAX_FLOCK_SIZE"); i++) {
+    //  flock.addBoid(new Boid(width/2, height/2));
+    //}
 
     this.wallManager = new WallManager(this.getIntProp("NUM_WALLS"), this.getIntProp("SCROLL_SPEED"), this.getIntProp("MIN_WALL_HEIGHT"), this.getIntProp("SAFE_ZONE"));
     currentX = width/2;
@@ -57,21 +64,29 @@ public class FlockMode extends Mode {
     for ( int padIndex = 0; padIndex < numPads; padIndex++) {
       asyncPressCounter.add(0);
     }
-    
-    lastTime = System.currentTimeMillis();
+
+    lastScoringTime = System.currentTimeMillis();
     score = 0;
     highScore = 0;
-    
+    lastDeath = 0;
+    deathDelay = 3000;
+    iframes = 0;
+    deathImmuneFrames = (int) frameRate * 3;
+    maxLives = 3;
+    lives = maxLives;
+    alive = false;
+
     textSize(20);
-    
   }
 
   public void draw() {
+
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
       if (padWasPressed.get(padIndex)) {
         this.resetPressed(padIndex);
         if (pressCounter.get(padIndex) % this.getIntProp("PRESSES_FOR_BOID") == 0 && this.flock.boids.size() < this.getIntProp("MAX_FLOCK_SIZE")) {
           flock.addBoid(new Boid(currentX, currentY));
+          alive = true;
         }
       }
     }
@@ -96,24 +111,61 @@ public class FlockMode extends Mode {
     //reset midi input offsets
     this.newXOffset = 0;
     this.newYOffset = 0;
-    
-    //score calc and display
+
+    //death animation
     long currentTime = System.currentTimeMillis();
-    if (flock.boids.size() == 0) {
+    if (currentTime - lastDeath < deathDelay) {
+      textAlign(CENTER);
+      fill(color(0, 255, 255));
+      textSize(40);
+
+      text("GAME OVER", width/2, height/2);
+
+      //reset text settings
+      textSize(12);
+      textAlign(LEFT);
+      fill(color(0, 0, 255));        
+      noFill();
+
+      //lose life
+    } else if (flock.boids.size() == 0 && iframes <= 0 && alive) {
+      lives--;
+      iframes = deathImmuneFrames; 
+      if (lives == 0) {
+        lives = maxLives;
+        lastDeath = currentTime;
+      }
       score = 0;
-    } else if(currentTime - lastTime >= 1000){
+      alive = false;
+
+      // increment score
+    } else if (currentTime - lastScoringTime >= 1000) {
       score += flock.boids.size();
-      if (score > highScore){
+      if (score > highScore) {
         highScore = score;
       }
-      lastTime = currentTime;
+      lastScoringTime = currentTime;
     } 
+
+    //write score
     fill(color(0, 0, 255));
-    text(score, 100, 100);
+    text(score, 100, 50);
     fill(color(0, 255, 255));
-    text(highScore, 300, 100);
+    text(highScore, 200, 50);
     fill(color(0, 0, 255));
     noFill();
+    
+    //write lives
+    fill(color(110, 255, 255));
+    for (int i = 0; i < lives; i++){
+      ellipse(width - 200 + (50 * i), 50, 20, 20);
+    }
+    
+    fill(color(0, 0, 255));        
+    noFill();
+
+
+    iframes--;
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
@@ -127,7 +179,7 @@ public class FlockMode extends Mode {
           this.asyncPressCounter.set(otherPad, 0);
         }
       }
-      
+
       //Move target
       if (asyncPressCounter.get(pad.index) % this.getIntProp("PRESSES_FOR_TARGET_MOVE") == 0) {
         switch (this.getStringProp(pad.name)) {
@@ -194,7 +246,7 @@ private class WallManager {
       //make sure there is also enough space between top and bottom walls 
       int bottom = (int) random(this.minWallHeight, min(this.maxWallHeight, maxBottomForContinuity, maxBottomForGap));
       this.bottomWalls.add(bottom);
-            
+
       prevTop = top;
       prevBottom = bottom;
     }
@@ -213,7 +265,7 @@ private class WallManager {
     if (this.xOffset <= 0) {
       Collections.rotate(this.topWalls, -1);
       Collections.rotate(this.bottomWalls, -1);
-      
+
       //Top walls
       int prevBottom = this.bottomWalls.get(this.numWalls - 2);
       //make sure there is continuous path
