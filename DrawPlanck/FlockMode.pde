@@ -97,7 +97,7 @@ public class FlockMode extends Mode {
     this.newXOffset = 0;
     this.newYOffset = 0;
     
-    
+    //score calc and display
     long currentTime = System.currentTimeMillis();
     if (flock.boids.size() == 0) {
       score = 0;
@@ -107,8 +107,7 @@ public class FlockMode extends Mode {
         highScore = score;
       }
       lastTime = currentTime;
-    }
-    
+    } 
     fill(color(0, 0, 255));
     text(score, 100, 100);
     fill(color(0, 255, 255));
