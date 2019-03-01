@@ -15,9 +15,9 @@ Moves flock of boids across the screen based on midi inputs. Also generates scro
 
 ### Directions
 - TOP_RIGHT_NOTE : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
-- TOP_LEFT_NOTE=DOWN : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
-- BOTTOM_LEFT_NOTE=LEFT : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
-- BOTTOM_RIGHT_NOTE=RIGHT : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
+- TOP_LEFT_NOTE : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
+- BOTTOM_LEFT_NOTE : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
+- BOTTOM_RIGHT_NOTE : One of "UP", "DOWN", "LEFT" or "RIGHT" indicating direction to move flock.
 
 ### Walls
 - SCROLL_SPEED : Horizontal pixels per frame.
