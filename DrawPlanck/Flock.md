@@ -25,4 +25,9 @@ Moves flock of boids across the screen based on midi inputs. Also generates scro
 - MIN_WALL_HEIGHT : Minimum pixel height of walls.
 - SAFE_ZONE : Minimum gap to preserve between top and bottom walls and minimum corridor betweeen two vertical wall sections.
 
+### Life and death
+- MAX_LIVES : Number of lives you start with.
+- DEATH_IMMUNE_SECONDS : Number of seconds after death for which you are immune to death. Allows player to bring target back inside safe zone to avoid chaining deaths.
+- GAME_OVER_ANIMATION_SECONDS : Duration of "GAME OVER" message display. While displayed, players can continue playing but do not acquire score or lose lives.
+
 ## TODO

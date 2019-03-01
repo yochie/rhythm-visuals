@@ -12,16 +12,12 @@ public class FlockMode extends Mode {
   private int currentY;
   private ArrayList<Integer> asyncPressCounter;
 
-  //last time in milliseconds that score was incremented
   private long lastScoringTime;
-  private long lastDeath;
-  private long deathDelay;
+  private long lastDeathTime;
   private int iframes;
   private int score;
   private int highScore;
-  private int deathImmuneFrames;
   private int lives;
-  private int maxLives;
   private boolean alive;
 
   public FlockMode() {
@@ -38,7 +34,9 @@ public class FlockMode extends Mode {
     this.defaultConfig.setProperty("MIN_WALL_HEIGHT", "50");
     this.defaultConfig.setProperty("SAFE_ZONE", "100");
     this.defaultConfig.setProperty("PRESSES_FOR_TARGET_MOVE", "2");
-
+    this.defaultConfig.setProperty("MAX_LIVES", "3");
+    this.defaultConfig.setProperty("DEATH_IMMUNE_SECONDS", "3");
+    this.defaultConfig.setProperty("GAME_OVER_ANIMATION_DURATION", "3");
 
 
     //sets loaded config
@@ -66,16 +64,14 @@ public class FlockMode extends Mode {
     }
 
     lastScoringTime = System.currentTimeMillis();
+    lastDeathTime = 0;
     score = 0;
     highScore = 0;
-    lastDeath = 0;
-    deathDelay = 3000;
     iframes = 0;
-    deathImmuneFrames = (int) frameRate * 3;
-    maxLives = 3;
-    lives = maxLives;
+    lives = this.getIntProp("MAX_LIVES");
     alive = false;
-
+    
+    textFont(createFont("Lucidia Grande", 30));
     textSize(20);
   }
 
@@ -114,7 +110,7 @@ public class FlockMode extends Mode {
 
     //death animation
     long currentTime = System.currentTimeMillis();
-    if (currentTime - lastDeath < deathDelay) {
+    if (currentTime - lastDeathTime < this.getIntProp("GAME_OVER_ANIMATION_SECONDS") * 1000) {
       textAlign(CENTER);
       fill(color(0, 255, 255));
       textSize(40);
@@ -122,7 +118,7 @@ public class FlockMode extends Mode {
       text("GAME OVER", width/2, height/2);
 
       //reset text settings
-      textSize(12);
+      textSize(20);
       textAlign(LEFT);
       fill(color(0, 0, 255));        
       noFill();
@@ -130,10 +126,11 @@ public class FlockMode extends Mode {
       //lose life
     } else if (flock.boids.size() == 0 && iframes <= 0 && alive) {
       lives--;
-      iframes = deathImmuneFrames; 
+      iframes =  this.getIntProp("DEATH_IMMUNE_SECONDS") * (int) frameRate; 
       if (lives == 0) {
-        lives = maxLives;
-        lastDeath = currentTime;
+        lives = this.getIntProp("MAX_LIVES");
+        ;
+        lastDeathTime = currentTime;
       }
       score = 0;
       alive = false;
@@ -154,13 +151,14 @@ public class FlockMode extends Mode {
     text(highScore, 200, 50);
     fill(color(0, 0, 255));
     noFill();
-    
+
     //write lives
+    noStroke();
     fill(color(110, 255, 255));
-    for (int i = 0; i < lives; i++){
+    for (int i = 0; i < lives; i++) {
       ellipse(width - 200 + (50 * i), 50, 20, 20);
     }
-    
+
     fill(color(0, 0, 255));        
     noFill();
 
