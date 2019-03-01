@@ -24,12 +24,12 @@ public class FlockMode extends Mode {
     this.defaultConfig.setProperty("TOP_LEFT_NOTE", "DOWN");
     this.defaultConfig.setProperty("BOTTOM_LEFT_NOTE", "LEFT");
     this.defaultConfig.setProperty("BOTTOM_RIGHT_NOTE", "RIGHT");
-    this.defaultConfig.setProperty("MOVE_SPEED", "25");
+    this.defaultConfig.setProperty("MOVE_SPEED", "75");
     this.defaultConfig.setProperty("SCROLL_SPEED", "5");
     this.defaultConfig.setProperty("PRESSES_FOR_BOID", "2");
     this.defaultConfig.setProperty("NUM_WALLS", "8");
     this.defaultConfig.setProperty("MIN_WALL_HEIGHT", "50");
-    this.defaultConfig.setProperty("SAFE_ZONE", "40");
+    this.defaultConfig.setProperty("SAFE_ZONE", "100");
     this.defaultConfig.setProperty("PRESSES_FOR_TARGET_MOVE", "2");
 
 
