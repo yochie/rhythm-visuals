@@ -12,6 +12,11 @@ public class FlockMode extends Mode {
   private int currentY;
   private ArrayList<Integer> asyncPressCounter;
 
+  //last time in milliseconds that score was incremented
+  private long lastTime; 
+  private int score;
+  private int highScore;
+
   public FlockMode() {
     //set defaults used by loadConfigFrom
     this.defaultConfig.setProperty("MAX_FLOCK_SIZE", "10");
@@ -52,6 +57,13 @@ public class FlockMode extends Mode {
     for ( int padIndex = 0; padIndex < numPads; padIndex++) {
       asyncPressCounter.add(0);
     }
+    
+    lastTime = System.currentTimeMillis();
+    score = 0;
+    highScore = 0;
+    
+    textSize(20);
+    
   }
 
   public void draw() {
@@ -84,6 +96,25 @@ public class FlockMode extends Mode {
     //reset midi input offsets
     this.newXOffset = 0;
     this.newYOffset = 0;
+    
+    
+    long currentTime = System.currentTimeMillis();
+    if (flock.boids.size() == 0) {
+      score = 0;
+    } else if(currentTime - lastTime >= 1000){
+      score += flock.boids.size();
+      if (score > highScore){
+        highScore = score;
+      }
+      lastTime = currentTime;
+    }
+    
+    fill(color(0, 0, 255));
+    text(score, 100, 100);
+    fill(color(0, 255, 255));
+    text(highScore, 300, 100);
+    fill(color(0, 0, 255));
+    noFill();
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
@@ -247,7 +278,7 @@ private class WallManager {
 //Code copied from https://processing.org/examples/flocking.html
 // The Flock (a list of Boid objects)
 private class Flock {
-  ArrayList<Boid> boids; // An ArrayList for all the boids
+  public ArrayList<Boid> boids; // An ArrayList for all the boids
 
   Flock() {
     boids = new ArrayList<Boid>(); // Initialize the ArrayList
