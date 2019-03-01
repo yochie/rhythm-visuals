@@ -186,6 +186,9 @@ void draw() {
     fill(0, 0, 255);
     noFill();
     stroke(0, 0, 255);
+    textFont(createFont("Lucidia Grande", 12));
+    textAlign(LEFT);
+    
     currentMode = modes.get(currentModeIndex);
     currentMode.setup();
     //reset all pressed flags before drawing new mode
