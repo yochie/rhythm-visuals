@@ -35,8 +35,15 @@ public abstract class Mode {
   protected void loadConfigFrom(String configFileName) {
     this.loadedConfig = new Properties(this.defaultConfig);
     InputStream is = null;
+    
+    String customConfigName = "my_"  + configFileName;
+    
     try {
-      is = createInput(configFileName);
+      //try finding local config (prepended by "my_")
+      is = createInput(customConfigName);
+      if (is == null){
+        is = createInput(configFileName);
+      }      
       this.loadedConfig.load(is);
     } 
     catch (IOException ex) {

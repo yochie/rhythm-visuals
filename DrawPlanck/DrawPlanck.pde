@@ -130,6 +130,7 @@ void setup() {
     int newHeight = (int) (logo.height * getFloatProp("LOGO_SCALING"));
     pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   }
+  
   pg.endDraw();
 
   //global state init
@@ -203,8 +204,14 @@ void draw() {
 void loadGlobalConfigFrom(String configFileName) {
   globalLoadedConfig = new Properties(globalDefaultConfig);
   InputStream is = null;
+  String customConfigName = "my_"  + configFileName;
+  
   try {
-    is = createInput(configFileName);
+    //try finding local config (prepended by "my_")
+    is = createInput(customConfigName);
+    if (is == null){
+      is = createInput(configFileName);
+    }
     globalLoadedConfig.load(is);
   } 
   catch (IOException ex) {
