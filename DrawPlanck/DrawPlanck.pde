@@ -64,7 +64,7 @@ boolean switchingPadHeld = false;
 
 void setup() {
   //size(800, 600, P2D);
-  fullScreen(P3D);
+  fullScreen(P3D, 2);
   frameRate(30);
 
   globalDefaultConfig.setProperty("LOGO_SCALING", "0.05");
@@ -77,7 +77,6 @@ void setup() {
   globalDefaultConfig.setProperty("AUX_PAD_NOTES", "");
   globalDefaultConfig.setProperty("WITH_BACKGROUND", "1");
 
-
   //read config file
   loadGlobalConfigFrom("config.properties");
 
@@ -89,7 +88,7 @@ void setup() {
     String next = iter.next();
     try {
       auxPadNotes.add(Integer.parseInt(next));
-    } 
+    }
     catch (NumberFormatException e) {
       println("Warning: Config var AUX_PAD_NOTES is either empty or not of expected type (int). Ignoring its value: " + next);
     }
@@ -124,12 +123,12 @@ void setup() {
   logo = loadImage("bitmap.png");
   println();
   pg.beginDraw();
-  pg.background(25);
-  int newWidth = (int)(logo.width * getFloatProp("LOGO_SCALING"));
-  int newHeight = (int) (logo.height * getFloatProp("LOGO_SCALING"));
-  pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
-  if (getIntProp("WITH_BACKGROUND") == 0) {
-    pg.clear();
+  pg.background(0);
+
+  if (getIntProp("WITH_BACKGROUND") == 1) {
+    int newWidth = (int)(logo.width * getFloatProp("LOGO_SCALING"));
+    int newHeight = (int) (logo.height * getFloatProp("LOGO_SCALING"));
+    pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   }
   pg.endDraw();
 
