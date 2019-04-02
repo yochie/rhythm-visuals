@@ -168,7 +168,7 @@ public class FlockMode extends Mode {
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
 
-    if (pad != null && this.getStringProp(pad.name) != null && vel > 0) {
+    if (pad != null && vel > 0) {
       //Count consecutive presses on single pad
       //Similar to pressCounter, but updated by callback instead of in draw()
       this.asyncPressCounter.set(pad.index, asyncPressCounter.get(pad.index) + 1);
@@ -180,20 +180,24 @@ public class FlockMode extends Mode {
 
       //Move target
       if (asyncPressCounter.get(pad.index) % this.getIntProp("PRESSES_FOR_TARGET_MOVE") == 0) {
-        switch (this.getStringProp(pad.name)) {
-        case "UP" :
+        switch (pad.name) {
+        case "TOP_RIGHT_NOTE" :
           this.newYOffset -= this.getIntProp("MOVE_SPEED");
+          this.newXOffset += this.getIntProp("MOVE_SPEED");
           break;
 
-        case "DOWN" :
-          this.newYOffset += this.getIntProp("MOVE_SPEED");
-          break;
-
-        case "LEFT" :
+        case "TOP_LEFT_NOTE" :
+          this.newYOffset -= this.getIntProp("MOVE_SPEED");
           this.newXOffset -= this.getIntProp("MOVE_SPEED");
           break;
 
-        case "RIGHT" :
+        case "BOTTOM_LEFT_NOTE" :
+          this.newYOffset += this.getIntProp("MOVE_SPEED");
+          this.newXOffset -= this.getIntProp("MOVE_SPEED");
+          break;
+
+        case "BOTTOM_RIGHT_NOTE" :
+          this.newYOffset += this.getIntProp("MOVE_SPEED");
           this.newXOffset += this.getIntProp("MOVE_SPEED");
           break;
         }
