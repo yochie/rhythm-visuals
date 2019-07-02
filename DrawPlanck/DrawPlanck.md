@@ -6,7 +6,7 @@ Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Al
 - MIDI connection and message parsing (calls handleMidi on the appropriate mode object for each recieve message)
 - Pad configuration (select notes for "named" pad and auxiliary/unnamed pads)
 - Background drawing (at every frame)
-- Maintaining the global padWasPressed list that stores booleans ordered by pad index indicating if each pad was pressed since last time resetPressed (padIndex) was called. Make sure you reset just after checking flags to avoid missing presses. If your mode doesn't use padWasPressed, you need to call noModePressChecking() at draw() beginning.
+- Maintaining the global padWasPressed list that stores booleans ordered by pad index indicating if each pad was pressed since last time resetPressed (padIndex) was called. Make sure you reset just after checking flags to properly consume the flag and avoid missing presses. If your mode doesn't use padWasPressed, you need to call noModePressChecking() at draw() beginning.
 - Maintaining the global pressCounter list that stores ints ordered by pad index indicating consecutive presses of a single pad (pressing any pad resets count on all others). The list is incremented synchronously (on draw() calls), so don't check its state asynchronously (in handleMidi()). 
 
 ## Triggers
