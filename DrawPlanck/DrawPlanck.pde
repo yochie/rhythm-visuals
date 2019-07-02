@@ -47,14 +47,16 @@ PGraphics pg;
 Mode currentMode;
 int currentModeIndex = 0;
 
-//flags indicating a pad was pressed, set by midi callback and unset after each draw()
+//flags indicating a pad was pressed, set by midi callback and consumed within modes by calling
+//resetPressed(padIndex) just after checking its state
 ArrayList<Boolean> padWasPressed;
 
 //number of consecutive presses for each pad
 //pressing any pad resets the count on all the others
 //switching mode resets the count on all pads
+//WARNING: this is incremented synchronously, so checking
+//its values asynchronously might yield  an outdated result
 ArrayList<Integer> pressCounter; 
-
 
 //holds most recent time pressed switching pad
 //used to calculate press duration
