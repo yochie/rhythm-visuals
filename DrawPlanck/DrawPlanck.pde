@@ -19,7 +19,6 @@ final ArrayList<Mode> modes = new ArrayList<Mode>();
 
 //list of named config parameters that can have a note assigned
 //used to know which config vars are pad notes without hardcoding names throughout the code
-//if you want to add a 
 final String[] namedPads = {"BOTTOM_RIGHT_NOTE", "BOTTOM_LEFT_NOTE", "TOP_LEFT_NOTE", "TOP_RIGHT_NOTE"};
 
 //static (non-changing) pad data (including name, index, note, whether its auxiliary or named) and helper methods
