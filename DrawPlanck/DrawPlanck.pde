@@ -48,7 +48,7 @@ Mode currentMode;
 int currentModeIndex = 0;
 
 //flags indicating a pad was pressed, set by midi callback and consumed within modes by calling
-//resetPressed(padIndex) just after checking its state
+//resetPressed(padIndex) just after checking its state.
 ArrayList<Boolean> padWasPressed;
 
 //number of consecutive presses for each pad
@@ -313,7 +313,7 @@ void midiMessage(MidiMessage message) {
     }
   }
 
-  //register pad press
+  //register pad press (make sure to consume this flag within modes after checking its state)
   if (padIndex >= 0 && (vel > 0)) {
     padWasPressed.set(padIndex, true);
   }
