@@ -4,7 +4,7 @@ Flock mode
 Moves flock of boids across the screen based on midi inputs. Also generates scrolling walls that can collide with boids to destroy them.
 
 ## Triggers
-- Tapping consecutively for a configured number of times on any pad to generate new boid.
+- Tapping consecutively for a configured number of times on any pad to generate new boid and or move the flocks target.
 
 ## Config
 ### Flock
