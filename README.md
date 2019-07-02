@@ -34,7 +34,7 @@ devices will be printed to console on startup (need to make this into a GUI).
 
 If developping in a Windows environment without a physical midi controller, you might want to use the following:
 
-- VMPK (http://vmpk.sourceforge.net/) to simulate the planck
+- VMPK (http://vmpk.sourceforge.net/) to simulate the planck along with the included keyboard map (drawplank.xml) which can be imported to VMPK from "Edit" -> "Keyboard Map" -> "Open...". The keyboard map assigns the Q,W,A and S keys on your keyboard to the default planck notes.
 - loopMIDI (https://www.tobias-erichsen.de/software/loopmidi.html) to generate a virtual MIDI port to allow communication between VMPK and DrawPlanck.
 
 #### Modes
