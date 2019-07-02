@@ -264,8 +264,6 @@ String getStringProp(String propName) {
   return globalLoadedConfig.getProperty(propName);
 }
 
-
-
 //Called by MidiBus library whenever a new midi message is received
 void midiMessage(MidiMessage message) {
   byte messageType = message.getMessage()[0];
