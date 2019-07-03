@@ -42,6 +42,9 @@ MidiBus myBus;
 //background image
 PGraphics pg;
 
+//for BPM running average calcs
+final int bpmSampleSize = 12;
+
 ////////RUNTIME GLOBALS (change after setup) /////////
 
 Mode currentMode;
@@ -62,6 +65,14 @@ ArrayList<Integer> pressCounter;
 //used to calculate press duration
 long switchingPadHeldSince = Long.MAX_VALUE;
 boolean switchingPadHeld = false;
+
+//for BPM running average calcs
+long millisBetweenBeats[] = new long[bpmSampleSize];
+long lastBpmSampleTime = -1;
+int bpmSampleIndex = 0;
+long bpmRunningTotal = 0;
+float currentBpm = 0;
+
 
 void setup() {
   //size(800, 600, P2D);
@@ -131,7 +142,7 @@ void setup() {
     int newHeight = (int) (logo.height * getFloatProp("LOGO_SCALING"));
     pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   }
-  
+
   pg.endDraw();
 
   //global state init
@@ -189,7 +200,7 @@ void draw() {
     stroke(0, 0, 255);
     textFont(createFont("Lucidia Grande", 12));
     textAlign(LEFT);
-    
+
     currentMode = modes.get(currentModeIndex);
     currentMode.setup();
     //reset all pressed flags before drawing new mode
@@ -198,7 +209,8 @@ void draw() {
       pressCounter.set(padIndex, 0);
     }
   }
-
+  
+  text((int)currentBpm, width/2, height/2);
   currentMode.draw();
 }
 
@@ -206,11 +218,11 @@ void loadGlobalConfigFrom(String configFileName) {
   globalLoadedConfig = new Properties(globalDefaultConfig);
   InputStream is = null;
   String customConfigName = "my_"  + configFileName;
-  
+
   try {
     //try finding local config (prepended by "my_")
     is = createInput(customConfigName);
-    if (is == null){
+    if (is == null) {
       is = createInput(configFileName);
     }
     globalLoadedConfig.load(is);
@@ -239,7 +251,7 @@ int getIntProp(String propName) {
 
 float getFloatProp(String propName) {
   float toReturn;
-  if (globalLoadedConfig.getProperty(propName) != null)  {
+  if (globalLoadedConfig.getProperty(propName) != null) {
     try {
       toReturn = Float.parseFloat(globalLoadedConfig.getProperty(propName));
     } 
@@ -310,6 +322,32 @@ void midiMessage(MidiMessage message) {
       switchingPadHeld = false;
     }
   }
+
+  //BPM calcs
+  if (pad != null && pad.name == "BOTTOM_RIGHT_NOTE" && vel > 0) {   
+
+    //skips first sample to get non-zero lastBpmSampleTime
+    if (lastBpmSampleTime > 0) {
+      //subtract oldest time gap
+      bpmRunningTotal -= millisBetweenBeats[bpmSampleIndex];
+
+      //overwrite oldest time gap
+      millisBetweenBeats[bpmSampleIndex] = System.currentTimeMillis() - lastBpmSampleTime;
+
+      bpmRunningTotal += millisBetweenBeats[bpmSampleIndex];
+
+      currentBpm = Math.round(60.0/((bpmRunningTotal/millisBetweenBeats.length)/1000.0));
+
+      //rotate array
+      bpmSampleIndex++;
+      if (bpmSampleIndex >= millisBetweenBeats.length) {
+        bpmSampleIndex = 0;
+      }
+    }
+
+    lastBpmSampleTime = System.currentTimeMillis();
+  }
+
 
   //register pad press (make sure to consume this flag within modes after checking its state)
   if (padIndex >= 0 && (vel > 0)) {
