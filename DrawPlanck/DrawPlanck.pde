@@ -43,7 +43,7 @@ MidiBus myBus;
 PGraphics pg;
 
 //for BPM running average calcs
-final int bpmSampleSize = 12;
+final int bpmSampleSize = 8;
 
 ////////RUNTIME GLOBALS (change after setup) /////////
 
@@ -71,7 +71,7 @@ long millisBetweenBeats[] = new long[bpmSampleSize];
 long lastBpmSampleTime = -1;
 int bpmSampleIndex = 0;
 long bpmRunningTotal = 0;
-float currentBpm = 0;
+float currentBpm = -1;
 
 
 void setup() {
@@ -209,7 +209,7 @@ void draw() {
       pressCounter.set(padIndex, 0);
     }
   }
-  
+
   text((int)currentBpm, width/2, height/2);
   currentMode.draw();
 }
@@ -328,6 +328,7 @@ void midiMessage(MidiMessage message) {
 
     //skips first sample to get non-zero lastBpmSampleTime
     if (lastBpmSampleTime > 0) {
+
       //subtract oldest time gap
       bpmRunningTotal -= millisBetweenBeats[bpmSampleIndex];
 
@@ -335,6 +336,14 @@ void midiMessage(MidiMessage message) {
       millisBetweenBeats[bpmSampleIndex] = System.currentTimeMillis() - lastBpmSampleTime;
 
       bpmRunningTotal += millisBetweenBeats[bpmSampleIndex];
+
+      //on the second sample, fill running buffer with first gap val 
+      if (currentBpm < 0) {
+        for (int i = bpmSampleIndex + 1; i < millisBetweenBeats.length; i++) {
+          millisBetweenBeats[i] = millisBetweenBeats[bpmSampleIndex];          
+        }
+        bpmRunningTotal = millisBetweenBeats[bpmSampleIndex] * millisBetweenBeats.length;
+      }
 
       currentBpm = Math.round(60.0/((bpmRunningTotal/millisBetweenBeats.length)/1000.0));
 
