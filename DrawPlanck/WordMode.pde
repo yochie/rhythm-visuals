@@ -47,6 +47,13 @@ public class WordMode extends Mode {
     textFont(font);
     textAlign(CENTER);
     
+    //Tint using bpm
+    float constrainedBpm = constrain(currentBpm, 40, 150);
+    int newColor = Math.round(map(constrainedBpm, 40, 150, 255, 0));
+    fill(newColor, 255, 255, 30);
+    noStroke();
+    rect(0, 0, width, height);
+    
     //change word
     if (this.pressCount == this.getIntProp("PRESSES_FOR_WORD_SWITCH")) {    
       this.pressCount = 0;
