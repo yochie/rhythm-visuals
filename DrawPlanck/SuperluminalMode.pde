@@ -47,7 +47,10 @@ public class SuperluminalMode extends Mode {
 
   //Create stars when a sensor was pressed and keep them moving
   public void draw() {
-
+    stroke(0, 255, 0);
+    //Override Drawplanck HSB mode
+    colorMode(RGB);
+    
     int starNumber;
     float starGrowFactor;
     int starSpeed;

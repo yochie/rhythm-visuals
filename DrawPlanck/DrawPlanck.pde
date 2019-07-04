@@ -73,6 +73,7 @@ int bpmSampleIndex = 0;
 long bpmRunningTotal = 0;
 float currentBpm = -1;
 
+PFont defaultFont;
 
 void setup() {
   //size(800, 600, P2D);
@@ -165,6 +166,8 @@ void setup() {
 
   //easier to scale
   colorMode(HSB, 255);
+
+  defaultFont = createFont("Arial", 14);
 }
 
 void draw() {
@@ -194,12 +197,7 @@ void draw() {
       currentModeIndex = 0;
     }
     //reset colors
-    colorMode(HSB);
-    fill(0, 0, 255);
-    noFill();
-    stroke(0, 0, 255);
-    textFont(createFont("Lucidia Grande", 12));
-    textAlign(LEFT);
+    defaultDrawing();
 
     currentMode = modes.get(currentModeIndex);
     currentMode.setup();
@@ -210,8 +208,19 @@ void draw() {
     }
   }
 
-  text((int)currentBpm, width/2, height/2);
   currentMode.draw();
+
+  //write BPM to screen
+  defaultDrawing();
+  fill(0, 0, 0);
+  pushMatrix();
+  translate(0,0,1);
+  //noStroke();
+  rect( 20, height - 20 - 20, 70, 20);
+  fill(0, 0, 255);
+  text("BPM: " + (int)currentBpm, 25, height - 20 - 5);
+  popMatrix();
+  defaultDrawing();
 }
 
 void loadGlobalConfigFrom(String configFileName) {
@@ -340,7 +349,7 @@ void midiMessage(MidiMessage message) {
       //on the second sample, fill running buffer with first gap val 
       if (currentBpm < 0) {
         for (int i = bpmSampleIndex + 1; i < millisBetweenBeats.length; i++) {
-          millisBetweenBeats[i] = millisBetweenBeats[bpmSampleIndex];          
+          millisBetweenBeats[i] = millisBetweenBeats[bpmSampleIndex];
         }
         bpmRunningTotal = millisBetweenBeats[bpmSampleIndex] * millisBetweenBeats.length;
       }
@@ -364,4 +373,14 @@ void midiMessage(MidiMessage message) {
   }
 
   currentMode.handleMidi(message.getMessage(), messageType, channel, note, vel, controllerNumber, controllerVal, pad);
+}
+
+void defaultDrawing() {
+  colorMode(HSB);
+  fill(0, 0, 255);
+  noFill();
+  stroke(0, 0, 255);
+  textFont(defaultFont);
+  textAlign(LEFT);
+  strokeWeight(1);
 }

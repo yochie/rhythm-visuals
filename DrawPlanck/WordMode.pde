@@ -44,6 +44,8 @@ public class WordMode extends Mode {
 
   public void draw() {
     this.noModePressChecking();
+    textFont(font);
+    textAlign(CENTER);
     
     //change word
     if (this.pressCount == this.getIntProp("PRESSES_FOR_WORD_SWITCH")) {    
