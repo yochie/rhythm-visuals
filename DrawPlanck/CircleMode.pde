@@ -104,14 +104,10 @@ public class CircleMode extends Mode {
       } else if (circle.getWidth() * this.getFloatProp("SHRINK_FACTOR") >= this.getIntProp("MIN_CIRCLE_WIDTH")) {
         circle.scale(this.getFloatProp("SHRINK_FACTOR"));
       }
-      //scale color
-      float constrainedWidth = constrain((float) circle.getWidth(), this.getFloatProp("MIN_CIRCLE_WIDTH"), this.getFloatProp("MAX_CIRCLE_WIDTH"));
-      int newColor = Math.round(map(constrainedWidth, 
-        this.getFloatProp("MIN_CIRCLE_WIDTH"), 
-        this.getFloatProp("MAX_CIRCLE_WIDTH"), 
-        this.getFloatProp("SENSOR_COLOR_RANGE_MIN"), 
-        this.getFloatProp("SENSOR_COLOR_RANGE_MAX")));
-
+      //scale color      
+      float constrainedBpm = constrain(currentBpm, 40, 150);
+      int newColor = Math.round(map(constrainedBpm, 40, 150, this.getIntProp("SENSOR_COLOR_RANGE_MIN"), this.getIntProp("SENSOR_COLOR_RANGE_MAX")));
+      
       circle.setStroke(color(newColor, 255, 255));  
       circle.setStrokeWeight(this.getIntProp("SENSOR_THICKNESS"));
 
