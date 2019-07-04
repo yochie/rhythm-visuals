@@ -76,6 +76,8 @@ public class FlockMode extends Mode {
   }
 
   public void draw() {
+    textFont(createFont("Lucidia Grande", 30));
+    textSize(20);
 
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
       if (padWasPressed.get(padIndex)) {
@@ -296,16 +298,18 @@ private class WallManager {
     rect(0, height - this.bottomWalls.get(0), this.xOffset, this.bottomWalls.get(0));
 
     //full walls
+    int lastFullRectEndX = 0;
     for (int i = 1; i < this.numWalls - 1; i++) {
       int fromTop = this.topWalls.get(i);
       int fromBottom = this.bottomWalls.get(i);
 
-      rect((i - 1) * this.wallWidth + xOffset, 0, this.wallWidth, fromTop);
-      rect((i - 1) * this.wallWidth + xOffset, height - fromBottom, this.wallWidth, fromBottom);
+      rect((i - 1) * this.wallWidth + this.xOffset, 0, this.wallWidth, fromTop);
+      rect((i - 1) * this.wallWidth + this.xOffset, height - fromBottom, this.wallWidth, fromBottom);
+      lastFullRectEndX = (i - 1) * this.wallWidth + this.xOffset + this.wallWidth;
     }
 
     //last (partial) walls
-    int lastWidth = this.wallWidth - this.xOffset;
+    int lastWidth = width - lastFullRectEndX - 1;
     rect(width - lastWidth - 1, 0, lastWidth, this.topWalls.get(this.numWalls - 1));
     rect(width - lastWidth - 1, height - this.bottomWalls.get(this.numWalls - 1), lastWidth, this.bottomWalls.get(this.numWalls - 1));
   }
