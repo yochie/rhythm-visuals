@@ -35,19 +35,27 @@ public abstract class Mode {
   protected void loadConfigFrom(String configFileName) {
     this.loadedConfig = new Properties(this.defaultConfig);
     InputStream is = null;
-    
+
     String customConfigName = "my_"  + configFileName;
-    
+
     try {
       //try finding local config (prepended by "my_")
       is = createInput(customConfigName);
-      if (is == null){
+      if (is == null) {
         is = createInput(configFileName);
       }      
       this.loadedConfig.load(is);
     } 
     catch (IOException ex) {
       println("Error reading config file.");
+    }
+    finally {
+      try {
+        is.close();
+      } 
+      catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -100,18 +108,18 @@ public abstract class Mode {
     }
     return this.loadedConfig.getProperty(propName);
   }
-  
+
   //resets global padWasPressed flags to false
   //IMPORTANT: Call this ASAP after checking if pad was pressed.
   //Any pad presses between checking flags and calling this will be ignored.
-  public void resetPressed (int padIndex){
+  public void resetPressed (int padIndex) {
     padWasPressed.set(padIndex, false);
   }
 
   //If you don't need to check padWasPressed in your mode,
   //reset alls flags at start of draw() using this function
-  public void noModePressChecking (){
-    for (int padIndex = 0; padIndex < numPads; padIndex++){
+  public void noModePressChecking () {
+    for (int padIndex = 0; padIndex < numPads; padIndex++) {
       resetPressed(padIndex);
     }
   }

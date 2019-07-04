@@ -240,6 +240,14 @@ void loadGlobalConfigFrom(String configFileName) {
   catch (IOException ex) {
     println("Error reading config file.");
   }
+  finally {
+    try {
+      is.close();
+    } 
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 }
 
 int getIntProp(String propName) {
