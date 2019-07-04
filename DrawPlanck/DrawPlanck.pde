@@ -141,6 +141,7 @@ void setup() {
   if (getIntProp("WITH_BACKGROUND") == 1) {
     int newWidth = (int)(logo.width * getFloatProp("LOGO_SCALING"));
     int newHeight = (int) (logo.height * getFloatProp("LOGO_SCALING"));
+    pg.tint(255, 64); //make transparent
     pg.image(logo, width/2-(newWidth/2), height/2-(newHeight/2), newWidth, newHeight);
   }
 
@@ -214,7 +215,7 @@ void draw() {
   defaultDrawing();
   fill(0, 0, 0);
   pushMatrix();
-  translate(0,0,1);
+  translate(0, 0, 1);
   //noStroke();
   rect( 20, height - 20 - 20, 70, 20);
   fill(0, 0, 255);
