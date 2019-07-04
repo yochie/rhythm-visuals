@@ -193,14 +193,16 @@ void draw() {
   //switch modes
   if (switchingPadHeld && System.currentTimeMillis() - switchingPadHeldSince >= this.getIntProp("MILLISECONDS_FOR_MODE_SWITCH")) {
     switchingPadHeldSince = System.currentTimeMillis();
+    
+    
     currentModeIndex++;
     if (currentModeIndex >= modes.size()) {          
       currentModeIndex = 0;
-    }
+    }    
+    currentMode = modes.get(currentModeIndex);
+    
     //reset colors
     defaultDrawing();
-
-    currentMode = modes.get(currentModeIndex);
     currentMode.setup();
     //reset all pressed flags before drawing new mode
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
