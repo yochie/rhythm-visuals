@@ -24,16 +24,16 @@ public class MenuMode extends Mode {
 
   public void draw() {
     this.noModePressChecking();
-    if (choiceIndex >= 0 && ((menuIndex * 3) + choiceIndex) < modes.size()) {
-      nextMode =(menuIndex * 3) + choiceIndex;
+    if (choiceIndex >= 0 && ((menuIndex * 3) + choiceIndex) < modes.size() - 1) {
+      nextMode =(menuIndex * 3) + choiceIndex + 1;
     } else {
       line(width/2, 0, width/2, height);
       line(0, height/2, width, height/2);
       textSize(32);
 
       int optionIndex = 0;
-      while ((((menuIndex * 3) + optionIndex) < modes.size()) && optionIndex < 3) {
-        text(modes.get((menuIndex * 3) + optionIndex).modeName, positions[optionIndex][0], positions[optionIndex][1]);
+      while (optionIndex < 3 && (((menuIndex * 3) + optionIndex) < modes.size() - 1)) {
+        text(modes.get((menuIndex * 3) + optionIndex + 1).modeName, positions[optionIndex][0], positions[optionIndex][1]);
         optionIndex++;
       }
       text("...", positions[3][0], positions[3][1]);
@@ -45,7 +45,7 @@ public class MenuMode extends Mode {
     if (pad != null && vel > 0) {
       switch (pad.name) {
       case "BOTTOM_RIGHT_NOTE" :
-        if (menuIndex < modes.size() / 3) {
+        if (menuIndex < (modes.size() - 1) / 3) {
           menuIndex++;
         } else {
           menuIndex = 0;
@@ -61,7 +61,6 @@ public class MenuMode extends Mode {
         choiceIndex = 2;
         break;
       }
-      println(choiceIndex);
     }
   }
 }
