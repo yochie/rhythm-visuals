@@ -96,8 +96,6 @@ public class CircleMode extends Mode {
         this.colorOffset = 0;
     }
 
-    println(this.colorOffset);
-
     int newColor = constrain(Math.round(map(constrainedBpm, 40, 150, this.getIntProp("SENSOR_COLOR_RANGE_MIN"), this.getIntProp("SENSOR_COLOR_RANGE_MAX"))) + this.colorOffset, 0, 255);
     
     for (int pad = 0; pad < numPads; pad++) {
