@@ -75,6 +75,8 @@ float currentBpm = -1;
 
 PFont defaultFont;
 
+int nextMode = -1;
+
 void setup() {
   //size(800, 600, P2D);
   fullScreen(P3D, 2);
@@ -156,6 +158,7 @@ void setup() {
   }
 
   //Create modes and initialize currentMode
+  modes.add(new MenuMode());  
   modes.add(new CircleMode());
   modes.add(new SuperluminalMode());
   modes.add(new WordMode());
@@ -190,17 +193,15 @@ void draw() {
     }
   }
 
-  //switch modes
+  //return to menu
   if (switchingPadHeld && System.currentTimeMillis() - switchingPadHeldSince >= this.getIntProp("MILLISECONDS_FOR_MODE_SWITCH")) {
-    switchingPadHeldSince = System.currentTimeMillis();
-    
-    
-    currentModeIndex++;
-    if (currentModeIndex >= modes.size()) {          
-      currentModeIndex = 0;
-    }    
-    currentMode = modes.get(currentModeIndex);
-    
+    switchingPadHeldSince = System.currentTimeMillis();    
+    nextMode = 0;
+  }
+
+  //switching modes
+  if (nextMode >= 0) {
+    currentMode = modes.get(nextMode);
     //reset colors
     defaultDrawing();
     currentMode.setup();
@@ -208,7 +209,8 @@ void draw() {
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
       padWasPressed.set(padIndex, false);
       pressCounter.set(padIndex, 0);
-    }
+    }  
+    nextMode = -1;
   }
 
   currentMode.draw();

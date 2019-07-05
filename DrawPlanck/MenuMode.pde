@@ -24,8 +24,8 @@ public class MenuMode extends Mode {
 
   public void draw() {
     this.noModePressChecking();
-    if (choiceIndex > 0) {
-      currentMode = modes.get((menuIndex * 3) + choiceIndex);
+    if (choiceIndex >= 0 && ((menuIndex * 3) + choiceIndex) < modes.size()) {
+      nextMode =(menuIndex * 3) + choiceIndex;
     } else {
       line(width/2, 0, width/2, height);
       line(0, height/2, width, height/2);
@@ -61,6 +61,7 @@ public class MenuMode extends Mode {
         choiceIndex = 2;
         break;
       }
+      println(choiceIndex);
     }
   }
 }
