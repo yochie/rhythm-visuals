@@ -24,6 +24,7 @@ public class MenuMode extends Mode {
 
   public void draw() {
     this.noModePressChecking();
+    textAlign(CENTER);
     
     //select mode
     if (choiceIndex >= 0 && ((menuIndex * 3) + choiceIndex) < modes.size() - 1) {
