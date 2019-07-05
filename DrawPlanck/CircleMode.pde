@@ -9,6 +9,7 @@ public class CircleMode extends Mode {
   private float rotation = 0;
 
   public CircleMode() {
+    this.modeName = "Circle";
     this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
     this.defaultConfig.setProperty("MAX_CIRCLE_WIDTH", "200");
     this.defaultConfig.setProperty("MIN_CIRCLE_WIDTH", "40");

@@ -15,6 +15,9 @@ public abstract class Mode {
   //Properties are stored as strings
   //e.g. this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
   protected Properties defaultConfig = new Properties();
+  
+  //needs to be set by each mode
+  protected String modeName;
 
   //filled by loadConfig()
   protected Properties loadedConfig;

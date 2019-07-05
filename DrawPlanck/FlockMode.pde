@@ -21,6 +21,8 @@ public class FlockMode extends Mode {
   private boolean alive;
 
   public FlockMode() {
+    this.modeName = "Flock";
+
     //set defaults used by loadConfigFrom
     this.defaultConfig.setProperty("MAX_FLOCK_SIZE", "10");
     this.defaultConfig.setProperty("TOP_RIGHT_NOTE", "UP");
