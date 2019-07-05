@@ -163,6 +163,7 @@ void setup() {
   modes.add(new SuperluminalMode());
   modes.add(new WordMode());
   modes.add(new FlockMode());
+  modes.add(new AboutMode());
 
   currentModeIndex = 0;
   currentMode = modes.get(currentModeIndex);
