@@ -22,7 +22,7 @@ Handles mode switching by triggering whenever TOP_LEFT_NOTE pad is triggered. Al
 - WITH_BACKGROUND : 0 or 1 to activate background.
 
 ### Mode switching
-- MILLISECONDS_FOR_MODE_SWITCH : Number of milliseconds to hold TOP_LEFT_NOTE to trigger mode switch.
+- MILLISECONDS_FOR_MODE_SWITCH : Number of milliseconds to hold TOP_LEFT_NOTE to trigger mode switch menu.
 
 ### Pads
 - BOTTOM_RIGHT_NOTE : MIDI note number associated to this named pad.
