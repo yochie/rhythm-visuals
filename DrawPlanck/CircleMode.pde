@@ -7,6 +7,9 @@ public class CircleMode extends Mode {
   //list of circle sizes updated by callback
   private ArrayList<Integer> newWidths; 
   private float rotation = 0;
+  private int colorOffset = 0;
+  private int colorOffsetCounter = 0;
+
 
   public CircleMode() {
     this.modeName = "Circle";
@@ -63,7 +66,7 @@ public class CircleMode extends Mode {
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
   public void draw() {    
-    
+
     stroke(0, 255, 0);
     //continually rotate sensor circles
     pushMatrix();
@@ -71,6 +74,28 @@ public class CircleMode extends Mode {
     rotation += TWO_PI * this.getFloatProp("ROTATION_SPEED");
     rotate(rotation);
     translate(-width/2, -height/2);
+
+    //scale color of sensor circles   
+    float constrainedBpm = constrain(currentBpm, 40, 150);    
+    if (constrainedBpm >= 130) {
+      if (this.colorOffset != 0) {
+        if (this.colorOffsetCounter < 4){
+          this.colorOffsetCounter += 1;
+        } else {
+          this.colorOffset *= -1;
+          this.colorOffsetCounter = 0;
+        }
+      } else {
+        this.colorOffset = 30;
+      }
+    } else {
+        this.colorOffset = 0;
+    }
+
+    println(this.colorOffset);
+
+    int newColor = constrain(Math.round(map(constrainedBpm, 40, 150, this.getIntProp("SENSOR_COLOR_RANGE_MIN"), this.getIntProp("SENSOR_COLOR_RANGE_MAX"))) + this.colorOffset, 0, 255);
+    
     for (int pad = 0; pad < numPads; pad++) {
       pushMatrix();
       PVector vertex = planche.getVertex(pad);
@@ -105,11 +130,8 @@ public class CircleMode extends Mode {
       } else if (circle.getWidth() * this.getFloatProp("SHRINK_FACTOR") >= this.getIntProp("MIN_CIRCLE_WIDTH")) {
         circle.scale(this.getFloatProp("SHRINK_FACTOR"));
       }
-      //scale color      
-      float constrainedBpm = constrain(currentBpm, 40, 150);
-      int newColor = Math.round(map(constrainedBpm, 40, 150, this.getIntProp("SENSOR_COLOR_RANGE_MIN"), this.getIntProp("SENSOR_COLOR_RANGE_MAX")));
-      
-      circle.setStroke(color(newColor, 255, 255));  
+
+      circle.setStroke(color(newColor, 84, 255));  
       circle.setStrokeWeight(this.getIntProp("SENSOR_THICKNESS"));
 
       //push circle outwards    
@@ -119,7 +141,7 @@ public class CircleMode extends Mode {
 
       //TODO: Figure out why shapes are disappearing and replace ellipse
       //shape(circle);
-      stroke(newColor, 255, 255);
+      stroke(newColor,110, 160);
       strokeWeight(this.getIntProp("SENSOR_THICKNESS"));
       ellipse(0, 0, circle.getWidth(), circle.getWidth());
 
@@ -217,7 +239,7 @@ private class BouncingSlave {
 
     // Draw the shape
     float constrainedBpm = constrain(currentBpm, 40, 150);
-    stroke(color(constrain(this.circleColor*map(constrainedBpm, 40, 150, 2, 0.2), 0, 255), 255, 255));
+    stroke(color(constrain(this.circleColor*map(constrainedBpm, 40, 150, 2, 0.2), 0, 100), 84, 255));
     strokeWeight(slavethickness);
     ellipse(this.xpos, this.ypos, this.rad, this.rad);
   }
