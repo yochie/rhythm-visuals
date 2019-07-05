@@ -66,7 +66,11 @@ public class CircleMode extends Mode {
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
   public void draw() {    
-
+//Tint using bpm
+    fill(150, 100, 255, 30);
+    noStroke();
+    rect(0, 0, width, height);
+    
     stroke(0, 255, 0);
     //continually rotate sensor circles
     pushMatrix();
