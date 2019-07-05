@@ -24,15 +24,18 @@ public class MenuMode extends Mode {
 
   public void draw() {
     this.noModePressChecking();
+    
+    //select mode
     if (choiceIndex >= 0 && ((menuIndex * 3) + choiceIndex) < modes.size() - 1) {
       nextMode =(menuIndex * 3) + choiceIndex + 1;
     } else {
+      //Draw choices
       line(width/2, 0, width/2, height);
       line(0, height/2, width, height/2);
       textSize(32);
-
       int optionIndex = 0;
-      while (optionIndex < 3 && (((menuIndex * 3) + optionIndex) < modes.size() - 1)) {
+      while (optionIndex < 3 && (((menuIndex * 3) + optionIndex) < modes.size() - 1)) {        
+        //+1 to ignore first mode which should be menu itself
         text(modes.get((menuIndex * 3) + optionIndex + 1).modeName, positions[optionIndex][0], positions[optionIndex][1]);
         optionIndex++;
       }
