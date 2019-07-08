@@ -6,8 +6,8 @@ public class FlockMode extends Mode {
 
   private WallManager wallManager;
 
-  private int newXOffset = 0;
-  private int newYOffset = 0;
+  private int newXOffset;
+  private int newYOffset;
   private int currentX;
   private int currentY;
   private ArrayList<Integer> asyncPressCounter;
@@ -19,6 +19,7 @@ public class FlockMode extends Mode {
   private int highScore;
   private int lives;
   private boolean alive;
+  private PFont font;
 
   public FlockMode() {
     this.modeName = "Flock";
@@ -65,6 +66,8 @@ public class FlockMode extends Mode {
       asyncPressCounter.add(0);
     }
 
+    newXOffset = 0;
+    newYOffset = 0;
     lastScoringTime = System.currentTimeMillis();
     lastDeathTime = 0;
     score = 0;
@@ -73,14 +76,15 @@ public class FlockMode extends Mode {
     lives = this.getIntProp("MAX_LIVES");
     alive = false;
     
-    textFont(createFont("Lucidia Grande", 30));
+    this.font = createFont("Lucidia Grande", 30);
+    textFont(this.font);
     textSize(20);
   }
 
   public void draw() {
-    textFont(createFont("Lucidia Grande", 30));
+    textFont(this.font);
     textSize(20);
-
+    
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
       if (padWasPressed.get(padIndex)) {
         this.resetPressed(padIndex);
@@ -133,7 +137,6 @@ public class FlockMode extends Mode {
       iframes =  this.getIntProp("DEATH_IMMUNE_SECONDS") * (int) frameRate; 
       if (lives == 0) {
         lives = this.getIntProp("MAX_LIVES");
-        ;
         lastDeathTime = currentTime;
       }
       score = 0;
@@ -165,13 +168,14 @@ public class FlockMode extends Mode {
 
     fill(color(0, 0, 255));        
     noFill();
-
-
-    iframes--;
+    
+    if (iframes >= 0){
+      iframes--;
+    }
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
-
+    
     if (pad != null && vel > 0) {
       //Count consecutive presses on single pad
       //Similar to pressCounter, but updated by callback instead of in draw()
