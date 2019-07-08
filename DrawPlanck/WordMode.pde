@@ -10,7 +10,7 @@ public class WordMode extends Mode {
   private float alpha;
 
   public WordMode() {
-    this.modeName = "Mot / Word";
+    this.modeName = "Impro / Jam";
 
     this.defaultConfig.setProperty("WORDS", "Triolets, Gigue, Lentement, Rapidement");
     this.defaultConfig.setProperty("PRESSES_FOR_WORD_SWITCH", "30");
