@@ -37,6 +37,7 @@ public class CircleMode extends Mode {
     println("Circle config: ");
     println(loadedConfig);
 
+    //Create background and scale to screen while keeping proportions
     this.pg = createGraphics(width, height);
     this.bgImage = loadImage("circle_bg.jpg");    
     this.pg.beginDraw();
