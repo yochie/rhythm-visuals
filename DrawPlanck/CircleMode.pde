@@ -6,9 +6,9 @@ public class CircleMode extends Mode {
   private ArrayList<BouncingSlave> slaves;
   //list of circle sizes updated by callback
   private ArrayList<Integer> newWidths; 
-  private float rotation = 0;
-  private int colorOffset = 0;
-  private int colorOffsetCounter = 0;
+  private float rotation;
+  private int colorOffset;
+  private int colorOffsetCounter;
 
   private PImage bgImage;
   private PGraphics pg;
@@ -42,6 +42,10 @@ public class CircleMode extends Mode {
     System.out.println("MODE: Circle");
 
     stroke(0, 255, 0);
+    
+    rotation = 0
+    colorOffsetCounter = 0;
+    colorOffset = 0
 
     //init vars used to update sensor circle width
     newWidths = new ArrayList<Integer>();
