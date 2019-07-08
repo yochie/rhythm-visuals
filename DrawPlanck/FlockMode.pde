@@ -77,13 +77,11 @@ public class FlockMode extends Mode {
     alive = false;
     
     this.font = createFont("Lucidia Grande", 30);
-    textFont(this.font);
-    textSize(20);
   }
 
   public void draw() {
     textFont(this.font);
-    textSize(20);
+    textSize(30);
     
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
       if (padWasPressed.get(padIndex)) {
@@ -126,7 +124,7 @@ public class FlockMode extends Mode {
       text("GAME OVER", width/2, height/2);
 
       //reset text settings
-      textSize(20);
+      textSize(30);
       textAlign(LEFT);
       fill(color(0, 0, 255));        
       noFill();
