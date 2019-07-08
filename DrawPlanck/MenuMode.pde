@@ -25,15 +25,19 @@ public class MenuMode extends Mode {
   public void draw() {
     this.noModePressChecking();
     textAlign(CENTER);
-    
+    textSize(32);
+
     //select mode
     if (choiceIndex >= 0 && ((menuIndex * 3) + choiceIndex) < modes.size() - 1) {
       nextMode =(menuIndex * 3) + choiceIndex + 1;
     } else {
       //Draw choices
-      line(width/2, 0, width/2, height);
-      line(0, height/2, width, height/2);
-      textSize(32);
+      text("Rhythm visuals", width/2, 40);
+      line(width/2, 75, width/2, height/2 - 150);
+      line(width/2, height/2 + 150, width/2, height);
+      line(0, height/2, width/2 - 150, height/2);
+      line( width/2 + 150, height/2, width, height/2);
+
       int optionIndex = 0;
       while (optionIndex < 3 && (((menuIndex * 3) + optionIndex) < modes.size() - 1)) {        
         //+1 to ignore first mode which should be menu itself
