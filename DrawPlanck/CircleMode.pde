@@ -10,6 +10,9 @@ public class CircleMode extends Mode {
   private int colorOffset = 0;
   private int colorOffsetCounter = 0;
 
+  private PImage bgImage;
+  private PGraphics pg;
+
 
   public CircleMode() {
     this.modeName = "Doughnut seeds";
@@ -61,16 +64,25 @@ public class CircleMode extends Mode {
     }
 
     slaves = new ArrayList<BouncingSlave>();
+
+    this.pg = createGraphics(width, height);
+    this.bgImage = loadImage("circle_bg.jpg");    
+    this.pg.beginDraw();
+    this.pg.background(0);
+    this.pg.image(bgImage, 0, 0, width, height);
+    this.pg.endDraw();
   }
 
   //Redraw circles, setting new widths when a sensor was pressed and
   //reducing their size otherwise
-  public void draw() {    
-//Tint using bpm
+  public void draw() {
+    background(this.pg);
+
+    //Tint using bpm
     fill(150, 100, 255, 30);
     noStroke();
     rect(0, 0, width, height);
-    
+
     stroke(0, 255, 0);
     //continually rotate sensor circles
     pushMatrix();
@@ -83,7 +95,7 @@ public class CircleMode extends Mode {
     float constrainedBpm = constrain(currentBpm, 40, 150);    
     if (constrainedBpm >= 130) {
       if (this.colorOffset != 0) {
-        if (this.colorOffsetCounter < 4){
+        if (this.colorOffsetCounter < 4) {
           this.colorOffsetCounter += 1;
         } else {
           this.colorOffset *= -1;
@@ -93,11 +105,11 @@ public class CircleMode extends Mode {
         this.colorOffset = 30;
       }
     } else {
-        this.colorOffset = 0;
+      this.colorOffset = 0;
     }
 
     int newColor = constrain(Math.round(map(constrainedBpm, 40, 150, this.getIntProp("SENSOR_COLOR_RANGE_MIN"), this.getIntProp("SENSOR_COLOR_RANGE_MAX"))) + this.colorOffset, 0, 255);
-    
+
     for (int pad = 0; pad < numPads; pad++) {
       pushMatrix();
       PVector vertex = planche.getVertex(pad);
@@ -143,7 +155,7 @@ public class CircleMode extends Mode {
 
       //TODO: Figure out why shapes are disappearing and replace ellipse
       //shape(circle);
-      stroke(newColor,110, 160);
+      stroke(newColor, 110, 160);
       strokeWeight(this.getIntProp("SENSOR_THICKNESS"));
       ellipse(0, 0, circle.getWidth(), circle.getWidth());
 
