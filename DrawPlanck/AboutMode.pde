@@ -2,7 +2,7 @@ public class AboutMode extends Mode {
   private PImage logo;
 
   public AboutMode() {
-    this.modeName = "À propos";
+    this.modeName = "About";
 
     //sets loaded config
     this.loadConfigFrom("about_config.properties");
