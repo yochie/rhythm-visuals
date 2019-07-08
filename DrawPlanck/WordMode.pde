@@ -8,6 +8,7 @@ public class WordMode extends Mode {
   private int textY;
   private PFont font;
   private float alpha;
+  private int oldColor;
 
   public WordMode() {
     this.modeName = "Impro / Jam";
@@ -41,6 +42,7 @@ public class WordMode extends Mode {
     
     this.pressCount = 0;
     this.wordIndex = (int) (random(this.words.size()));
+    this.oldColor =  255;
 
   }
 
@@ -52,7 +54,9 @@ public class WordMode extends Mode {
     //Tint using bpm
     float constrainedBpm = constrain(currentBpm, 40, 150);
     int newColor = Math.round(map(constrainedBpm, 40, 150, 255, 0));
-    fill(newColor, 255, 255, 30);
+    int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
+    oldColor = newInterpolatedColor;
+    fill(newInterpolatedColor, 255, 255, 30);
     noStroke();
     rect(0, 0, width, height);
     
