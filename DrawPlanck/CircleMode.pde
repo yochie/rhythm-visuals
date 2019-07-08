@@ -43,9 +43,9 @@ public class CircleMode extends Mode {
 
     stroke(0, 255, 0);
     
-    rotation = 0
+    rotation = 0;
     colorOffsetCounter = 0;
-    colorOffset = 0
+    colorOffset = 0;
 
     //init vars used to update sensor circle width
     newWidths = new ArrayList<Integer>();
