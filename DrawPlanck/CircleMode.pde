@@ -36,13 +36,20 @@ public class CircleMode extends Mode {
     loadConfigFrom("circle_config.properties");
     println("Circle config: ");
     println(loadedConfig);
+
+    this.pg = createGraphics(width, height);
+    this.bgImage = loadImage("circle_bg.jpg");    
+    this.pg.beginDraw();
+    this.pg.background(0);
+    this.pg.image(bgImage, 0, 0, width, height);
+    this.pg.endDraw();
   }
 
   public void setup() {
     System.out.println("MODE: Circle");
 
     stroke(0, 255, 0);
-    
+
     rotation = 0;
     colorOffsetCounter = 0;
     colorOffset = 0;
@@ -68,13 +75,6 @@ public class CircleMode extends Mode {
     }
 
     slaves = new ArrayList<BouncingSlave>();
-
-    this.pg = createGraphics(width, height);
-    this.bgImage = loadImage("circle_bg.jpg");    
-    this.pg.beginDraw();
-    this.pg.background(0);
-    this.pg.image(bgImage, 0, 0, width, height);
-    this.pg.endDraw();
   }
 
   //Redraw circles, setting new widths when a sensor was pressed and
