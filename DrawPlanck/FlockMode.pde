@@ -95,12 +95,13 @@ public class FlockMode extends Mode {
     int xTarget = constrain(currentX + newXOffset, 100, width - 100);
     int yTarget = constrain(currentY + newYOffset, 100, height -100);
 
-    //red target
-    stroke(color(255, 255, 255));
-    ellipse(xTarget, yTarget, 10, 10);
+    noStroke();
+    fill(color(110, 255, 255));
+    ellipse(xTarget, yTarget, 20, 20);
 
     //reset white stroke
     stroke(color(0, 0, 255));
+    noFill();
 
 
     this.flock.run(xTarget, yTarget);
