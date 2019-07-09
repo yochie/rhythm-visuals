@@ -16,7 +16,6 @@ public class WordMode extends Mode {
     this.defaultConfig.setProperty("WORDS", "Triolets, Gigue, Lentement, Rapidement");
     this.defaultConfig.setProperty("PRESSES_FOR_WORD_SWITCH", "30");
 
-
     //sets loaded config
     this.loadConfigFrom("word_config.properties");
     println("Word config: ");
@@ -53,12 +52,13 @@ public class WordMode extends Mode {
     //Tint using bpm
     float constrainedBpm = constrain(currentBpm, 40, 150);
     int newColor = Math.round(map(constrainedBpm, 40, 150, 85, 0));
-    
+
+    //first time
     if (oldColor < 0) 
       oldColor = newColor;
 
     int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
-    
+
     oldColor = newInterpolatedColor;
     fill(newInterpolatedColor, 255, 255, 30);
     noStroke();
