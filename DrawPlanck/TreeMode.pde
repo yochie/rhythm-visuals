@@ -2,8 +2,8 @@
 //most single tree growing branches code from https://www.openprocessing.org/sketch/717722
 public class TreeMode extends Mode {
 
-  private ArrayList<Branch> branch = new ArrayList<Branch>();
-  private float offset = -90.0;
+  private ArrayList<Branch> branch;
+  private float offset;
   private int count;
   private int s_color;
   private float s_weight;
@@ -11,7 +11,7 @@ public class TreeMode extends Mode {
 
   public TreeMode() {
     this.modeName = "Arbres";
-    
+
     //sets loaded config
     loadConfigFrom("tree_config.properties");
     println("tree config: ");
@@ -20,6 +20,9 @@ public class TreeMode extends Mode {
 
   public void setup() {
     System.out.println("MODE: Tree");
+    
+    branch = new ArrayList<Branch>();
+    offset = -90.0;
     pixelDensity(displayDensity());
     redrawBackground = false;
     background(200);
@@ -30,9 +33,11 @@ public class TreeMode extends Mode {
     s_weight = 0;
   }
 
-  public void draw() {    
-    if(draw) {
-      for (int i = 0; i < branch.size() ; i++) {
+  public void draw() {  
+    this.noModePressChecking();
+
+    if (draw) {
+      for (int i = 0; i < branch.size(); i++) {
         branch.get(i).Render();
         branch.get(i).Update();
       }
@@ -41,12 +46,12 @@ public class TreeMode extends Mode {
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {    
     //filter out unassigned notes, note_off messages and unused pads
-     if (pad != null && vel > 0) {
-       System.out.println("pad detected " + pad.name + "\n branch size: " + branch.size());
-       draw = true;
-     } else {
-       draw = false;
-     }
+    if (pad != null && vel > 0) {
+      System.out.println("pad detected " + pad.name + "\n branch size: " + branch.size());
+      draw = true;
+    } else {
+      draw = false;
+    }
   }
 
   private class Branch
