@@ -163,8 +163,9 @@ public class TreeMode extends Mode {
         s_weight = 0;
         float sx = random (width);
         float sl = random (0.0, 180.0);
+        float sy = height - random((int) (height/3));
         branch = new ArrayList<Branch>();
-        branch.add(new Branch(sx, height, sx, height - sl, sl, 0.0));
+        branch.add(new Branch(sx, sy, sx, sy - sl, sl, 0.0));
       }
     }
 
