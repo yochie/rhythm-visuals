@@ -39,27 +39,31 @@ public class WordMode extends Mode {
     this.alpha = 255;
     this.textX = (int) (width/2 + random(-75, 75));
     this.textY = (int) (height/2 + random(-75, 75));
-    
+
     this.pressCount = 0;
     this.wordIndex = (int) (random(this.words.size()));
-    this.oldColor =  255;
-
+    this.oldColor =  -1;
   }
 
   public void draw() {
     this.noModePressChecking();
     textFont(font);
     textAlign(CENTER);
-    
+
     //Tint using bpm
     float constrainedBpm = constrain(currentBpm, 40, 150);
-    int newColor = Math.round(map(constrainedBpm, 40, 150, 255, 0));
+    int newColor = Math.round(map(constrainedBpm, 40, 150, 85, 0));
+    
+    if (oldColor < 0) 
+      oldColor = newColor;
+
     int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
+    
     oldColor = newInterpolatedColor;
     fill(newInterpolatedColor, 255, 255, 30);
     noStroke();
     rect(0, 0, width, height);
-    
+
     //change word
     if (this.pressCount == this.getIntProp("PRESSES_FOR_WORD_SWITCH")) {    
       this.pressCount = 0;
