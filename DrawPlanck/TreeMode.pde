@@ -15,6 +15,7 @@ public class TreeMode extends Mode {
 
   PImage vdj_logo;
   PImage ae_logo;
+  long drawStart;
 
   static final int BRANCH_COLOR_CHANGE = 50;
 
@@ -89,7 +90,7 @@ public class TreeMode extends Mode {
     imageMode(CORNER);
 
     colorMode(RGB, 255, 255, 255, 100);
-    if (draw) {
+    if (draw || System.currentTimeMillis() - drawStart < 100) {
       for (int i = 0; i < branch.size(); i++) {
         branch.get(i).Render();
         branch.get(i).Update();
@@ -102,6 +103,7 @@ public class TreeMode extends Mode {
     if (pad != null && vel > 0) {
       System.out.println("pad detected " + pad.name + "\n branch size: " + branch.size());
       draw = true;
+      drawStart = System.currentTimeMillis();
     } else {
       draw = false;
     }
