@@ -141,7 +141,9 @@ public class SuperluminalMode extends Mode {
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
     // Do something on MIDI msg received
     // Keep track of pad velocity to affect stars number
-    padVelocity = vel;
+    if (vel > 0){
+      padVelocity = vel;
+    }
   }
 
 }
