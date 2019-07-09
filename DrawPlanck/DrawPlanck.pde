@@ -177,7 +177,7 @@ void setup() {
 }
 
 void draw() {
-  if(currentMode.redrawBackground)
+  if (currentMode.redrawBackground)
     //Redraw bg to erase previous frame
     background(pg);
 

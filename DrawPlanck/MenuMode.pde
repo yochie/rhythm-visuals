@@ -113,7 +113,7 @@ public class MenuMode extends Mode {
     if (pad != null && vel > 0) {
       switch (pad.name) {
       case "BOTTOM_RIGHT_NOTE" :
-        if (menuIndex < (modes.size() - 1) / 3) {
+        if (menuIndex + 1 <  Math.ceil((modes.size() - 1) / 3.0)) {
           menuIndex++;
         } else {
           menuIndex = 0;
