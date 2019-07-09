@@ -60,7 +60,7 @@ public class WordMode extends Mode {
     int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
 
     oldColor = newInterpolatedColor;
-    fill(newInterpolatedColor, 255, 255, 30);
+    fill(newInterpolatedColor, 255, 255, 128);
     noStroke();
     rect(0, 0, width, height);
 
