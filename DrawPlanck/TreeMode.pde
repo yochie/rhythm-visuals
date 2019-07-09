@@ -7,7 +7,9 @@ public class TreeMode extends Mode {
   private int count;
   private int s_color;
   private float s_weight;
-  private boolean draw = false;
+  private boolean draw;
+  private int oldColor;
+  private boolean colorize;
 
   public TreeMode() {
     this.modeName = "Arbres";
@@ -20,7 +22,7 @@ public class TreeMode extends Mode {
 
   public void setup() {
     System.out.println("MODE: Tree");
-    
+
     branch = new ArrayList<Branch>();
     offset = -90.0;
     pixelDensity(displayDensity());
@@ -31,11 +33,43 @@ public class TreeMode extends Mode {
     count = 0;
     s_color = 0;
     s_weight = 0;
+    colorize = false;
+    draw = false;
   }
 
-  public void draw() {  
-    this.noModePressChecking();
+  public void draw() {
+    colorMode(HSB, 255, 255, 255, 255);
+    //check if a pad was pressed
+    for (int i = 0; i < numPads; i++) {
+      if (padWasPressed.get(i)) {
+        this.resetPressed(i);
+        colorize = true;
+        break;
+      }
+    }
 
+    if (colorize) {
+      //Tint using bpm
+      float constrainedBpm = constrain(currentBpm, 40, 150);
+      int newColor = Math.round(map(constrainedBpm, 40, 150, 85, 0));
+
+      //first time
+      if (oldColor < 0) 
+        oldColor = newColor;
+      int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
+      oldColor = newInterpolatedColor;
+      fill(newInterpolatedColor, 255, 255, 5);
+      noStroke();
+      rectMode(CENTER);
+      pushMatrix();
+      translate(0, 0, -10);
+      rect(width/2, height/2, width*2, height*2);
+      popMatrix();
+      rectMode(CORNER);
+      colorize = false;
+    }
+
+    colorMode(RGB, 255, 255, 255, 100);
     if (draw) {
       for (int i = 0; i < branch.size(); i++) {
         branch.get(i).Render();
@@ -122,7 +156,10 @@ public class TreeMode extends Mode {
       if (draw_flag == true) {
         stroke (s_color);
         strokeWeight (s_weight);
+        pushMatrix();
+        translate(0, 0, 10);
         line (prevx, prevy, nextx, nexty);
+        popMatrix();
       }
       prevx = nextx;
       prevy = nexty;

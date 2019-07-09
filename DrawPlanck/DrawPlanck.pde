@@ -392,7 +392,7 @@ void midiMessage(MidiMessage message) {
 }
 
 void defaultDrawing() {
-  colorMode(HSB);
+  colorMode(HSB, 255, 255, 255, 255);  
   fill(0, 0, 255);
   noFill();
   stroke(0, 0, 255);
