@@ -60,7 +60,7 @@ public class TreeMode extends Mode {
         oldColor = newColor;
       int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
       oldColor = newInterpolatedColor;
-      fill(newInterpolatedColor, 255, 255, 5);
+      fill(newInterpolatedColor, 255, 255, 2);
       noStroke();
       rectMode(CENTER);
       pushMatrix();
