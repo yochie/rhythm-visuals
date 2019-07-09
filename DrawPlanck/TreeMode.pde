@@ -12,10 +12,14 @@ public class TreeMode extends Mode {
   private boolean draw;
   //private int oldColor;
   //private boolean colorize;
+  
+  PImage vdj_logo;
+  PImage ae_logo;
 
   static final int BRANCH_COLOR_CHANGE = 50;
 
   public TreeMode() {
+    this.redrawBackground = false;
     this.modeName = "Arbres";
 
     //sets loaded config
@@ -30,16 +34,11 @@ public class TreeMode extends Mode {
     branch = new ArrayList<Branch>();
     offset = -90.0;
     pixelDensity(displayDensity());
-    redrawBackground = false;
     background(200);
 
-    PImage ae_logo = loadImage("ae.png");
-    PImage vdj_logo = loadImage("bitmap_noir.png");
+    ae_logo = loadImage("ae.png");
+    vdj_logo = loadImage("bitmap_noir.png");
     vdj_logo.resize((int) (vdj_logo.width * 0.33), 0);
-    imageMode(CENTER);
-    image(ae_logo, width/3, height/3);
-    image(vdj_logo, 2*width/3, height/3);
-    imageMode(CORNER);
 
     colorMode(RGB, 255, 255, 255, 100);
     branch.add(new Branch(width / 2, height, width / 2, height - 80.0, 80.0, 0.0));
@@ -81,7 +80,12 @@ public class TreeMode extends Mode {
     //  rectMode(CORNER);
     //  colorize = false;
     //}
-
+    
+    imageMode(CENTER);
+    image(ae_logo, width/3, height/3);
+    image(vdj_logo, 2*width/3, height/3);
+    imageMode(CORNER);
+    
     colorMode(RGB, 255, 255, 255, 100);
     if (draw) {
       for (int i = 0; i < branch.size(); i++) {
@@ -169,10 +173,7 @@ public class TreeMode extends Mode {
         else
           stroke(0, noisy(100), 0);
         strokeWeight (s_weight);
-        //pushMatrix();
-        //translate(0, 0, 10);
         line (prevx, prevy, nextx, nexty);
-        //popMatrix();
       }
       prevx = nextx;
       prevy = nexty;
