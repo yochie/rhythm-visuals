@@ -43,7 +43,7 @@ public class CircleMode extends Mode {
     this.pg.beginDraw();
     this.pg.background(0);
     bgImage.resize(width, 0);      
-    if (bgImage.height > height) {
+    if (bgImage.height < height) {
       bgImage.resize(0, height);
     }
     this.pg.imageMode(CENTER);
