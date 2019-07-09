@@ -20,7 +20,7 @@ public class TreeMode extends Mode {
 
   public TreeMode() {
     this.redrawBackground = false;
-    this.modeName = "Arbres";
+    this.modeName = "Reboisons! - Reforest!";
 
     //sets loaded config
     loadConfigFrom("tree_config.properties");

@@ -6,7 +6,7 @@ public class SuperluminalMode extends Mode {
   private int redRandomVal = 70;
 
   public SuperluminalMode() {
-    this.modeName = "Superlumineux / Superluminal";
+    this.modeName = "Superlumineux - Superluminal";
 
     // TODO check how to set a bool prop
     this.defaultConfig.setProperty("BG_STARS", "1");

@@ -159,11 +159,11 @@ void setup() {
 
   //Create modes and initialize currentMode
   modes.add(new MenuMode()); 
-  modes.add(new TreeMode());
   modes.add(new CircleMode());
   modes.add(new SuperluminalMode());
-  modes.add(new WordMode());
+  modes.add(new TreeMode());
   modes.add(new FlockMode());
+  modes.add(new WordMode());
   modes.add(new AboutMode());
 
   currentModeIndex = 0;

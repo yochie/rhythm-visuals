@@ -60,7 +60,7 @@ public class MenuMode extends Mode {
       //Draw choices
       textFont(menuBoldFont);
 
-      text("Rhythm visuals", width/2, titleVerticalMargin/2);
+      text("Rythmes visuels - Rhythm visuals", width/2, titleVerticalMargin/2);
       textSize(32);
 
       //line(width/2, 75, width/2, height/2 - 150);
