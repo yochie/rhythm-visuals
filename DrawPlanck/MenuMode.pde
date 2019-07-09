@@ -51,7 +51,6 @@ public class MenuMode extends Mode {
     this.noModePressChecking();
     background(this.pg);
     textAlign(CENTER);
-    textSize(32);
 
     //select mode
     if (choiceIndex >= 0 && ((menuIndex * 3) + choiceIndex) < modes.size() - 1) {
@@ -59,15 +58,11 @@ public class MenuMode extends Mode {
     } else {
       //Draw choices
       textFont(menuBoldFont);
+      textSize(48);
+      text("Rythmes visuels - Rhythm Visuals", width/2, titleVerticalMargin);
 
-      text("Rythmes visuels - Rhythm visuals", width/2, titleVerticalMargin/2);
-      textSize(32);
-
-      //line(width/2, 75, width/2, height/2 - 150);
-      //line(width/2, height/2 + 150, width/2, height);
-      //line(0, height/2, width/2 - 150, height/2);
-      //line( width/2 + 150, height/2, width, height/2);
       textFont(menuFont);
+      textSize(32);
 
       int optionIndex = 0;
       final int rectCornerRadi = 90;
