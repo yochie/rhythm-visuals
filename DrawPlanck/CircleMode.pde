@@ -103,7 +103,7 @@ public class CircleMode extends Mode {
 
     //scale color of sensor circles   
     float constrainedBpm = constrain(currentBpm, 40, 150);    
-    if (constrainedBpm >= 130) {
+    if (constrainedBpm >= 125) {
       if (this.colorOffset != 0) {
         if (this.colorOffsetCounter < 4) {
           this.colorOffsetCounter += 1;
