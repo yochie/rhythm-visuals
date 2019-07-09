@@ -158,7 +158,8 @@ void setup() {
   }
 
   //Create modes and initialize currentMode
-  modes.add(new MenuMode());  
+  modes.add(new MenuMode()); 
+  modes.add(new TreeMode());
   modes.add(new CircleMode());
   modes.add(new SuperluminalMode());
   modes.add(new WordMode());
@@ -176,8 +177,9 @@ void setup() {
 }
 
 void draw() {
-  //Redraw bg to erase previous frame
-  background(pg);
+  if(currentMode.redrawBackground)
+    //Redraw bg to erase previous frame
+    background(pg);
 
   //Increment synchronous press counters (don't check pressCounter asynchronously)
   for (int padIndex = 0; padIndex < numPads; padIndex++) {
