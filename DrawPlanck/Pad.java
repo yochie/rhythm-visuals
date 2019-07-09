@@ -7,10 +7,10 @@ public class Pad {
   public int index;
   public int note;
   public boolean isAux;
-  
+
   private static Map<Integer, Integer> noteToPadMap = new HashMap();
-  
-  public static int noteToPad(int note){
+
+  public static int noteToPad(int note) {
     int toReturn = -1;
     if (noteToPadMap.containsKey(note)) {
       toReturn = noteToPadMap.get(note);
