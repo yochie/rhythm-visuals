@@ -22,7 +22,7 @@ public class FlockMode extends Mode {
   private PFont font;
 
   public FlockMode() {
-    this.modeName = "Nuée - Flock";
+    this.modeName = "Nuée rétro - Retro Flock";
 
     //set defaults used by loadConfigFrom
     this.defaultConfig.setProperty("MAX_FLOCK_SIZE", "10");
