@@ -1,5 +1,7 @@
 //grows trees as long as bpm stays in range
 //most single tree growing branches code from https://www.openprocessing.org/sketch/717722
+//Credit for the original script goes to OpenProcessing user Hoo Ja Oh
+//License : https://creativecommons.org/licenses/by-sa/3.0/legalcode
 public class TreeMode extends Mode {
 
   private ArrayList<Branch> branch;
