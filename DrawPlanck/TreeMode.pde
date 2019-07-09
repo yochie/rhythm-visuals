@@ -12,7 +12,7 @@ public class TreeMode extends Mode {
   private boolean draw;
   //private int oldColor;
   //private boolean colorize;
-  
+
   PImage vdj_logo;
   PImage ae_logo;
 
@@ -34,7 +34,9 @@ public class TreeMode extends Mode {
     branch = new ArrayList<Branch>();
     offset = -90.0;
     pixelDensity(displayDensity());
-    background(200);
+    colorMode(HSB, 255, 255, 255, 255);  
+
+    background(25, 180, 255);
 
     ae_logo = loadImage("ae.png");
     vdj_logo = loadImage("bitmap_noir.png");
@@ -80,12 +82,12 @@ public class TreeMode extends Mode {
     //  rectMode(CORNER);
     //  colorize = false;
     //}
-    
+
     imageMode(CENTER);
     image(ae_logo, 2*width/5, height/4);
     image(vdj_logo, 3*width/5, height/4);
     imageMode(CORNER);
-    
+
     colorMode(RGB, 255, 255, 255, 100);
     if (draw) {
       for (int i = 0; i < branch.size(); i++) {
