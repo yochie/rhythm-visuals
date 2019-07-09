@@ -136,8 +136,8 @@ public class TreeMode extends Mode {
     }
 
     public void Update() {
-      nextx += (endx - nextx) * 0.4;
-      nexty += (endy - nexty) * 0.4;
+      nextx += (endx - nextx) * 0.65;
+      nexty += (endy - nexty) * 0.65;
       s_color = int (count / 10.0);
       s_weight = 3.0 / (count / 100 + 1);
       if (abs (nextx - endx) < 1.0 && abs (nexty - endy) < 1.0 && next_flag == true) {
