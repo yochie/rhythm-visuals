@@ -132,7 +132,7 @@ public class FlockMode extends Mode {
 
       //lose life
     } else if (flock.boids.size() == 0 && iframes <= 0 && alive) {
-      lives--;
+      lives--;      
       iframes =  this.getIntProp("DEATH_IMMUNE_SECONDS") * (int) frameRate; 
       if (lives == 0) {
         lives = this.getIntProp("MAX_LIVES");
@@ -140,7 +140,8 @@ public class FlockMode extends Mode {
       }
       score = 0;
       alive = false;
-
+      this.currentX = width/2;
+      this.currentY = height/2;
       // increment score
     } else if (currentTime - lastScoringTime >= 1000) {
       score += flock.boids.size();
@@ -161,7 +162,7 @@ public class FlockMode extends Mode {
     //write lives
     noStroke();
     fill(color(110, 255, 255));
-    for (int i = 0; i < lives; i++) {
+    for (int i = 0; i < lives - 1; i++) {
       ellipse(width - 200 + (50 * i), 50, 20, 20);
     }
 
