@@ -155,7 +155,7 @@ public class CircleMode extends Mode {
         circle.scale(this.getFloatProp("SHRINK_FACTOR"));
       }
 
-      circle.setStroke(color(newColor, 84, 255));  
+      circle.setStroke(color(newColor, 170, 255));  
       circle.setStrokeWeight(this.getIntProp("SENSOR_THICKNESS"));
 
       //push circle outwards    
@@ -165,7 +165,7 @@ public class CircleMode extends Mode {
 
       //TODO: Figure out why shapes are disappearing and replace ellipse
       //shape(circle);
-      stroke(newColor, 110, 160);
+      stroke(newColor, 170, 255);
       strokeWeight(this.getIntProp("SENSOR_THICKNESS"));
       ellipse(0, 0, circle.getWidth(), circle.getWidth());
 
