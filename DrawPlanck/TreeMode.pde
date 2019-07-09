@@ -8,8 +8,8 @@ public class TreeMode extends Mode {
   private int s_color;
   private float s_weight;
   private boolean draw;
-  private int oldColor;
-  private boolean colorize;
+  //private int oldColor;
+  //private boolean colorize;
 
   static final int BRANCH_COLOR_CHANGE = 50;
 
@@ -35,41 +35,41 @@ public class TreeMode extends Mode {
     count = 0;
     s_color = 0;
     s_weight = 0;
-    colorize = false;
+    //colorize = false;
     draw = false;
   }
 
   public void draw() {
-    colorMode(HSB, 255, 255, 255, 255);
-    //check if a pad was pressed
-    for (int i = 0; i < numPads; i++) {
-      if (padWasPressed.get(i)) {
-        this.resetPressed(i);
-        colorize = true;
-        break;
-      }
-    }
+    //colorMode(HSB, 255, 255, 255, 255);
+    ////check if a pad was pressed
+    //for (int i = 0; i < numPads; i++) {
+    //  if (padWasPressed.get(i)) {
+    //    this.resetPressed(i);
+    //    colorize = true;
+    //    break;
+    //  }
+    //}
 
-    if (colorize) {
-      //Tint using bpm
-      float constrainedBpm = constrain(currentBpm, 40, 150);
-      int newColor = Math.round(map(constrainedBpm, 40, 150, 85, 0));
+    //if (colorize) {
+    //  //Tint using bpm
+    //  float constrainedBpm = constrain(currentBpm, 40, 150);
+    //  int newColor = Math.round(map(constrainedBpm, 40, 150, 85, 0));
 
-      //first time
-      if (oldColor < 0) 
-        oldColor = newColor;
-      int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
-      oldColor = newInterpolatedColor;
-      fill(newInterpolatedColor, 255, 255, 2);
-      noStroke();
-      rectMode(CENTER);
-      pushMatrix();
-      translate(0, 0, -10);
-      rect(width/2, height/2, width*2, height*2);
-      popMatrix();
-      rectMode(CORNER);
-      colorize = false;
-    }
+    //  //first time
+    //  if (oldColor < 0) 
+    //    oldColor = newColor;
+    //  int newInterpolatedColor = Math.round(lerp(oldColor, newColor, 0.05));
+    //  oldColor = newInterpolatedColor;
+    //  fill(newInterpolatedColor, 255, 255, 2);
+    //  noStroke();
+    //  rectMode(CENTER);
+    //  pushMatrix();
+    //  translate(0, 0, -10);
+    //  rect(width/2, height/2, width*2, height*2);
+    //  popMatrix();
+    //  rectMode(CORNER);
+    //  colorize = false;
+    //}
 
     colorMode(RGB, 255, 255, 255, 100);
     if (draw) {
@@ -153,18 +153,23 @@ public class TreeMode extends Mode {
 
     public void Render() {
       if (draw_flag == true) {
-        if(branch.size() < BRANCH_COLOR_CHANGE)
-          stroke(139,69,19);//stroke (s_color);
+        if (branch.size() < BRANCH_COLOR_CHANGE)
+          stroke(noisy(139), noisy(69), noisy(19));//stroke (s_color);
         else
-          stroke(0,100,0);
+          stroke(0, noisy(100), 0);
         strokeWeight (s_weight);
-        pushMatrix();
-        translate(0, 0, 10);
+        //pushMatrix();
+        //translate(0, 0, 10);
         line (prevx, prevy, nextx, nexty);
-        popMatrix();
+        //popMatrix();
       }
       prevx = nextx;
       prevy = nexty;
     }
+  }
+
+  private int noisy(int val) {
+    int minRange = 15;
+    return (int) (val + random(min(-val/4, -minRange), max(val/4, minRange)));
   }
 }
