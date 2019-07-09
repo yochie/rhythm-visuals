@@ -36,8 +36,8 @@ public class WordMode extends Mode {
     textFont(font);
     textAlign(CENTER);
     this.alpha = 255;
-    this.textX = (int) (width/2 + random(-75, 75));
-    this.textY = (int) (height/2 + random(-75, 75));
+    this.textX = (int) (width/2 + random(-width/4, width/4));
+    this.textY = (int) (height/2 + random(-height/4, height/4));
 
     this.pressCount = 0;
     this.wordIndex = (int) (random(this.words.size()));
@@ -67,8 +67,8 @@ public class WordMode extends Mode {
     //change word
     if (this.pressCount == this.getIntProp("PRESSES_FOR_WORD_SWITCH")) {    
       this.pressCount = 0;
-      this.textX = (int) (width/2 + random(-75, 75));
-      this.textY = (int) (height/2 + random(-75, 75));
+      this.textX = (int) (width/2 + random(-width/4, width/4));
+      this.textY = (int) (height/2 + random(-height/4, height/4));
       this.alpha = 255;
       //cycle index
       int oldIndex = this.wordIndex;
