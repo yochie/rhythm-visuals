@@ -11,6 +11,8 @@ public class TreeMode extends Mode {
   private int oldColor;
   private boolean colorize;
 
+  static final int BRANCH_COLOR_CHANGE = 50;
+
   public TreeMode() {
     this.modeName = "Arbres";
 
@@ -90,14 +92,11 @@ public class TreeMode extends Mode {
 
   private class Branch
   {
-    float startx, starty, endx;
-    float endy;
+    float startx, starty, endx, endy;
     float length;
     float degree;
-    float nextx;
-    float nexty;
-    float prevx;
-    float prevy;
+    float nextx, nexty;
+    float prevx, prevy;
     boolean next_flag = true;
     boolean draw_flag = true;
 
@@ -154,7 +153,10 @@ public class TreeMode extends Mode {
 
     public void Render() {
       if (draw_flag == true) {
-        stroke (s_color);
+        if(branch.size() < BRANCH_COLOR_CHANGE)
+          stroke(139,69,19);//stroke (s_color);
+        else
+          stroke(0,100,0);
         strokeWeight (s_weight);
         pushMatrix();
         translate(0, 0, 10);
