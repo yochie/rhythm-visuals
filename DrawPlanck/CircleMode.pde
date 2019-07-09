@@ -15,7 +15,7 @@ public class CircleMode extends Mode {
 
 
   public CircleMode() {
-    this.modeName = "Graines de beignes - Doughnut seeds";
+    this.modeName = "Graines de Beignes - Doughnut Seeds";
     this.defaultConfig.setProperty("SHRINK_FACTOR", "0.95");
     this.defaultConfig.setProperty("MAX_CIRCLE_WIDTH", "200");
     this.defaultConfig.setProperty("MIN_CIRCLE_WIDTH", "40");
