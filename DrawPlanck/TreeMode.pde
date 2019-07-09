@@ -82,8 +82,8 @@ public class TreeMode extends Mode {
     //}
     
     imageMode(CENTER);
-    image(ae_logo, width/3, height/3);
-    image(vdj_logo, 2*width/3, height/3);
+    image(ae_logo, 2*width/5, height/4);
+    image(vdj_logo, 3*width/5, height/4);
     imageMode(CORNER);
     
     colorMode(RGB, 255, 255, 255, 100);
