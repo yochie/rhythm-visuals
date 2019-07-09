@@ -34,7 +34,7 @@ const int PROGRAM = 0;
 
 /*MOTOR CONFIG*/
 
-const boolean WITH_MOTORS = false;
+const boolean WITH_MOTORS = true;
 const int NUM_MOTORS = 2;
 
 //digital pin numbers for each sensor
