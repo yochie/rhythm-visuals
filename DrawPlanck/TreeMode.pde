@@ -30,6 +30,15 @@ public class TreeMode extends Mode {
     pixelDensity(displayDensity());
     redrawBackground = false;
     background(200);
+
+    PImage ae_logo = loadImage("ae.png");
+    PImage vdj_logo = loadImage("bitmap_noir.png");
+    vdj_logo.resize((int) (vdj_logo.width * 0.33), 0);
+    imageMode(CENTER);
+    image(ae_logo, width/3, height/3);
+    image(vdj_logo, 2*width/3, height/3);
+    imageMode(CORNER);
+
     colorMode(RGB, 255, 255, 255, 100);
     branch.add(new Branch(width / 2, height, width / 2, height - 80.0, 80.0, 0.0));
     count = 0;
