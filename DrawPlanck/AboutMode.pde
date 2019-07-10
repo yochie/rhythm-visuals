@@ -1,5 +1,5 @@
 public class AboutMode extends Mode {
-  private PImage logo;
+  private PImage aboutLogo;
 
   public AboutMode() {
     this.modeName = "À propos - About";
@@ -12,13 +12,17 @@ public class AboutMode extends Mode {
 
   public void setup() {
     System.out.println("MODE: About");
-    this.logo = loadImage("about.png");
+    this.aboutLogo = loadImage("about.png");
+    this.aboutLogo.resize(width, 0);      
+    if (this.aboutLogo.height > height) {
+      this.aboutLogo.resize(0, height);
+    }
   }
 
   public void draw() {
     this.noModePressChecking();
     imageMode(CENTER);
-    image(this.logo, width/2, height/2);
+    image(this.aboutLogo, width/2, height/2);
     imageMode(CORNERS);
   }
 
