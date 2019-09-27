@@ -122,14 +122,15 @@ public class WordMode extends Mode {
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {    
 
     //filter out unassigned notes, note_off messages and unused pads
-    if (pad != null && vel > 0){
-      if(pad.name.equals(this.getStringProp("SWITCH_PAD_NAME"))) {
+    if (pad != null && vel > 0) {
+      if (pad.name.equals(this.getStringProp("SWITCH_PAD_NAME"))) {
         this.pressCount++;
-      } else if (pad.name.equals(this.getStringProp("SWITCH_PAD_NAME_ALT"))){
+      } else if (pad.name.equals(this.getStringProp("SWITCH_PAD_NAME_ALT"))) {
         this.pressCountAlt++;
       } else if (vel > 0) {
-      this.pressCount = 0;
-      this.pressCountAlt = 0;
+        this.pressCount = 0;
+        this.pressCountAlt = 0;
+      }
     }
   }
 }
