@@ -15,7 +15,7 @@ public class SuperluminalMode extends Mode {
     this.defaultConfig.setProperty("BG_STARS", "1");
     this.defaultConfig.setProperty("BG_STARS_NUMBER", "4");
     this.defaultConfig.setProperty("BG_STARS_SPEED", "30");
-
+    this.defaultConfig.setProperty("BG_STARS_TRIGGER_PRESSES", "1");
     this.defaultConfig.setProperty("BG_STARS_START_COLOR", "75,75,200");
     this.defaultConfig.setProperty("BG_STARS_END_COLOR", "200,0,0");
 
@@ -36,10 +36,21 @@ public class SuperluminalMode extends Mode {
     this.defaultConfig.setProperty("STARS3_SPEED", "10");
     this.defaultConfig.setProperty("STARS4_SPEED", "5");
 
+    this.defaultConfig.setProperty("STARS1_NUMBER", "40");
+    this.defaultConfig.setProperty("STARS2_NUMBER", "20");
+    this.defaultConfig.setProperty("STARS3_NUMBER", "20");
+    this.defaultConfig.setProperty("STARS4_NUMBER", "20");
+
+    this.defaultConfig.setProperty("STARS1_GROW_FACTOR", "20");
+    this.defaultConfig.setProperty("STARS2_GROW_FACTOR", "15");
+    this.defaultConfig.setProperty("STARS3_GROW_FACTOR", "10");
+    this.defaultConfig.setProperty("STARS4_GROW_FACTOR", "5");
+
     //midi controller specific, usually 255 but our Planck caps earlier
     this.defaultConfig.setProperty("MAX_VELOCITY", "100");
     this.defaultConfig.setProperty("VELOCITY_FACTOR", "0.09");
     this.defaultConfig.setProperty("STAR_THICKNESS", "1");
+
 
     //sets loaded config
     loadConfigFrom("superluminal_config.properties");
