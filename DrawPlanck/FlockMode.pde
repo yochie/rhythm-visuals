@@ -105,7 +105,7 @@ public class FlockMode extends Mode {
 
 
     this.flock.run(xTarget, yTarget);
-    this.wallManager.run(this.flock);
+    this.wallManager.run(this.flock, this.score, this.highScore);
 
     //update cursor
     this.currentX = xTarget;
@@ -262,14 +262,19 @@ private class WallManager {
     }
   }
 
-  public void run(Flock f) {
-    this.scroll();
+  public void run(Flock f, int score, int highScore) {
+    this.scroll(score, highScore);
     this.collide(f);
     this.render();
   }
 
-  public void scroll() {
-    this.xOffset -= this.scrollSpeed;
+  public void scroll(int score, int highScore) {
+    
+    //TODO: remove highscore or use it...
+    //scale speed by 1 pixel for each 500 score
+    int scaledScrollSpeed =  this.scrollSpeed + (int) map(score, 0, 5000, 0, 10);
+    this.xOffset -= scaledScrollSpeed;
+    //println(scaledScrollSpeed);
 
     //Create new walls
     if (this.xOffset <= 0) {
