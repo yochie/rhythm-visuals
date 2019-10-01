@@ -40,7 +40,7 @@ Creates stars of different types depending on pressed pad, with an optional flow
 
 #### Size
 - STAR_THICKNESS : Stroke thickness
-- STARS1_GROW_FACTOR : Grow factor (actually, steps by which stars radius grow) for stards of this pad.
+- STARS1_GROW_FACTOR : Grow factor (actually, steps by which stars radius grow) for stars of this pad.
 - STARS2_GROW_FACTOR : Idem.
 - STARS3_GROW_FACTOR : Idem.
 - STARS4_GROW_FACTOR : Idem.
