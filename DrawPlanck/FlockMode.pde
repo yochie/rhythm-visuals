@@ -75,14 +75,14 @@ public class FlockMode extends Mode {
     iframes = 0;
     lives = this.getIntProp("MAX_LIVES");
     alive = false;
-    
+
     this.font = createFont("Lucidia Grande", 30);
   }
 
   public void draw() {
     textFont(this.font);
     textSize(30);
-    
+
     for (int padIndex = 0; padIndex < numPads; padIndex++) {
       if (padWasPressed.get(padIndex)) {
         this.resetPressed(padIndex);
@@ -120,6 +120,7 @@ public class FlockMode extends Mode {
     //death animation
     long currentTime = System.currentTimeMillis();
     if (currentTime - lastDeathTime < this.getIntProp("GAME_OVER_ANIMATION_SECONDS") * 1000) {
+      score = 0;
       textAlign(CENTER);
       fill(color(0, 255, 255));
       textSize(40);
@@ -140,7 +141,6 @@ public class FlockMode extends Mode {
         lives = this.getIntProp("MAX_LIVES");
         lastDeathTime = currentTime;
       }
-      score = 0;
       alive = false;
       this.currentX = width/2;
       this.currentY = height/2;
@@ -157,8 +157,8 @@ public class FlockMode extends Mode {
     if (!alive) {
       textAlign(CENTER);
       fill(color(196, 255, 255));
-      textSize(30);
-      text("Dirigez la nuée en évitant les murs.\nDouble tapper pour ajouter un oiseau.", width/2, height/10);
+      textSize(35);
+      text("Dirigez la nuée en évitant les murs.\nDouble tappez pour ajouter un oiseau.", width/2, height/10);
 
       fill(color(190, 255, 255));
       text("Lead your flock to safety by avoiding the walls.\nDouble tap to spawn new birds.", width/2, 2*height/10);
@@ -360,7 +360,7 @@ private class WallManager {
     int scoreLoss = 0;
     for (Boid b : toRemove) {
       f.boids.remove(b);
-      scoreLoss += 10;
+      scoreLoss += 2;
     }
     return scoreLoss;
   }
@@ -436,7 +436,7 @@ private class Boid {
     sep.mult(1.5);
     ali.mult(1.0);
     coh.mult(1.0);
-    gid.mult(3.0);
+    gid.mult(4.0);
     // Add the force vectors to acceleration
     applyForce(sep);
     applyForce(ali);
