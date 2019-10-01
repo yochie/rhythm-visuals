@@ -113,7 +113,6 @@ public class WordMode extends Mode {
     if (newIndex == bankSize) {
       newIndex = 0;
       Collections.shuffle(wordBank);
-      println(wordBank);
     }
 
     //do {
