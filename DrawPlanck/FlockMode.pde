@@ -105,7 +105,9 @@ public class FlockMode extends Mode {
 
 
     this.flock.run(xTarget, yTarget);
-    this.wallManager.run(this.flock, this.score, this.highScore);
+
+    //lose score based on collisions computed here.
+    this.score -= this.wallManager.run(this.flock, this.score, this.highScore);
 
     //update cursor
     this.currentX = xTarget;
@@ -151,6 +153,23 @@ public class FlockMode extends Mode {
       lastScoringTime = currentTime;
     } 
 
+    //Write instructions
+    if (!alive) {
+      textAlign(CENTER);
+      fill(color(196, 255, 255));
+      textSize(30);
+      text("Dirigez la nuée en évitant les murs.\nDouble tapper pour ajouter un oiseau.", width/2, height/10);
+
+      fill(color(190, 255, 255));
+      text("Lead your flock to safety by avoiding the walls.\nDouble tap to spawn new birds.", width/2, 2*height/10);
+
+      //reset text settings
+      textSize(30);
+      textAlign(LEFT);
+      fill(color(0, 0, 255));        
+      noFill();
+    }
+
     //write score
     fill(color(0, 0, 255));
     text(score, 100, 50);
@@ -168,14 +187,14 @@ public class FlockMode extends Mode {
 
     fill(color(0, 0, 255));        
     noFill();
-    
-    if (iframes >= 0){
+
+    if (iframes >= 0) {
       iframes--;
     }
   }
 
   public void handleMidi(byte[] raw, byte messageType, int channel, int note, int vel, int controllerNumber, int controllerVal, Pad pad) {
-    
+
     if (pad != null && vel > 0) {
       //Count consecutive presses on single pad
       //Similar to pressCounter, but updated by callback instead of in draw()
@@ -262,14 +281,15 @@ private class WallManager {
     }
   }
 
-  public void run(Flock f, int score, int highScore) {
+  public int run(Flock f, int score, int highScore) {
     this.scroll(score, highScore);
-    this.collide(f);
+    int scoreLoss = this.collide(f);
     this.render();
+    return scoreLoss;
   }
 
   public void scroll(int score, int highScore) {
-    
+
     //TODO: remove highscore or use it...
     //scale speed by 1 pixel for each 500 score
     int scaledScrollSpeed =  this.scrollSpeed + (int) map(score, 0, 5000, 0, 10);
@@ -325,7 +345,7 @@ private class WallManager {
     rect(width - lastWidth - 1, height - this.bottomWalls.get(this.numWalls - 1), lastWidth, this.bottomWalls.get(this.numWalls - 1));
   }
 
-  public void collide(Flock f) {
+  public int collide(Flock f) {
     ArrayList<Boid> toRemove = new ArrayList<Boid>();
     for (Boid b : f.boids) {
       int wallIndex = (int) ((b.position.x + (this.wallWidth - this.xOffset)) / this.wallWidth);
@@ -337,9 +357,12 @@ private class WallManager {
         toRemove.add(b);
       }
     }
+    int scoreLoss = 0;
     for (Boid b : toRemove) {
       f.boids.remove(b);
+      scoreLoss += 10;
     }
+    return scoreLoss;
   }
 }
 
