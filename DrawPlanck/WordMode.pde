@@ -9,7 +9,7 @@ public class WordMode extends Mode {
   private int wordIndex;
   private int wordIndexAlt;
 
-  private int currentBank = 0;
+  private int currentBank;
 
   private int textX;
   private int textY;
@@ -57,6 +57,7 @@ public class WordMode extends Mode {
     this.wordIndexAlt = (int) (random(this.wordsAlt.size()));
 
     this.oldColor =  -1;
+    currentBank = -1;
   }
 
   public void draw() {
@@ -84,10 +85,10 @@ public class WordMode extends Mode {
     boolean switchFromBank = this.pressCount == this.getIntProp("PRESSES_FOR_WORD_SWITCH");
     boolean switchFromBankAlt = this.pressCountAlt == this.getIntProp("PRESSES_FOR_WORD_SWITCH_ALT");
     if (switchFromBank) {
-      this.wordIndex = this.changeWord(this.wordIndex, this.words.size());
+      this.wordIndex = this.changeWord(this.wordIndex, this.words);
       this.currentBank = 0;
     } else if (switchFromBankAlt) {
-      this.wordIndexAlt = this.changeWord(this.wordIndexAlt, this.wordsAlt.size());
+      this.wordIndexAlt = this.changeWord(this.wordIndexAlt, this.wordsAlt);
       this.currentBank = 1;
     }
 
@@ -103,13 +104,21 @@ public class WordMode extends Mode {
     noFill();
   }
 
-  private int changeWord(int oldIndex, int bankSize) {
+  private int changeWord(int oldIndex, List<String> wordBank) {
+    
+    int bankSize = wordBank.size();
     this.pressCount = 0;
     this.pressCountAlt = 0;
-    int newIndex;
-    do {
-      newIndex = (int) (random(bankSize));
-    } while (newIndex == oldIndex);
+    int newIndex = oldIndex + 1;
+    if (newIndex == bankSize) {
+      newIndex = 0;
+      Collections.shuffle(wordBank);
+      println(wordBank);
+    }
+
+    //do {
+    //  newIndex = (int) (random(bankSize));
+    //} while (newIndex == oldIndex);
 
     this.textX = (int) (width/2 + random(-width/4, width/4));
     this.textY = (int) (height/2 + random(-height/4, height/4));
