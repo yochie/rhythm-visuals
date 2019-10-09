@@ -17,7 +17,7 @@ anti-static foam (often used to package integrated circuits) in series with a re
 example circuit using a single sensor, but any number of sensors can be plugged in parralel between the voltage rails and connected to 
 a different analog pin. Using a teensy 3.6 (180 MHz), stable readings for 4 simultaneous sensors were comfortably achieved.
 
-In our specific implementation, we used these [FSR sensors](https://www.digikey.ca/product-detail/en/interlink-electronics/30-73258/1027-1002-ND/2476470) along with LM358 OP amps in the voltage divider configuration suggested by [Interlink's FSR Integration Guide](http://www.generationrobots.com/media/FSR400-Series-Integration-Guide.pdf) (p.18). The latter are not included in the diagram below.
+In our specific implementation, we used these [FSR sensors](https://www.digikey.ca/product-detail/en/interlink-electronics/30-73258/1027-1002-ND/2476470) along with LM358 OP amps in the voltage divider configuration suggested by [Interlink's FSR Integration Guide](http://www.generationrobots.com/media/FSR400-Series-Integration-Guide.pdf) (p.18).
 
 ![circuit diagram](/diagram_podo.png?raw=true)
 
