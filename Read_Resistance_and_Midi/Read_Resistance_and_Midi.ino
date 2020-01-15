@@ -11,10 +11,14 @@ int jumpThreshold[NUM_SENSORS];
 //used to space motor activations from one another
 int tapsToIgnore[NUM_SENSORS];
 
+//For midi input sustains
+unsigned long lastExternalMidiOn[NUM_SENSORS];
+
+
 void setup() {
-  if (DEBUG || WITH_MIDI) {
-    Serial.begin(BAUD_RATE);
-  }
+
+  Serial.begin(BAUD_RATE);
+
   for (int sensor = 0; sensor < NUM_SENSORS; sensor++) {
     baseline[sensor] = analogRead(SENSOR_PINS[sensor]);
     jumpThreshold[sensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
@@ -30,8 +34,10 @@ void setup() {
       digitalWrite(MOTOR_PINS[motor], LOW);
     }
   }
+  usbMIDI.setHandleNoteOn(ExternalNoteOn);
+  usbMIDI.setHandleNoteOff(ExternalNoteOff);
 
-  if (WITH_MIDI) {
+  if (WITH_MIDI_OUTPUT) {
     //wait to ensure Midi mapper has had time to detect midi input
     delay(5000);
 
@@ -85,11 +91,19 @@ void loop() {
   static unsigned long lastRisingTime[NUM_SENSORS];
   static unsigned long lastSustainingTime[NUM_SENSORS];
   static unsigned long lastBaselineTime[NUM_SENSORS];
-
+  
   //for debug
   int toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
 
+  //For MIDI input
+  //will call setup callbacks for Note On and Note Off (which respectively call rising() and falling())
+  while (usbMIDI.read()) {}
+  //will call sustain for external midi signals that are held
+  //turns off motor if held for too long
+  externalMidiSustains();
+
+  //For MIDI output and local planck gigger control
   for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
     int sensorReading = analogRead(SENSOR_PINS[currentSensor]);
     int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
@@ -127,7 +141,7 @@ void loop() {
         }
         //SIGNAL
         else {
-          rising(currentSensor, distanceAboveBaseline);
+          rising(currentSensor, distanceAboveBaseline, true);
 
           lastRisingTime[currentSensor] = micros();
           toWaitBeforeFalling[currentSensor] = NOTE_ON_DELAY;
@@ -155,7 +169,7 @@ void loop() {
         }
         //SIGNAL
         else {
-          sustained(currentSensor, distanceAboveBaseline, NOTE_VELOCITY_DELAY + ((sustainCount[currentSensor] - 1) * SUSTAIN_DELAY));
+          sustained(currentSensor, distanceAboveBaseline, NOTE_VELOCITY_DELAY + ((sustainCount[currentSensor] - 1) * SUSTAIN_DELAY), true);
 
           lastSustainingTime[currentSensor] = micros();
           toWaitBeforeSustaining[currentSensor] = SUSTAIN_DELAY;
@@ -173,7 +187,7 @@ void loop() {
         }
         //SIGNAL
         else {
-          falling(currentSensor);
+          falling(currentSensor, true);
 
           //wait before sending more midi signals
           //debounces falling edge
@@ -328,7 +342,20 @@ int sensorToMotor(int sensorIndex) {
   }
 }
 
-void rising(int sensor, int velocity) {
+//given note number, returns sensor number that normally produces that note
+//returns -1 when note is not found
+int noteToSensor(int note) {
+
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    if (NOTES[i] == note) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+
+void rising(int sensor, int velocity, bool isLocal) {
   if (WITH_MOTORS) {
     if (tapsToIgnore[sensor] == 0) {
       tapsToIgnore[sensor] = TAPS_PER_PULSE - 1;
@@ -337,52 +364,71 @@ void rising(int sensor, int velocity) {
       tapsToIgnore[sensor]--;
     }
   }
-  if (WITH_MIDI) {
+  if (WITH_MIDI_OUTPUT && isLocal) {
     int maxVelocity = MAX_READING - baseline[sensor];
     int constrainedVelocity = constrain(velocity, jumpThreshold[sensor], maxVelocity);
     int scaledVelocity =  map(constrainedVelocity, jumpThreshold[sensor], maxVelocity, 64, 127);
 
     usbMIDI.sendNoteOn(NOTES[sensor], scaledVelocity, MIDI_CHANNEL);
 
-    if (IS_CLOCKING_PAD[sensor]) {
-      usbMIDI.sendRealTime(usbMIDI.Clock);
-      usbMIDI.send_now();
-
-      // MIDI Controllers should discard incoming MIDI messages.
-      while (usbMIDI.read()) {}
-    }
+//    if (IS_CLOCKING_PAD[sensor]) {
+//      usbMIDI.sendRealTime(usbMIDI.Clock);
+//      usbMIDI.send_now();
+//    }
   }
 }
 
-void falling(int sensor) {
+void falling(int sensor, bool isLocal) {
   if (WITH_MOTORS) {
     if ((tapsToIgnore[sensor]) == TAPS_PER_PULSE - 1) {
       digitalWrite(sensorToMotor(sensor), LOW);
     }
   }
 
-  if (WITH_MIDI) {
+  if (WITH_MIDI_OUTPUT && isLocal) {
 
     usbMIDI.sendNoteOff(NOTES[sensor], 0, MIDI_CHANNEL);
     usbMIDI.send_now();
-
-    // MIDI Controllers should discard incoming MIDI messages.
-    while (usbMIDI.read()) {}
   }
 }
 
-void sustained(int sensor, int velocity, unsigned long duration) {
+void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
   if (WITH_MOTORS) {
     if (duration >= MAX_MOTOR_PULSE_DURATION) {
       digitalWrite(sensorToMotor(sensor), LOW);
     }
   }
-  if (WITH_MIDI) {
-    //    usbMIDI.sendPolyPressure(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
-    //    usbMIDI.send_now();
-    //
-    //    // MIDI Controllers should discard incoming MIDI messages.
-    //    while (usbMIDI.read()) {}
+  //  if (WITH_MIDI_OUTPUT && isLocal) {
+  //    usbMIDI.sendPolyPressure(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
+  //    usbMIDI.send_now();
+  //
+  //    // MIDI Controllers should discard incoming MIDI messages.
+  //    while (usbMIDI.read()) {}
+  //  }
+}
+
+void ExternalNoteOn(byte channel, byte note, byte velocity) {
+  int sensorIndex = noteToSensor(note);
+  if ( sensorIndex != -1) {
+    rising(sensorIndex, velocity, false);
+    lastExternalMidiOn[sensorIndex] = micros();
+  }
+}
+
+void ExternalNoteOff(byte channel, byte note, byte velocity) {
+  int sensorIndex = noteToSensor(note);
+  if ( sensorIndex != -1) {
+    falling(sensorIndex, false);
+    lastExternalMidiOn[sensorIndex] = 0;
+  }
+}
+
+void externalMidiSustains() {
+  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
+    if (lastExternalMidiOn[sensorIndex] != 0) {
+      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
+      sustained(sensorIndex, 64, deltaTime, false);
+    }
   }
 }
 

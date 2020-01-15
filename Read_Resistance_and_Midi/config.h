@@ -24,10 +24,10 @@ const int PRINT_DELAY = 50 * MICROSECOND;
 
 /*MIDI CONFIG*/
 
-const boolean WITH_MIDI = true;
+const boolean WITH_MIDI_OUTPUT = true;
 //Pad order: BOTTOM-LEFT // TOP-LEFT // TOP-RIGHT // BOTTOM-RIGHT
 const int NOTES[NUM_SENSORS] = {82, 84, 80, 85};
-const int IS_CLOCKING_PAD[NUM_SENSORS] = {true, false, false, false};
+//const int IS_CLOCKING_PAD[NUM_SENSORS] = {true, false, false, false};
 const int MIDI_CHANNEL = 1;
 const int BANK = 127;
 const int PROGRAM = 0;
