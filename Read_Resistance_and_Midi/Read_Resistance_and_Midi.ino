@@ -410,18 +410,18 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
 
   Serial.println("Note on received.");
   delayMicroseconds(PRINT_DELAY);
-
-  Serial.println("note :");
-  delayMicroseconds(PRINT_DELAY);
-
-  Serial.println((int) note);
-  delayMicroseconds(PRINT_DELAY);
+//
+//  Serial.println("note :");
+//  delayMicroseconds(PRINT_DELAY);
+//
+//  Serial.println((int) note);
+//  delayMicroseconds(PRINT_DELAY);
 
   int sensorIndex = 0;//noteToSensor((int)note);
-  Serial.println("sensor index :");
-  delayMicroseconds(PRINT_DELAY);
-  Serial.println(sensorIndex);
-  delayMicroseconds(PRINT_DELAY);
+//  Serial.println("sensor index :");
+//  delayMicroseconds(PRINT_DELAY);
+//  Serial.println(sensorIndex);
+//  delayMicroseconds(PRINT_DELAY);
 
   if ( sensorIndex != -1) {
     rising(sensorIndex, velocity, false);
@@ -436,17 +436,17 @@ void ExternalNoteOff(byte channel, byte note, byte velocity) {
   Serial.println("Note off received.");
   delayMicroseconds(PRINT_DELAY);
 
-  Serial.println("note :");
-  delayMicroseconds(PRINT_DELAY);
-
-  Serial.println((int) note);
-  delayMicroseconds(PRINT_DELAY);
+//  Serial.println("note :");
+//  delayMicroseconds(PRINT_DELAY);
+//
+//  Serial.println((int) note);
+//  delayMicroseconds(PRINT_DELAY);
 
   int sensorIndex = 0;//noteToSensor((int)note);
-  Serial.println("sensor index :");
-  delayMicroseconds(PRINT_DELAY);
-  Serial.println(sensorIndex);
-  delayMicroseconds(PRINT_DELAY);
+//  Serial.println("sensor index :");
+//  delayMicroseconds(PRINT_DELAY);
+//  Serial.println(sensorIndex);
+//  delayMicroseconds(PRINT_DELAY);
 
   if ( sensorIndex != -1) {
     falling(sensorIndex, false);
