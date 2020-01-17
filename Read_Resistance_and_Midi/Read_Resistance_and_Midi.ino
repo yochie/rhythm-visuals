@@ -34,8 +34,10 @@ void setup() {
       digitalWrite(MOTOR_PINS[motor], LOW);
     }
   }
-  usbMIDI.setHandleNoteOn(ExternalNoteOn);
-  usbMIDI.setHandleNoteOff(ExternalNoteOff);
+  
+  //MIDI INPUT CALLBACKS
+  //  usbMIDI.setHandleNoteOn(ExternalNoteOn);
+  //  usbMIDI.setHandleNoteOff(ExternalNoteOff);
 
   if (WITH_MIDI_OUTPUT) {
     //wait to ensure Midi mapper has had time to detect midi input
@@ -45,18 +47,12 @@ void setup() {
     usbMIDI.sendControlChange(0, BANK, MIDI_CHANNEL);
     usbMIDI.send_now();
 
-    // MIDI Controllers should discard incoming MIDI messages.
-    while (usbMIDI.read()) {}
-
     //Set midi instrument
     usbMIDI.sendProgramChange(PROGRAM, MIDI_CHANNEL);
     usbMIDI.send_now();
-
-    // MIDI Controllers should discard incoming MIDI messages.
-    while (usbMIDI.read()) {}
   }
 
-  randomSeed(analogRead(RANDOM_SEED_PIN));
+  //  randomSeed(analogRead(RANDOM_SEED_PIN));
 }
 
 void loop() {
@@ -99,8 +95,24 @@ void loop() {
   memset(toPrint, 0, sizeof(toPrint));
 
   //For MIDI input
-  //will call setup callbacks for Note On and Note Off (which respectively call rising() and falling())
-  while (usbMIDI.read()) {}
+  if (usbMIDI.read()) {
+    if (usbMIDI.getType() == usbMIDI.NoteOn) {
+      int note = usbMIDI.getData1();
+      int velocity = usbMIDI.getData2();
+      int sensorIndex = noteToSensor(note);
+      if ( sensorIndex != -1) {
+        rising(sensorIndex, velocity, false);
+        lastExternalMidiOn[sensorIndex] = micros();
+      }
+    } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
+      int note = usbMIDI.getData1();
+      int sensorIndex = noteToSensor(note);
+      if ( sensorIndex != -1) {
+        falling(sensorIndex, false);
+        lastExternalMidiOn[sensorIndex] = 0;
+      }
+    }
+  }
 
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
@@ -348,13 +360,12 @@ int sensorToMotor(int sensorIndex) {
 //given note number, returns sensor number that normally produces that note
 //returns -1 when note is not found
 int noteToSensor(int note) {
-  return 0;
-  //  for (int i = 0; i < NUM_SENSORS; i++) {
-  //    if (NOTES[i] == note) {
-  //      return i;
-  //    }
-  //  }
-  //  return -1;
+  for (int i = 0; i < NUM_SENSORS; i++) {
+    if (NOTES[i] == note) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 
@@ -374,10 +385,10 @@ void rising(int sensor, int velocity, bool isLocal) {
 
     usbMIDI.sendNoteOn(NOTES[sensor], scaledVelocity, MIDI_CHANNEL);
 
-    //    if (IS_CLOCKING_PAD[sensor]) {
-    //      usbMIDI.sendRealTime(usbMIDI.Clock);
-    //      usbMIDI.send_now();
-    //    }
+    if (IS_CLOCKING_PAD[sensor]) {
+      usbMIDI.sendRealTime(usbMIDI.Clock);
+      usbMIDI.send_now();
+    }
   }
 }
 
@@ -404,43 +415,40 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
   //  if (WITH_MIDI_OUTPUT && isLocal) {
   //    usbMIDI.sendPolyPressure(NOTES[sensor], map(constrain(velocity, jumpThreshold[sensor], 512), jumpThreshold[sensor], 512, 64, 127), MIDI_CHANNEL);
   //    usbMIDI.send_now();
-  //
-  //    // MIDI Controllers should discard incoming MIDI messages.
-  //    while (usbMIDI.read()) {}
-  //  }
 }
 
-void ExternalNoteOn(byte channel, byte note, byte velocity) {
-  Serial.println("1");
-
-//  rising(0, 64, false);
-
-  //  int sensorIndex = noteToSensor(note);
-  //  if ( sensorIndex != -1) {
-  //    rising(sensorIndex, velocity, false);
-  //    lastExternalMidiOn[sensorIndex] = micros();
-  //  }
-}
-
-void ExternalNoteOff(byte channel, byte note, byte velocity) {
-  Serial.println("0");
-
-//  falling(0, false);
-
-  //
-  //  int sensorIndex = noteToSensor(note);
-  //  if ( sensorIndex != -1) {
-  //    falling(sensorIndex, false);
-  //    lastExternalMidiOn[sensorIndex] = 0;
-  //  }
-}
+//MIDI INPUT CALLBACKS
+//void ExternalNoteOn(byte channel, byte note, byte velocity) {
+//  Serial.println("1");
+//
+//  //  rising(0, 64, false);
+//
+//  //  int sensorIndex = noteToSensor(note);
+//  //  if ( sensorIndex != -1) {
+//  //    rising(sensorIndex, velocity, false);
+//  //    lastExternalMidiOn[sensorIndex] = micros();
+//  //  }
+//}
+//
+//void ExternalNoteOff(byte channel, byte note, byte velocity) {
+//  Serial.println("0");
+//
+//  //  falling(0, false);
+//
+//  //
+//  //  int sensorIndex = noteToSensor(note);
+//  //  if ( sensorIndex != -1) {
+//  //    falling(sensorIndex, false);
+//  //    lastExternalMidiOn[sensorIndex] = 0;
+//  //  }
+//}
 
 void externalMidiSustains() {
-  //  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
-  //    if (lastExternalMidiOn[sensorIndex] != 0) {
-  //      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
-  //      sustained(sensorIndex, 64, deltaTime, false);
-  //    }
-  //  }
+  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
+    if (lastExternalMidiOn[sensorIndex] != 0) {
+      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
+      sustained(sensorIndex, 64, deltaTime, false);
+    }
+  }
 }
 
