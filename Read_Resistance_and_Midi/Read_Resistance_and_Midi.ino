@@ -410,8 +410,8 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 
 void ExternalNoteOn(byte channel, byte note, byte velocity) {
 
-  Serial.println("Note on received.");
-  delayMicroseconds(PRINT_DELAY);
+//  Serial.println("Note on received.");
+//  delayMicroseconds(PRINT_DELAY);
   int sensorIndex = noteToSensor(note);
   Serial.println(sensorIndex);
   delayMicroseconds(PRINT_DELAY);
@@ -422,8 +422,8 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
 }
 
 void ExternalNoteOff(byte channel, byte note, byte velocity) {
-  Serial.println("Note off received.");
-  delayMicroseconds(PRINT_DELAY);
+//  Serial.println("Note off received.");
+//  delayMicroseconds(PRINT_DELAY);
   int sensorIndex = noteToSensor(note);
   Serial.println(sensorIndex);
   delayMicroseconds(PRINT_DELAY);
