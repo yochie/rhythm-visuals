@@ -34,7 +34,7 @@ void setup() {
       digitalWrite(MOTOR_PINS[motor], LOW);
     }
   }
-  
+
   //MIDI INPUT CALLBACKS
   //  usbMIDI.setHandleNoteOn(ExternalNoteOn);
   //  usbMIDI.setHandleNoteOff(ExternalNoteOff);
@@ -97,6 +97,11 @@ void loop() {
   //For MIDI input
   if (usbMIDI.read()) {
     if (usbMIDI.getType() == usbMIDI.NoteOn) {
+
+      Serial.println("MIDI ON");
+      delayMicroseconds(PRINT_DELAY);
+
+
       int note = usbMIDI.getData1();
       int velocity = usbMIDI.getData2();
       int sensorIndex = noteToSensor(note);
@@ -105,6 +110,10 @@ void loop() {
         lastExternalMidiOn[sensorIndex] = micros();
       }
     } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
+      
+      Serial.println("MIDI OFF");
+      delayMicroseconds(PRINT_DELAY);
+      
       int note = usbMIDI.getData1();
       int sensorIndex = noteToSensor(note);
       if ( sensorIndex != -1) {
