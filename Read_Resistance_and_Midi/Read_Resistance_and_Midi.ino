@@ -412,6 +412,7 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
   
   Serial.println("Note on received.");
   int sensorIndex = noteToSensor(note);
+  Serial.println(sensorIndex);
   if ( sensorIndex != -1) {
     rising(sensorIndex, velocity, false);
     lastExternalMidiOn[sensorIndex] = micros();
@@ -421,6 +422,7 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
 void ExternalNoteOff(byte channel, byte note, byte velocity) {
   Serial.println("Note off received.");
   int sensorIndex = noteToSensor(note);
+  Serial.println(sensorIndex);
   if ( sensorIndex != -1) {
     falling(sensorIndex, false);
     lastExternalMidiOn[sensorIndex] = 0;
