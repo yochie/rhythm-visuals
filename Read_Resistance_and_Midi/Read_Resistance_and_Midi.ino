@@ -413,11 +413,14 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
   delayMicroseconds(PRINT_DELAY * 4);
 
   Serial.println("note :");
+  delayMicroseconds(PRINT_DELAY);
+
   Serial.println((int) note);
   delayMicroseconds(PRINT_DELAY * 4);
-  
+
   int sensorIndex = noteToSensor((int)note);
   Serial.println("sensor index :");
+  delayMicroseconds(PRINT_DELAY);
   Serial.println(sensorIndex);
   delayMicroseconds(PRINT_DELAY * 4);
 
@@ -435,13 +438,16 @@ void ExternalNoteOff(byte channel, byte note, byte velocity) {
   delayMicroseconds(PRINT_DELAY * 4);
 
   Serial.println("note :");
+  delayMicroseconds(PRINT_DELAY);
+
   Serial.println((int) note);
   delayMicroseconds(PRINT_DELAY * 4);
 
   int sensorIndex = noteToSensor((int)note);
   Serial.println("sensor index :");
+  delayMicroseconds(PRINT_DELAY);
   Serial.println(sensorIndex);
-  delayMicroseconds(PRINT_DELAY * 4);
+  delayMicroseconds(PRINT_DELAY);
 
   if ( sensorIndex != -1) {
     falling(sensorIndex, false);
