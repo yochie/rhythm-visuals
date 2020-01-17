@@ -345,13 +345,13 @@ int sensorToMotor(int sensorIndex) {
 //given note number, returns sensor number that normally produces that note
 //returns -1 when note is not found
 int noteToSensor(int note) {
-
-  for (int i = 0; i < NUM_SENSORS; i++) {
-    if (NOTES[i] == note) {
-      return i;
-    }
-  }
-  return -1;
+  return 0;
+//  for (int i = 0; i < NUM_SENSORS; i++) {
+//    if (NOTES[i] == note) {
+//      return i;
+//    }
+//  }
+//  return -1;
 }
 
 
