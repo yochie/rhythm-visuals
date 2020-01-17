@@ -346,17 +346,17 @@ int sensorToMotor(int sensorIndex) {
 //given note number, returns sensor number that normally produces that note
 //returns -1 when note is not found
 int noteToSensor(int note) {
-//  Serial.println((int) note);
-//  delayMicroseconds(PRINT_DELAY);
+  //  Serial.println((int) note);
+  //  delayMicroseconds(PRINT_DELAY);
   return 0;
-//  for (int i = 0; i < NUM_SENSORS; i++) {//  Serial.println("note :");
-//
-//
-//    if (NOTES[i] == note) {
-//      return i;
-//    }
-//  }
-//  return -1;
+  //  for (int i = 0; i < NUM_SENSORS; i++) {//  Serial.println("note :");
+  //
+  //
+  //    if (NOTES[i] == note) {
+  //      return i;
+  //    }
+  //  }
+  //  return -1;
 }
 
 void rising(int sensor, int velocity, bool isLocal) {
@@ -390,7 +390,6 @@ void falling(int sensor, bool isLocal) {
   }
 
   if (WITH_MIDI_OUTPUT && isLocal) {
-
     usbMIDI.sendNoteOff(NOTES[sensor], 0, MIDI_CHANNEL);
     usbMIDI.send_now();
   }
@@ -413,8 +412,8 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 
 void ExternalNoteOn(byte channel, byte note, byte velocity) {
 
-  //  Serial.println("Note on received.");
-  //  delayMicroseconds(PRINT_DELAY);
+  Serial.println("Note on received.");
+  delayMicroseconds(PRINT_DELAY);
   //
   //  Serial.println("note :");
   //  delayMicroseconds(PRINT_DELAY);
@@ -422,7 +421,7 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
   //  Serial.println((int) note);
   //  delayMicroseconds(PRINT_DELAY);
 
-  int sensorIndex = 0;//noteToSensor((int)note);
+  int sensorIndex = noteToSensor(note);
   //  Serial.println("sensor index :");
   //  delayMicroseconds(PRINT_DELAY);
   //  Serial.println(sensorIndex);
@@ -431,15 +430,16 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
   if ( sensorIndex != -1) {
     rising(sensorIndex, velocity, false);
     lastExternalMidiOn[sensorIndex] = micros();
-  } else {
-    //    Serial.println("Could not find pad with corresponding received note.");
-    //    delayMicroseconds(PRINT_DELAY);
   }
+  //  else {
+  //    Serial.println("Could not find pad with corresponding received note.");
+  //    delayMicroseconds(PRINT_DELAY);
+  //  }
 }
 
 void ExternalNoteOff(byte channel, byte note, byte velocity) {
-  //  Serial.println("Note off received.");
-  //  delayMicroseconds(PRINT_DELAY);
+  Serial.println("Note off received.");
+  delayMicroseconds(PRINT_DELAY);
 
   //  Serial.println("note :");
   //  delayMicroseconds(PRINT_DELAY);
@@ -447,7 +447,7 @@ void ExternalNoteOff(byte channel, byte note, byte velocity) {
   //  Serial.println((int) note);
   //  delayMicroseconds(PRINT_DELAY);
 
-  int sensorIndex = 0;//noteToSensor((int)note);
+  int sensorIndex = noteToSensor(note);
   //  Serial.println("sensor index :");
   //  delayMicroseconds(PRINT_DELAY);
   //  Serial.println(sensorIndex);
@@ -456,20 +456,21 @@ void ExternalNoteOff(byte channel, byte note, byte velocity) {
   if ( sensorIndex != -1) {
     falling(sensorIndex, false);
     lastExternalMidiOn[sensorIndex] = 0;
-  } else {
-    //    Serial.println("Could not find pad with corresponding received note.");
-    //    delayMicroseconds(PRINT_DELAY);
   }
+  //else {
+  //    Serial.println("Could not find pad with corresponding received note.");
+  //    delayMicroseconds(PRINT_DELAY);
+  //}
 }
 
 void externalMidiSustains() {
-//  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
-//    if (lastExternalMidiOn[sensorIndex] != 0) {
-//      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
-//      if (deltaTime > SUSTAIN_DELAY) {
-//        sustained(sensorIndex, 64, deltaTime, false);
-//      }
-//    }
-//  }
+  //  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
+  //    if (lastExternalMidiOn[sensorIndex] != 0) {
+  //      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
+  //      if (deltaTime > SUSTAIN_DELAY) {
+  //        sustained(sensorIndex, 64, deltaTime, false);
+  //      }
+  //    }
+  //  }
 }
 

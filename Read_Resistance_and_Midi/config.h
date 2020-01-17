@@ -12,7 +12,7 @@ const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 /*SERIAL CONFIG*/
 
 //print readings to arduino plotter
-const boolean DEBUG = true;
+const boolean DEBUG = false;
 
 //Serial communication Hz
 const int BAUD_RATE = 115200;
@@ -20,11 +20,11 @@ const int BAUD_RATE = 115200;
 //Delay in microseconds adter each line of debug messages
 //Blocking (uses delay() function)
 //Prevents overloading serial communications
-const int PRINT_DELAY = 1000 * MICROSECOND;
+const int PRINT_DELAY = 50 * MICROSECOND;
 
 /*MIDI CONFIG*/
 
-const boolean WITH_MIDI_OUTPUT = true;
+const boolean WITH_MIDI_OUTPUT = false;
 //Pad order: BOTTOM-LEFT // TOP-LEFT // TOP-RIGHT // BOTTOM-RIGHT
 const int NOTES[NUM_SENSORS] = {82, 84, 80, 85};
 //const int IS_CLOCKING_PAD[NUM_SENSORS] = {true, false, false, false};
@@ -46,7 +46,7 @@ const int LED_PIN = 13;
 //index of MOTO_PIN to map for each sensor
 //Needs to be in the range [-1, NUM_MOTORS - 1].
 //Uses LED_PIN instead of motor when -1
-const int SENSOR_TO_MOTOR[NUM_SENSORS] = {-1, -1, -1, -1};
+const int SENSOR_TO_MOTOR[NUM_SENSORS] = {-1, 1, 0, -1};
 
 //To limit duty cycle
 unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
