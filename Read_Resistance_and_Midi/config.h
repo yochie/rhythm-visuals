@@ -43,10 +43,13 @@ const int MOTOR_PINS[NUM_MOTORS] = {11, 12};
 //Used as substitute for motors
 const int LED_PIN = 13;
 
+//Analog value read into randomSeed()
+const int RANDOM_SEED_PIN = 6;
+
 //index of MOTO_PIN to map for each sensor
 //Needs to be in the range [-1, NUM_MOTORS - 1].
 //Uses LED_PIN instead of motor when -1
-const int SENSOR_TO_MOTOR[NUM_SENSORS] = {0, -1, -1, 1};
+const int SENSOR_TO_MOTOR[NUM_SENSORS] = {-1, -1, -1, -1};
 
 //To limit duty cycle
 unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
