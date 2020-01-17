@@ -95,11 +95,14 @@ void loop() {
   memset(toPrint, 0, sizeof(toPrint));
 
   //For MIDI input
-  if (usbMIDI.read()) {
+  while (usbMIDI.read()) {
+
+    Serial.println(usbMIDI.getType());
+
     if (usbMIDI.getType() == usbMIDI.NoteOn) {
 
       Serial.println("MIDI ON");
-      //      delayMicroseconds(PRINT_DELAY);
+      delayMicroseconds(PRINT_DELAY);
       //
       //      int note = usbMIDI.getData1();
       //      int velocity = usbMIDI.getData2();
@@ -111,7 +114,7 @@ void loop() {
     } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
 
       Serial.println("MIDI OFF");
-      //      delayMicroseconds(PRINT_DELAY);
+      delayMicroseconds(PRINT_DELAY);
       //
       //      int note = usbMIDI.getData1();
       //      int sensorIndex = noteToSensor(note);
@@ -451,11 +454,11 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 //}
 
 void externalMidiSustains() {
-  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
-    if (lastExternalMidiOn[sensorIndex] != 0) {
-      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
-      sustained(sensorIndex, 64, deltaTime, false);
-    }
-  }
+  //  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
+  //    if (lastExternalMidiOn[sensorIndex] != 0) {
+  //      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
+  //      sustained(sensorIndex, 64, deltaTime, false);
+  //    }
+  //  }
 }
 
