@@ -20,7 +20,7 @@ const int BAUD_RATE = 115200;
 //Delay in microseconds adter each line of debug messages
 //Blocking (uses delay() function)
 //Prevents overloading serial communications
-const int PRINT_DELAY = 50 * MICROSECOND;
+const int PRINT_DELAY = 100 * MICROSECOND;
 
 /*MIDI CONFIG*/
 
