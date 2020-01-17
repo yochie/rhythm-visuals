@@ -98,7 +98,7 @@ void loop() {
 
   //For MIDI input
   //will call setup callbacks for Note On and Note Off (which respectively call rising() and falling())
-  while(usbMIDI.read()){};
+  while (usbMIDI.read()) {};
 
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
@@ -412,8 +412,8 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 
 void ExternalNoteOn(byte channel, byte note, byte velocity) {
 
-  Serial.println("Note on received.");
-  delayMicroseconds(PRINT_DELAY);
+  Serial.print("Note on.");
+  //delayMicroseconds(PRINT_DELAY);
   //
   //  Serial.println("note :");
   //  delayMicroseconds(PRINT_DELAY);
@@ -438,8 +438,8 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
 }
 
 void ExternalNoteOff(byte channel, byte note, byte velocity) {
-  Serial.println("Note off received.");
-  delayMicroseconds(PRINT_DELAY);
+  Serial.print("Note off");
+  //delayMicroseconds(PRINT_DELAY);
 
   //  Serial.println("note :");
   //  delayMicroseconds(PRINT_DELAY);
