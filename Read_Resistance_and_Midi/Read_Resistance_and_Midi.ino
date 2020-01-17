@@ -91,14 +91,15 @@ void loop() {
   static unsigned long lastRisingTime[NUM_SENSORS];
   static unsigned long lastSustainingTime[NUM_SENSORS];
   static unsigned long lastBaselineTime[NUM_SENSORS];
-  
+
   //for debug
   int toPrint[NUM_SENSORS];
   memset(toPrint, 0, sizeof(toPrint));
 
   //For MIDI input
   //will call setup callbacks for Note On and Note Off (which respectively call rising() and falling())
-  while (usbMIDI.read()) {}
+  usbMIDI.read();
+    
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
   externalMidiSustains();
@@ -364,13 +365,13 @@ void rising(int sensor, int velocity, bool isLocal) {
       tapsToIgnore[sensor]--;
     }
   }
+
   if (WITH_MIDI_OUTPUT && isLocal) {
     int maxVelocity = MAX_READING - baseline[sensor];
     int constrainedVelocity = constrain(velocity, jumpThreshold[sensor], maxVelocity);
     int scaledVelocity =  map(constrainedVelocity, jumpThreshold[sensor], maxVelocity, 64, 127);
 
     usbMIDI.sendNoteOn(NOTES[sensor], scaledVelocity, MIDI_CHANNEL);
-
 //    if (IS_CLOCKING_PAD[sensor]) {
 //      usbMIDI.sendRealTime(usbMIDI.Clock);
 //      usbMIDI.send_now();
@@ -408,6 +409,8 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 }
 
 void ExternalNoteOn(byte channel, byte note, byte velocity) {
+  
+  Serial.println("Note on received.");
   int sensorIndex = noteToSensor(note);
   if ( sensorIndex != -1) {
     rising(sensorIndex, velocity, false);
@@ -416,6 +419,7 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
 }
 
 void ExternalNoteOff(byte channel, byte note, byte velocity) {
+  Serial.println("Note off received.");
   int sensorIndex = noteToSensor(note);
   if ( sensorIndex != -1) {
     falling(sensorIndex, false);
