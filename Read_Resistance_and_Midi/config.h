@@ -12,7 +12,7 @@ const int SENSOR_PINS[NUM_SENSORS] = {0, 1, 2, 3};
 /*SERIAL CONFIG*/
 
 //print readings to arduino plotter
-const boolean DEBUG = false;
+const boolean DEBUG = true;
 
 //Serial communication Hz
 const int BAUD_RATE = 115200;

@@ -346,8 +346,8 @@ int sensorToMotor(int sensorIndex) {
 //given note number, returns sensor number that normally produces that note
 //returns -1 when note is not found
 int noteToSensor(int note) {
-  Serial.println((int) note);
-  delayMicroseconds(PRINT_DELAY);
+//  Serial.println((int) note);
+//  delayMicroseconds(PRINT_DELAY);
   return 0;
 //  for (int i = 0; i < NUM_SENSORS; i++) {//  Serial.println("note :");
 //
