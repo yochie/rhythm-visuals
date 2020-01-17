@@ -409,36 +409,46 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 
 void ExternalNoteOn(byte channel, byte note, byte velocity) {
 
-  Serial.println("Note off received.");
-  delayMicroseconds(PRINT_DELAY*4);
+  Serial.println("Note on received.");
+  delayMicroseconds(PRINT_DELAY * 4);
+
+  Serial.println("note :");
+  Serial.println((int) note);
+  delayMicroseconds(PRINT_DELAY * 4);
   
   int sensorIndex = noteToSensor((int)note);
+  Serial.println("sensor index :");
   Serial.println(sensorIndex);
-  delayMicroseconds(PRINT_DELAY*4);
-  
+  delayMicroseconds(PRINT_DELAY * 4);
+
   if ( sensorIndex != -1) {
     rising(sensorIndex, velocity, false);
     lastExternalMidiOn[sensorIndex] = micros();
   } else {
-      Serial.println("Could not find pad with corresponding received note.");
-      delayMicroseconds(PRINT_DELAY*4);
+    Serial.println("Could not find pad with corresponding received note.");
+    delayMicroseconds(PRINT_DELAY * 4);
   }
 }
 
 void ExternalNoteOff(byte channel, byte note, byte velocity) {
   Serial.println("Note off received.");
-  delayMicroseconds(PRINT_DELAY*4);
-  
+  delayMicroseconds(PRINT_DELAY * 4);
+
+  Serial.println("note :");
+  Serial.println((int) note);
+  delayMicroseconds(PRINT_DELAY * 4);
+
   int sensorIndex = noteToSensor((int)note);
+  Serial.println("sensor index :");
   Serial.println(sensorIndex);
-  delayMicroseconds(PRINT_DELAY*4);
-  
+  delayMicroseconds(PRINT_DELAY * 4);
+
   if ( sensorIndex != -1) {
     falling(sensorIndex, false);
     lastExternalMidiOn[sensorIndex] = 0;
   } else {
-      Serial.println("Could not find pad with corresponding received note.");
-      delayMicroseconds(PRINT_DELAY*4);
+    Serial.println("Could not find pad with corresponding received note.");
+    delayMicroseconds(PRINT_DELAY * 4);
   }
 }
 
