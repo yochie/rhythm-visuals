@@ -346,13 +346,13 @@ int sensorToMotor(int sensorIndex) {
 //given note number, returns sensor number that normally produces that note
 //returns -1 when note is not found
 int noteToSensor(int note) {
-
-  for (int i = 0; i < NUM_SENSORS; i++) {
-    if (NOTES[i] == note) {
-      return i;
-    }
-  }
-  return -1;
+  return 0;
+//  for (int i = 0; i < NUM_SENSORS; i++) {
+//    if (NOTES[i] == note) {
+//      return i;
+//    }
+//  }
+//  return -1;
 }
 
 
@@ -410,11 +410,11 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 
 void ExternalNoteOn(byte channel, byte note, byte velocity) {
 
-//  Serial.println("Note on received.");
-//  delayMicroseconds(PRINT_DELAY);
-  int sensorIndex = noteToSensor(note);
-  Serial.println(sensorIndex);
+  Serial.println("Note on received.");
   delayMicroseconds(PRINT_DELAY);
+  int sensorIndex = noteToSensor(note);
+//  Serial.println(sensorIndex);
+//  delayMicroseconds(PRINT_DELAY);
   if ( sensorIndex != -1) {
     rising(sensorIndex, velocity, false);
     lastExternalMidiOn[sensorIndex] = micros();
@@ -422,11 +422,11 @@ void ExternalNoteOn(byte channel, byte note, byte velocity) {
 }
 
 void ExternalNoteOff(byte channel, byte note, byte velocity) {
-//  Serial.println("Note off received.");
-//  delayMicroseconds(PRINT_DELAY);
-  int sensorIndex = noteToSensor(note);
-  Serial.println(sensorIndex);
+  Serial.println("Note off received.");
   delayMicroseconds(PRINT_DELAY);
+  int sensorIndex = noteToSensor(note);
+//  Serial.println(sensorIndex);
+//  delayMicroseconds(PRINT_DELAY);
   if ( sensorIndex != -1) {
     falling(sensorIndex, false);
     lastExternalMidiOn[sensorIndex] = 0;
