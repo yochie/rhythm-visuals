@@ -98,7 +98,7 @@ void loop() {
 
   //For MIDI input
   //will call setup callbacks for Note On and Note Off (which respectively call rising() and falling())
-  usbMIDI.read();
+  while(usbMIDI.read()){};
 
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
