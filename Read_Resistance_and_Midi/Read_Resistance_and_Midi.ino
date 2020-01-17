@@ -18,7 +18,13 @@ unsigned long lastExternalMidiOn[NUM_SENSORS];
 void setup() {
 
   Serial.begin(BAUD_RATE);
-
+  delay(1000);
+  Serial.println("Motors : " + WITH_MOTORS);
+  delay(1);
+  Serial.println("Midi out : " + WITH_MIDI_OUTPUT);
+  delay(1);
+  Serial.println("Midi out : " + WITH_MIDI_OUTPUT);
+  
   for (int sensor = 0; sensor < NUM_SENSORS; sensor++) {
     baseline[sensor] = analogRead(SENSOR_PINS[sensor]);
     jumpThreshold[sensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
@@ -41,7 +47,7 @@ void setup() {
 
   if (WITH_MIDI_OUTPUT) {
     //wait to ensure Midi mapper has had time to detect midi input
-    delay(5000);
+    delay(3000);
 
     //Set midi soundfont bank
     usbMIDI.sendControlChange(0, BANK, MIDI_CHANNEL);
@@ -102,7 +108,7 @@ void loop() {
     if (usbMIDI.getType() == usbMIDI.NoteOn) {
 
       Serial.println("MIDI ON");
-      delayMicroseconds(PRINT_DELAY);
+      delay(1);
       //
       //      int note = usbMIDI.getData1();
       //      int velocity = usbMIDI.getData2();
@@ -114,7 +120,7 @@ void loop() {
     } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
 
       Serial.println("MIDI OFF");
-      delayMicroseconds(PRINT_DELAY);
+      delay(1);
       //
       //      int note = usbMIDI.getData1();
       //      int sensorIndex = noteToSensor(note);
