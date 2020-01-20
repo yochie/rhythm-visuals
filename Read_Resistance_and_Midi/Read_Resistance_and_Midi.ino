@@ -18,7 +18,7 @@ unsigned long lastExternalMidiOn[NUM_SENSORS];
 void setup() {
 
   Serial.begin(BAUD_RATE);
-  delay(1000);
+  delay(3000);
   Serial.println("Midi input only : ");
   if (READ_RESISTANCE) {
     Serial.println("yes");
