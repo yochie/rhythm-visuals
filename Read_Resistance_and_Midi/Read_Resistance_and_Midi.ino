@@ -23,8 +23,7 @@ void setup() {
   delay(1);
   Serial.println("Midi out : " + WITH_MIDI_OUTPUT);
   delay(1);
-  Serial.println("Midi out : " + WITH_MIDI_OUTPUT);
-  
+
   for (int sensor = 0; sensor < NUM_SENSORS; sensor++) {
     baseline[sensor] = analogRead(SENSOR_PINS[sensor]);
     jumpThreshold[sensor] = (MIN_THRESHOLD + MAX_THRESHOLD) / 2;
@@ -133,7 +132,7 @@ void loop() {
 
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
-  externalMidiSustains();
+//  externalMidiSustains();
 
   //For MIDI output and local planck gigger control
   for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
@@ -460,11 +459,11 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
 //}
 
 void externalMidiSustains() {
-  //  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
-  //    if (lastExternalMidiOn[sensorIndex] != 0) {
-  //      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
-  //      sustained(sensorIndex, 64, deltaTime, false);
-  //    }
-  //  }
+  for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
+    if (lastExternalMidiOn[sensorIndex] != 0) {
+      unsigned long deltaTime = micros() - lastExternalMidiOn[sensorIndex];
+      sustained(sensorIndex, 64, deltaTime, false);
+    }
+  }
 }
 
