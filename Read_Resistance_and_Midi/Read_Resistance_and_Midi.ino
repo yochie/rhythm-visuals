@@ -126,10 +126,6 @@ void loop() {
 
   //For MIDI input
   if (usbMIDI.read()) {
-
-    Serial.println(usbMIDI.getType());
-    delay(10);
-
     if (usbMIDI.getType() == usbMIDI.NoteOn) {
 
       Serial.println("MIDI ON");
@@ -142,9 +138,9 @@ void loop() {
       delay(10);
       //      Serial.println(velocity);
       //      delay(10);
-      int sensorIndex = noteToSensor(note);
+      int sensorIndex = noteToSensor((int) note);
       if ( sensorIndex != -1) {
-        rising(sensorIndex, velocity, false);
+        rising(sensorIndex, (int) velocity, false);
         // lastExternalMidiOn[sensorIndex] = micros();
       }
     } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
@@ -155,7 +151,7 @@ void loop() {
       byte note = usbMIDI.getData1();
       Serial.println(note);
       delay(10);
-      int sensorIndex = noteToSensor(note);
+      int sensorIndex = noteToSensor((int) note);
       if ( sensorIndex != -1) {
         falling(sensorIndex, false);
         //lastExternalMidiOn[sensorIndex] = 0;
