@@ -138,10 +138,10 @@ void loop() {
       byte note = usbMIDI.getData1();
       byte velocity = usbMIDI.getData2();
 
-//      Serial.println(note);
-//      delay(10);
-//      Serial.println(velocity);
-//      delay(10);
+      //      Serial.println(note);
+      //      delay(10);
+      //      Serial.println(velocity);
+      //      delay(10);
       int sensorIndex = 0;//noteToSensor(note);
       if ( sensorIndex != -1) {
         rising(sensorIndex, velocity, false);
@@ -153,8 +153,8 @@ void loop() {
       delay(10);
 
       byte note = usbMIDI.getData1();
-//      Serial.println(note);
-//      delay(10);
+      //      Serial.println(note);
+      //      delay(10);
       int sensorIndex = 0;//noteToSensor(note);
       if ( sensorIndex != -1) {
         falling(sensorIndex, false);
@@ -165,7 +165,7 @@ void loop() {
 
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
-  //  externalMidiSustains();
+  externalMidiSustains();
 
   if (READ_RESISTANCE) {
     //For MIDI output and local planck gigger control
