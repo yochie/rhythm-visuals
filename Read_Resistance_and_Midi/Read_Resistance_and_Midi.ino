@@ -135,13 +135,13 @@ void loop() {
       Serial.println("MIDI ON");
       delay(10);
 
-      int note = usbMIDI.getData1();
-      int velocity = usbMIDI.getData2();
+      byte note = usbMIDI.getData1();
+      byte velocity = usbMIDI.getData2();
 
-      Serial.println(note);
-      delay(10);
-      Serial.println(velocity);
-      delay(10);
+//      Serial.println(note);
+//      delay(10);
+//      Serial.println(velocity);
+//      delay(10);
       int sensorIndex = 0;//noteToSensor(note);
 //      if ( sensorIndex != -1) {
 //        rising(sensorIndex, velocity, false);
@@ -152,9 +152,9 @@ void loop() {
       Serial.println("MIDI OFF");
       delay(10);
 
-      int note = usbMIDI.getData1();
-      Serial.println(note);
-      delay(10);
+      byte note = usbMIDI.getData1();
+//      Serial.println(note);
+//      delay(10);
       int sensorIndex = 0;//noteToSensor(note);
 //      if ( sensorIndex != -1) {
 //        falling(sensorIndex, false);
