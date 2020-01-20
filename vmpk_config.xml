@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE keyboardmap>
+<keyboardmap version="1.0">
+    <mapping key="H" note="20"/>
+    <mapping key="J" note="22"/>
+    <mapping key="M" note="23"/>
+    <mapping key="N" note="21"/>
+    <mapping key="O" note="38"/>
+    <mapping key="P" note="40"/>
+    <mapping key="Q" note="36"/>
+    <mapping key="R" note="47"/>
+    <mapping key="S" note="37"/>
+    <mapping key="0" note="39"/>
+    <mapping key="U" note="50"/>
+    <mapping key="V" note="17"/>
+    <mapping key="W" note="32"/>
+    <mapping key="2" note="25"/>
+    <mapping key="3" note="27"/>
+    <mapping key="X" note="14"/>
+    <mapping key="5" note="30"/>
+    <mapping key="Z" note="12"/>
+    <mapping key="A" note="34"/>
+    <mapping key="B" note="19"/>
+    <mapping key="C" note="16"/>
+    <mapping key="D" note="15"/>
+    <mapping key="G" note="18"/>
+</keyboardmap>
