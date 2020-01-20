@@ -19,6 +19,8 @@ void setup() {
 
   Serial.begin(BAUD_RATE);
   delay(1000);
+  Serial.println("Midi input only : " + READ_RESISTANCE);
+  delay(1);
   Serial.println("Motors : " + WITH_MOTORS);
   delay(1);
   Serial.println("Midi out : " + WITH_MIDI_OUTPUT);
@@ -100,7 +102,7 @@ void loop() {
   memset(toPrint, 0, sizeof(toPrint));
 
   //For MIDI input
-  while (usbMIDI.read()) {
+  if (usbMIDI.read()) {
 
     Serial.println(usbMIDI.getType());
     delay(10);
@@ -135,145 +137,147 @@ void loop() {
   //turns off motor if held for too long
   //  externalMidiSustains();
 
-  //For MIDI output and local planck gigger control
-  for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
-    int sensorReading = analogRead(SENSOR_PINS[currentSensor]);
-    int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
+  if (READ_RESISTANCE) {
+    //For MIDI output and local planck gigger control
+    for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
+      int sensorReading = analogRead(SENSOR_PINS[currentSensor]);
+      int distanceAboveBaseline = max(0, sensorReading - baseline[currentSensor]);
 
-    if (DEBUG) {
-      toPrint[currentSensor] = sensorReading;
-    }
+      if (DEBUG) {
+        toPrint[currentSensor] = sensorReading;
+      }
 
-    //JUMPING
-    if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
-      //VELOCITY OFFSET
-      if (sustainCount[currentSensor] == 0) {
-        //WAIT
-        //waiting is caused by recent falling() signal
-        if (toWaitBeforeRising[currentSensor] > 0) {
-          updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
+      //JUMPING
+      if (distanceAboveBaseline >= jumpThreshold[currentSensor]) {
+        //VELOCITY OFFSET
+        if (sustainCount[currentSensor] == 0) {
+          //WAIT
+          //waiting is caused by recent falling() signal
+          if (toWaitBeforeRising[currentSensor] > 0) {
+            updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
+          }
+          //TRIGGER DELAY
+          else {
+            lastRisingTime[currentSensor] = micros();
+            toWaitBeforeRising[currentSensor] = NOTE_VELOCITY_DELAY;
+
+            //increment sustain count to signify that threshold was crossed
+            //this usage of sustainCount is counter intuitive since we haven't actually
+            //sent any sustain() signals yet, but it does reduce number of static variables
+            sustainCount[currentSensor]++;
+          }
         }
-        //TRIGGER DELAY
-        else {
-          lastRisingTime[currentSensor] = micros();
-          toWaitBeforeRising[currentSensor] = NOTE_VELOCITY_DELAY;
+        //RISING
+        else if (sustainCount[currentSensor] == 1) {
+          //WAIT
+          //waiting is caused by velocity the velocity offset delay
+          if (toWaitBeforeRising[currentSensor] > 0) {
+            updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
+          }
+          //SIGNAL
+          else {
+            rising(currentSensor, distanceAboveBaseline, true);
 
-          //increment sustain count to signify that threshold was crossed
-          //this usage of sustainCount is counter intuitive since we haven't actually
-          //sent any sustain() signals yet, but it does reduce number of static variables
-          sustainCount[currentSensor]++;
+            lastRisingTime[currentSensor] = micros();
+            toWaitBeforeFalling[currentSensor] = NOTE_ON_DELAY;
+
+            lastSustainingTime[currentSensor] = micros();
+            toWaitBeforeSustaining[currentSensor] = SUSTAIN_DELAY;
+
+            justJumped[currentSensor] = true;
+            sustainCount[currentSensor]++;
+          }
+        }
+        //SUSTAINING
+        else {
+          //RESET
+          if (sustainCount[currentSensor] > MAX_CONSECUTIVE_SUSTAINS) {
+            baseline[currentSensor] = sensorReading;
+
+            //reset counters
+            baselineBufferIndex[currentSensor] = 0;
+            sustainCount[currentSensor] = 0;
+          }
+          //WAIT
+          else if (toWaitBeforeSustaining[currentSensor] > 0) {
+            updateRemainingTime(toWaitBeforeSustaining[currentSensor], lastSustainingTime[currentSensor]);
+          }
+          //SIGNAL
+          else {
+            sustained(currentSensor, distanceAboveBaseline, NOTE_VELOCITY_DELAY + ((sustainCount[currentSensor] - 1) * SUSTAIN_DELAY), true);
+
+            lastSustainingTime[currentSensor] = micros();
+            toWaitBeforeSustaining[currentSensor] = SUSTAIN_DELAY;
+            sustainCount[currentSensor]++;
+          }
         }
       }
-      //RISING
-      else if (sustainCount[currentSensor] == 1) {
-        //WAIT
-        //waiting is caused by velocity the velocity offset delay
-        if (toWaitBeforeRising[currentSensor] > 0) {
-          updateRemainingTime(toWaitBeforeRising[currentSensor], lastRisingTime[currentSensor]);
-        }
-        //SIGNAL
-        else {
-          rising(currentSensor, distanceAboveBaseline, true);
-
-          lastRisingTime[currentSensor] = micros();
-          toWaitBeforeFalling[currentSensor] = NOTE_ON_DELAY;
-
-          lastSustainingTime[currentSensor] = micros();
-          toWaitBeforeSustaining[currentSensor] = SUSTAIN_DELAY;
-
-          justJumped[currentSensor] = true;
-          sustainCount[currentSensor]++;
-        }
-      }
-      //SUSTAINING
+      //NOT JUMPING
       else {
-        //RESET
-        if (sustainCount[currentSensor] > MAX_CONSECUTIVE_SUSTAINS) {
-          baseline[currentSensor] = sensorReading;
+        //FALLING
+        if (justJumped[currentSensor]) {
+          //WAIT
+          if (toWaitBeforeFalling[currentSensor]) {
+            updateRemainingTime(toWaitBeforeFalling[currentSensor], lastRisingTime[currentSensor]);
+          }
+          //SIGNAL
+          else {
+            falling(currentSensor, true);
 
-          //reset counters
-          baselineBufferIndex[currentSensor] = 0;
-          sustainCount[currentSensor] = 0;
+            //wait before sending more midi signals
+            //debounces falling edge
+            lastRisingTime[currentSensor] = micros();
+            toWaitBeforeRising[currentSensor] = NOTE_OFF_DELAY;
+
+            //wait before buffering baseline
+            //this is to ignore the sensor "blowback" (erratic readings after jumps)
+            //and remove falling edge portion of signal that is below threshold
+            lastBaselineTime[currentSensor] = micros();
+            toWaitBeforeBaseline[currentSensor] = BASELINE_BLOWBACK_DELAY;
+
+            justJumped[currentSensor] = false;
+
+            //backtrack baseline count to remove jump start
+            //(might not do anything if we just updated baseline)
+            baselineBufferIndex[currentSensor] = max( 0, baselineBufferIndex[currentSensor] - RETRO_JUMP_BLOWBACK_SAMPLES);
+
+            //reset jump counter
+            sustainCount[currentSensor] = 0;
+          }
         }
-        //WAIT
-        else if (toWaitBeforeSustaining[currentSensor] > 0) {
-          updateRemainingTime(toWaitBeforeSustaining[currentSensor], lastSustainingTime[currentSensor]);
-        }
-        //SIGNAL
+        //BASELINING
         else {
-          sustained(currentSensor, distanceAboveBaseline, NOTE_VELOCITY_DELAY + ((sustainCount[currentSensor] - 1) * SUSTAIN_DELAY), true);
-
-          lastSustainingTime[currentSensor] = micros();
-          toWaitBeforeSustaining[currentSensor] = SUSTAIN_DELAY;
-          sustainCount[currentSensor]++;
-        }
-      }
-    }
-    //NOT JUMPING
-    else {
-      //FALLING
-      if (justJumped[currentSensor]) {
-        //WAIT
-        if (toWaitBeforeFalling[currentSensor]) {
-          updateRemainingTime(toWaitBeforeFalling[currentSensor], lastRisingTime[currentSensor]);
-        }
-        //SIGNAL
-        else {
-          falling(currentSensor, true);
-
-          //wait before sending more midi signals
-          //debounces falling edge
-          lastRisingTime[currentSensor] = micros();
-          toWaitBeforeRising[currentSensor] = NOTE_OFF_DELAY;
-
-          //wait before buffering baseline
-          //this is to ignore the sensor "blowback" (erratic readings after jumps)
-          //and remove falling edge portion of signal that is below threshold
-          lastBaselineTime[currentSensor] = micros();
-          toWaitBeforeBaseline[currentSensor] = BASELINE_BLOWBACK_DELAY;
-
-          justJumped[currentSensor] = false;
-
-          //backtrack baseline count to remove jump start
-          //(might not do anything if we just updated baseline)
-          baselineBufferIndex[currentSensor] = max( 0, baselineBufferIndex[currentSensor] - RETRO_JUMP_BLOWBACK_SAMPLES);
-
           //reset jump counter
           sustainCount[currentSensor] = 0;
-        }
-      }
-      //BASELINING
-      else {
-        //reset jump counter
-        sustainCount[currentSensor] = 0;
 
-        //RESET
-        if (baselineBufferIndex[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
-          jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
-          int maxBaseline = MAX_READING - jumpThreshold[currentSensor] - MIN_JUMPING_RANGE;
-          baseline[currentSensor] = min(bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE), maxBaseline);
+          //RESET
+          if (baselineBufferIndex[currentSensor] > (BASELINE_BUFFER_SIZE - 1)) {
+            jumpThreshold[currentSensor] = updateThreshold(baselineBuffer[currentSensor], baseline[currentSensor], jumpThreshold[currentSensor]);
+            int maxBaseline = MAX_READING - jumpThreshold[currentSensor] - MIN_JUMPING_RANGE;
+            baseline[currentSensor] = min(bufferAverage(baselineBuffer[currentSensor], BASELINE_BUFFER_SIZE), maxBaseline);
 
-          //reset counter
-          baselineBufferIndex[currentSensor] = 0;
-        }
-        //WAIT
-        else if (toWaitBeforeBaseline[currentSensor] > 0) {
-          updateRemainingTime(toWaitBeforeBaseline[currentSensor], lastBaselineTime[currentSensor]);
-        }
-        //SAMPLE
-        else {
-          baselineBuffer[currentSensor][baselineBufferIndex[currentSensor]] = sensorReading;
-          baselineBufferIndex[currentSensor]++;
+            //reset counter
+            baselineBufferIndex[currentSensor] = 0;
+          }
+          //WAIT
+          else if (toWaitBeforeBaseline[currentSensor] > 0) {
+            updateRemainingTime(toWaitBeforeBaseline[currentSensor], lastBaselineTime[currentSensor]);
+          }
+          //SAMPLE
+          else {
+            baselineBuffer[currentSensor][baselineBufferIndex[currentSensor]] = sensorReading;
+            baselineBufferIndex[currentSensor]++;
 
-          //reset timer
-          lastBaselineTime[currentSensor] = micros();
-          toWaitBeforeBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
+            //reset timer
+            lastBaselineTime[currentSensor] = micros();
+            toWaitBeforeBaseline[currentSensor] = BASELINE_SAMPLE_DELAY;
+          }
         }
       }
     }
-  }
-  if (DEBUG) {
-    printResults(toPrint, sizeof(toPrint) / sizeof(int));
+    if (DEBUG) {
+      printResults(toPrint, sizeof(toPrint) / sizeof(int));
+    }
   }
 }
 

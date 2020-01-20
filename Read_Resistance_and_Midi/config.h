@@ -24,7 +24,7 @@ const int PRINT_DELAY = 50 * MICROSECOND;
 
 /*MIDI CONFIG*/
 
-const boolean WITH_MIDI_OUTPUT = true;
+const boolean WITH_MIDI_OUTPUT = false;
 //Pad order: BOTTOM-LEFT // TOP-LEFT // TOP-RIGHT // BOTTOM-RIGHT
 const int NOTES[NUM_SENSORS] = {82, 84, 80, 85};
 const int IS_CLOCKING_PAD[NUM_SENSORS] = {false, false, false, false};
@@ -58,6 +58,9 @@ unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
 int TAPS_PER_PULSE = 1;
 
 /*SENSOR CONFIG*/
+
+//activates planck reading/triggering
+const boolean READ_RESISTANCE = false;
 
 //Maximum value returned by AnalogRead()
 //Normally 1023 with arduino, but the operational amplifiers
