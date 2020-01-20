@@ -19,23 +19,27 @@ void setup() {
 
   Serial.begin(BAUD_RATE);
   delay(3000);
+  
   Serial.println("Midi input only : ");
+  delay(10);
   if (READ_RESISTANCE) {
     Serial.println("yes");
   } else {
     Serial.println("no");
   }
   delay(10);
-  
+
   Serial.println("Motors : ");
+  delay(10);
   if (WITH_MOTORS) {
     Serial.println("yes");
   } else {
     Serial.println("no");
   }
   delay(10);
-  
+
   Serial.println("Midi out : " + WITH_MIDI_OUTPUT);
+  delay(10);
   if (WITH_MIDI_OUTPUT) {
     Serial.println("yes");
   } else {
@@ -113,7 +117,7 @@ void loop() {
   static unsigned long lastRisingTime[NUM_SENSORS];
   static unsigned long lastSustainingTime[NUM_SENSORS];
   static unsigned long lastBaselineTime[NUM_SENSORS];
-  
+
   delay(10);
 
   //for debug
