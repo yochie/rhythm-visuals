@@ -142,7 +142,7 @@ void loop() {
       //      delay(10);
       //      Serial.println(velocity);
       //      delay(10);
-      int sensorIndex = noteToSensor(note);
+      int sensorIndex = 0;//noteToSensor(note);
       if ( sensorIndex != -1) {
         rising(sensorIndex, velocity, false);
         lastExternalMidiOn[sensorIndex] = micros();
@@ -155,7 +155,7 @@ void loop() {
       byte note = usbMIDI.getData1();
       //      Serial.println(note);
       //      delay(10);
-      int sensorIndex = noteToSensor(note);
+      int sensorIndex = 0;//noteToSensor(note);
       if ( sensorIndex != -1) {
         falling(sensorIndex, false);
         lastExternalMidiOn[sensorIndex] = 0;
