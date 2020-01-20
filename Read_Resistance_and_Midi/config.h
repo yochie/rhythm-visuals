@@ -49,10 +49,10 @@ const int RANDOM_SEED_PIN = 6;
 //index of MOTO_PIN to map for each sensor
 //Needs to be in the range [-1, NUM_MOTORS - 1].
 //Uses LED_PIN instead of motor when -1
-const int SENSOR_TO_MOTOR[NUM_SENSORS] = {-1, 0, 1, -1};
+const int SENSOR_TO_MOTOR[NUM_SENSORS] = {-1, 1, 0, -1};
 
 //To limit duty cycle
-unsigned const long MAX_MOTOR_PULSE_DURATION = 200 * MILLISECOND;
+unsigned const long MAX_MOTOR_PULSE_DURATION = 400 * MILLISECOND;
 
 //To limit puppet movement
 int TAPS_PER_PULSE = 1;
@@ -60,7 +60,7 @@ int TAPS_PER_PULSE = 1;
 /*SENSOR CONFIG*/
 
 //activates planck reading/triggering
-const boolean READ_RESISTANCE = false;
+const boolean READ_RESISTANCE = true;
 
 //Maximum value returned by AnalogRead()
 //Normally 1023 with arduino, but the operational amplifiers

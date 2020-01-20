@@ -469,32 +469,6 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
   //    usbMIDI.send_now();
 }
 
-//MIDI INPUT CALLBACKS
-//void ExternalNoteOn(byte channel, byte note, byte velocity) {
-//  Serial.println("1");
-//
-//  //  rising(0, 64, false);
-//
-//  //  int sensorIndex = noteToSensor(note);
-//  //  if ( sensorIndex != -1) {
-//  //    rising(sensorIndex, velocity, false);
-//  //    lastExternalMidiOn[sensorIndex] = micros();
-//  //  }
-//}
-//
-//void ExternalNoteOff(byte channel, byte note, byte velocity) {
-//  Serial.println("0");
-//
-//  //  falling(0, false);
-//
-//  //
-//  //  int sensorIndex = noteToSensor(note);
-//  //  if ( sensorIndex != -1) {
-//  //    falling(sensorIndex, false);
-//  //    lastExternalMidiOn[sensorIndex] = 0;
-//  //  }
-//}
-
 void externalMidiSustains() {
   for (int sensorIndex = 0; sensorIndex < NUM_SENSORS; sensorIndex++) {
     if (lastExternalMidiOn[sensorIndex] != 0) {
