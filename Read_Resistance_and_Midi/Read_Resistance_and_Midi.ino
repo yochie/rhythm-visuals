@@ -103,6 +103,7 @@ void loop() {
   while (usbMIDI.read()) {
 
     Serial.println(usbMIDI.getType());
+    delay(10);
 
     if (usbMIDI.getType() == usbMIDI.NoteOn) {
 
