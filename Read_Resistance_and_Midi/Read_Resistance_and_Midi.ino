@@ -113,6 +113,8 @@ void loop() {
   static unsigned long lastRisingTime[NUM_SENSORS];
   static unsigned long lastSustainingTime[NUM_SENSORS];
   static unsigned long lastBaselineTime[NUM_SENSORS];
+  
+  delay(10);
 
   //for debug
   int toPrint[NUM_SENSORS];
