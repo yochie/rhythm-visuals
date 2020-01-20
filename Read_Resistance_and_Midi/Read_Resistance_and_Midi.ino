@@ -19,12 +19,29 @@ void setup() {
 
   Serial.begin(BAUD_RATE);
   delay(1000);
-  Serial.println("Midi input only : " + READ_RESISTANCE);
-  delay(1);
-  Serial.println("Motors : " + WITH_MOTORS);
-  delay(1);
+  Serial.println("Midi input only : ");
+  if (READ_RESISTANCE) {
+    Serial.println("yes");
+  } else {
+    Serial.println("no");
+  }
+  delay(10);
+  
+  Serial.println("Motors : ");
+  if (WITH_MOTORS) {
+    Serial.println("yes");
+  } else {
+    Serial.println("no");
+  }
+  delay(10);
+  
   Serial.println("Midi out : " + WITH_MIDI_OUTPUT);
-  delay(1);
+  if (WITH_MIDI_OUTPUT) {
+    Serial.println("yes");
+  } else {
+    Serial.println("no");
+  }
+  delay(10);
 
   for (int sensor = 0; sensor < NUM_SENSORS; sensor++) {
     baseline[sensor] = analogRead(SENSOR_PINS[sensor]);
