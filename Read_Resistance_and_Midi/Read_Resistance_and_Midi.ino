@@ -128,40 +128,40 @@ void loop() {
   if (usbMIDI.read()) {
     if (usbMIDI.getType() == usbMIDI.NoteOn) {
 
-      Serial.println("MIDI ON");
-      delay(10);
+//      Serial.println("MIDI ON");
+//      delay(10);
 
       byte note = usbMIDI.getData1();
       byte velocity = usbMIDI.getData2();
-
-      Serial.println(note);
-      delay(10);
+//
+//      Serial.println(note);
+//      delay(10);
       //      Serial.println(velocity);
       //      delay(10);
       int sensorIndex = noteToSensor((int) note);
       if ( sensorIndex != -1) {
         rising(sensorIndex, (int) velocity, false);
-        // lastExternalMidiOn[sensorIndex] = micros();
+         lastExternalMidiOn[sensorIndex] = micros();
       }
     } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
-
-      Serial.println("MIDI OFF");
-      delay(10);
+//
+//      Serial.println("MIDI OFF");
+//      delay(10);
 
       byte note = usbMIDI.getData1();
-      Serial.println(note);
-      delay(10);
+//      Serial.println(note);
+//      delay(10);
       int sensorIndex = noteToSensor((int) note);
       if ( sensorIndex != -1) {
         falling(sensorIndex, false);
-        //lastExternalMidiOn[sensorIndex] = 0;
+        lastExternalMidiOn[sensorIndex] = 0;
       }
     }
   }
 
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
-  //externalMidiSustains();
+  externalMidiSustains();
 
   if (READ_RESISTANCE) {
     //For MIDI output and local planck gigger control
