@@ -19,7 +19,7 @@ void setup() {
 
   Serial.begin(BAUD_RATE);
   delay(3000);
-  
+
   Serial.println("Midi input only : ");
   delay(10);
   if (READ_RESISTANCE) {
@@ -134,25 +134,25 @@ void loop() {
 
       Serial.println("MIDI ON");
       delay(10);
-      //
-      //      int note = usbMIDI.getData1();
-      //      int velocity = usbMIDI.getData2();
-      //      int sensorIndex = noteToSensor(note);
-      //      if ( sensorIndex != -1) {
-      //        rising(sensorIndex, velocity, false);
-      //        lastExternalMidiOn[sensorIndex] = micros();
-      //    }
+
+      int note = usbMIDI.getData1();
+      int velocity = usbMIDI.getData2();
+      int sensorIndex = 0;//noteToSensor(note);
+      if ( sensorIndex != -1) {
+        rising(sensorIndex, velocity, false);
+        lastExternalMidiOn[sensorIndex] = micros();
+      }
     } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
 
       Serial.println("MIDI OFF");
       delay(10);
-      //
-      //      int note = usbMIDI.getData1();
-      //      int sensorIndex = noteToSensor(note);
-      //      if ( sensorIndex != -1) {
-      //        falling(sensorIndex, false);
-      //        lastExternalMidiOn[sensorIndex] = 0;
-      //      }
+
+      int note = usbMIDI.getData1();
+      int sensorIndex = 0;//noteToSensor(note);
+      if ( sensorIndex != -1) {
+        falling(sensorIndex, false);
+        lastExternalMidiOn[sensorIndex] = 0;
+      }
     }
   }
 
