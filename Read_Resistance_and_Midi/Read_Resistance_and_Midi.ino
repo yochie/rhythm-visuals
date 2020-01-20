@@ -107,7 +107,7 @@ void loop() {
     if (usbMIDI.getType() == usbMIDI.NoteOn) {
 
       Serial.println("MIDI ON");
-      delay(1);
+      delay(10);
       //
       //      int note = usbMIDI.getData1();
       //      int velocity = usbMIDI.getData2();
@@ -119,7 +119,7 @@ void loop() {
     } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
 
       Serial.println("MIDI OFF");
-      delay(1);
+      delay(10);
       //
       //      int note = usbMIDI.getData1();
       //      int sensorIndex = noteToSensor(note);
@@ -132,7 +132,7 @@ void loop() {
 
   //will call sustain for external midi signals that are held
   //turns off motor if held for too long
-//  externalMidiSustains();
+  //  externalMidiSustains();
 
   //For MIDI output and local planck gigger control
   for (int currentSensor = 0; currentSensor < NUM_SENSORS; currentSensor++) {
@@ -390,6 +390,7 @@ void rising(int sensor, int velocity, bool isLocal) {
     if (tapsToIgnore[sensor] == 0) {
       tapsToIgnore[sensor] = TAPS_PER_PULSE - 1;
       digitalWrite(sensorToMotor(sensor), HIGH);
+      delay(10);
     } else {
       tapsToIgnore[sensor]--;
     }
@@ -404,6 +405,8 @@ void rising(int sensor, int velocity, bool isLocal) {
     if (IS_CLOCKING_PAD[sensor]) {
       usbMIDI.sendRealTime(usbMIDI.Clock);
       usbMIDI.send_now();
+      delay(10);
+
     }
   }
 }
@@ -412,12 +415,14 @@ void falling(int sensor, bool isLocal) {
   if (WITH_MOTORS) {
     if ((tapsToIgnore[sensor]) == TAPS_PER_PULSE - 1) {
       digitalWrite(sensorToMotor(sensor), LOW);
+      delay(10);
     }
   }
 
   if (WITH_MIDI_OUTPUT && isLocal) {
     usbMIDI.sendNoteOff(NOTES[sensor], 0, MIDI_CHANNEL);
     usbMIDI.send_now();
+    delay(10);
   }
 }
 
@@ -425,6 +430,7 @@ void sustained(int sensor, int velocity, unsigned long duration, bool isLocal) {
   if (WITH_MOTORS) {
     if (duration >= MAX_MOTOR_PULSE_DURATION) {
       digitalWrite(sensorToMotor(sensor), LOW);
+      delay(10);
     }
   }
   //  if (WITH_MIDI_OUTPUT && isLocal) {
