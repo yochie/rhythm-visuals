@@ -23,6 +23,7 @@ public class FlockMode extends Mode {
 
   public FlockMode() {
     this.modeName = "Nuée rétro - Retro Flock";
+    this.redrawBackground = false;
 
     //set defaults used by loadConfigFrom
     this.defaultConfig.setProperty("MAX_FLOCK_SIZE", "10");
@@ -80,6 +81,8 @@ public class FlockMode extends Mode {
   }
 
   public void draw() {
+    background(0,0,0);
+
     textFont(this.font);
     textSize(30);
 

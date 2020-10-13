@@ -39,9 +39,9 @@ public class TreeMode extends Mode {
 
     background(25, 180, 255);
 
-    ae_logo = loadImage("ae.png");
-    vdj_logo = loadImage("bitmap_noir.png");
-    vdj_logo.resize((int) (vdj_logo.width * 0.33), 0);
+    //ae_logo = loadImage("ae.png");
+    //vdj_logo = loadImage("bitmap_noir.png");
+    //vdj_logo.resize((int) (vdj_logo.width * 0.33), 0);
 
     colorMode(RGB, 255, 255, 255, 100);
     branch.add(new Branch(width / 2, height, width / 2, height - 80.0, 80.0, 0.0));
@@ -85,8 +85,8 @@ public class TreeMode extends Mode {
     //}
 
     imageMode(CENTER);
-    image(ae_logo, 2*width/5, height/4);
-    image(vdj_logo, 3*width/5, height/4);
+    //image(ae_logo, 2*width/5, height/4);
+    //image(vdj_logo, 3*width/5, height/4);
     imageMode(CORNER);
 
     colorMode(RGB, 255, 255, 255, 100);
